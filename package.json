@@ -1,0 +1,8 @@
+{
+  "name": "bigdil",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "@esbuild/darwin-arm64"]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@bigdil/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@bigdil/db": "workspace:*",
+    "@hono/node-server": "^1.19.9",
+    "hono": "^4.12.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "~5.9.3",
+    "@types/node": "^25.3.3"
+  }
+}
