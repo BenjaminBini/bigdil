@@ -1,6 +1,7 @@
 import { CheckCircle2, ChevronLeft, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { WarningButton } from '@/components/shared/button-adapters'
 import { StatusItem } from '@/components/shared/status-item'
 import type { Period } from '@/api/types'
@@ -23,7 +24,7 @@ export function Step4Confirm({ period, onBack, onClose }: Step4Props) {
         You are about to permanently close Period {period.periodNumber}. This action cannot be undone.
       </p>
 
-      <div className="rounded-lg border bg-gray-50 divide-y text-sm">
+      <Card variant="muted">
         <StatusItem
           icon={<Lock className="size-4 text-gray-400" />}
           title={`Period ${period.periodNumber} will be locked`}
@@ -44,7 +45,7 @@ export function Step4Confirm({ period, onBack, onClose }: Step4Props) {
           title="Re-forecast saved"
           description="Your updated planned days for future periods will be persisted as the new work table."
         />
-      </div>
+      </Card>
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={onBack}>

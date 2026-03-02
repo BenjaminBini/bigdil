@@ -2,7 +2,7 @@ import { Archive, ChevronDown, ChevronRight, GripVertical, Pencil, Plus } from '
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Task } from '@/api/types'
-import { StatusBadge } from './status-badge'
+import { TaskStatusBadge } from './status-badge'
 
 interface TaskNodeRowProps {
   task: Task
@@ -26,19 +26,20 @@ export function TaskNodeRow({
       <GripVertical className="size-4 shrink-0 cursor-grab text-gray-300" />
 
       {isPhase ? (
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={onToggle}
-          className="flex size-5 shrink-0 items-center justify-center rounded text-gray-500 hover:bg-gray-200"
           aria-label={isExpanded ? 'Collapse' : 'Expand'}
         >
           {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-        </button>
+        </Button>
       ) : (
         <span className="size-5 shrink-0" />
       )}
 
       <span className={cn('flex-1 text-sm', isPhase ? 'font-semibold text-gray-800' : 'text-gray-700')}>{task.name}</span>
-      <StatusBadge status={task.status} />
+      <TaskStatusBadge status={task.status} />
 
       <div className="ml-1 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
         {isPhase && (

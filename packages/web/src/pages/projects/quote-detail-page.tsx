@@ -5,6 +5,7 @@ import { Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { useProject, useReferenceData } from '@/api/hooks'
 import { Card } from '@/components/ui/card'
+import { AlertBanner } from '@/components/shared/alert-banner'
 import type { Quote, QuoteLine, Task } from '@/api/types'
 import type { QuoteGridRow } from './quote-detail/model'
 import { QuoteDetailHeader } from './quote-detail/quote-detail-header'
@@ -254,13 +255,12 @@ export default function QuoteDetailPage() {
       />
 
       {isChangeOrder && (
-        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <Info className="mt-0.5 size-4 shrink-0" />
-          <span>
-            <strong>Change Order</strong> - adds to existing scope. Sell rates match previously
-            validated rates for the same Task + Profile combinations.
-          </span>
-        </div>
+        <AlertBanner
+          variant="warning"
+          icon={<Info className="size-4 text-amber-600" />}
+          title="Change Order"
+          description="Adds to existing scope. Sell rates match previously validated rates for the same Task + Profile combinations."
+        />
       )}
 
       <Card variant="flush">

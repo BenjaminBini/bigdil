@@ -1,4 +1,4 @@
-import type { ProjectStatus, PeriodStatus, QuoteStatus, TimesheetStatus } from '@/api/types'
+import type { ProjectStatus, PeriodStatus, QuoteStatus, TimesheetStatus, UserRole, TaskStatus } from '@/api/types'
 
 export const projectStatusColors: Record<ProjectStatus, string> = {
   DRAFT: 'bg-gray-100 text-gray-700',
@@ -49,4 +49,26 @@ export const timesheetStatusLabels: Record<TimesheetStatus, string> = {
   SUBMITTED: 'Submitted',
   APPROVED: 'Approved',
   REJECTED: 'Rejected',
+}
+
+export const roleColors: Record<UserRole, string> = {
+  ADMIN: 'bg-purple-100 text-purple-800',
+  PM: 'bg-blue-100 text-blue-800',
+  CONSULTANT: 'bg-green-100 text-green-800',
+  FINANCE: 'bg-amber-100 text-amber-800',
+  EXEC: 'bg-gray-100 text-gray-700',
+}
+
+export const taskStatusColors: Record<TaskStatus, string> = {
+  planned: 'bg-blue-50 text-blue-700 border-blue-200',
+  active: 'bg-green-50 text-green-700 border-green-200',
+  done: 'bg-gray-100 text-gray-600 border-gray-200',
+}
+
+export const miscStatusColors: Record<string, string> = {
+  ACTIVE: 'border-green-200 bg-green-100 text-green-800',
+  INACTIVE: 'border-red-200 bg-red-100 text-red-800',
+  ACTUAL: 'bg-green-100 text-green-800',
+  PLANNED: 'bg-blue-100 text-blue-800',
+  CLOSED: 'bg-gray-100 text-gray-600',
 }

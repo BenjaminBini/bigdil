@@ -4,6 +4,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
   Table,
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { ColorValue } from '@/components/shared/color-value'
 import { formatCurrency } from '@/lib/format'
 import type { PastPeriodSummary } from './types'
 
@@ -27,17 +29,15 @@ export function PastApprovals({ open, onOpenChange, rows }: PastApprovalsProps) 
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
       <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className="flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-gray-900"
-        >
+        <Button variant="ghost" size="sm">
           {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
           Past Approvals ({rows.length})
-        </button>
+        </Button>
       </CollapsibleTrigger>
 
       <CollapsibleContent>
-        <Card variant="flush" className="mt-3">
+        <div className="mt-3">
+        <Card variant="flush">
           <div className="border-b bg-gray-50 px-5 py-3">
             <h3 className="text-sm font-semibold text-gray-700">Frozen Periods - All Approved</h3>
           </div>
@@ -57,7 +57,9 @@ export function PastApprovals({ open, onOpenChange, rows }: PastApprovalsProps) 
                 <TableRow key={row.periodId} className="text-sm">
                   <TableCell className="py-2.5 font-medium text-gray-700">{row.periodId}</TableCell>
                   <TableCell className="py-2.5 text-right text-gray-700">{row.totalEntries}</TableCell>
-                  <TableCell className="py-2.5 text-right font-medium text-green-700">{row.approvedEntries}</TableCell>
+                  <TableCell className="py-2.5 text-right">
+                    <ColorValue value={row.approvedEntries} sentiment="positive" />
+                  </TableCell>
                   <TableCell className="py-2.5 text-right text-gray-700">
                     {row.totalCost > 0 ? formatCurrency(row.totalCost) : '—'}
                   </TableCell>
@@ -72,6 +74,7 @@ export function PastApprovals({ open, onOpenChange, rows }: PastApprovalsProps) 
             </TableBody>
           </Table>
         </Card>
+        </div>
       </CollapsibleContent>
     </Collapsible>
   )

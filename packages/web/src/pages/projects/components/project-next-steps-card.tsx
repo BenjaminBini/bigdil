@@ -10,11 +10,11 @@ const nextSteps = [
 
 export function ProjectNextStepsCard() {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Next Steps</CardTitle>
+    <Card variant="compact">
+      <CardHeader>
+        <CardTitle>Next Steps</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 pt-0">
+      <CardContent>
         <p className="text-sm leading-relaxed text-gray-700">
           Set start and end dates to generate the period grid, then distribute quoted days across
           periods.

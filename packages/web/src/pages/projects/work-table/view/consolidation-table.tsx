@@ -1,4 +1,5 @@
 import type { Period } from '@/api/types'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { ConsolidationGridHeader } from './consolidation-grid-header'
 import { ConsolidationGridRow } from './consolidation-grid-row'
 import type { FrozenData, GridRow } from '@/lib/work-table/types'
@@ -34,9 +35,7 @@ export function ConsolidationTable({
       <div className="flex items-center gap-2 border-b bg-white px-4 py-2">
         <h2 className="text-sm font-semibold text-slate-800">Consolidation on the {endDateLabel}</h2>
         {consolidationPeriod && (
-          <span className="inline-flex items-center rounded-md border border-amber-200 bg-amber-100 px-1.5 py-0.5 text-xs font-bold text-amber-700">
-            W{consolidationPeriod.periodNumber}
-          </span>
+          <StatusBadge status="CONSOLIDATION" label={`W${consolidationPeriod.periodNumber}`} />
         )}
       </div>
 

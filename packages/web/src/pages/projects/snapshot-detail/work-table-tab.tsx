@@ -1,5 +1,4 @@
 import { Lock } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -9,6 +8,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
+import { StatusBadge } from '@/components/shared/status-badge'
+import { AlertBanner } from '@/components/shared/alert-banner'
 import { formatDays } from '@/lib/format'
 import type { Snapshot } from '@/api/types'
 
@@ -47,17 +48,12 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
 
   return (
     <div className="pt-4 space-y-4">
-      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-        <Lock className="size-4 text-gray-500 shrink-0" />
-        <div>
-          <p className="text-sm font-medium text-gray-700">
-            Work table as-of this snapshot — READ ONLY
-          </p>
-          <p className="text-xs text-gray-500 mt-0.5">
-            This is a frozen view. Showing all periods up to Period {asOfPeriodNumber}.
-          </p>
-        </div>
-      </div>
+      <AlertBanner
+        variant="info"
+        icon={<Lock className="size-4 text-blue-500" />}
+        title="Work table as-of this snapshot — READ ONLY"
+        description={`This is a frozen view. Showing all periods up to Period ${asOfPeriodNumber}.`}
+      />
 
       <Card variant="flush">
         <Table>
@@ -83,9 +79,7 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
                   {formatDays(row.totalDays)}
                 </TableCell>
                 <TableCell>
-                  <Badge className={row.isActual ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
-                    {row.isActual ? 'Actual' : 'Planned'}
-                  </Badge>
+                  <StatusBadge status={row.isActual ? 'ACTUAL' : 'PLANNED'} />
                 </TableCell>
               </TableRow>
             ))}

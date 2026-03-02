@@ -4,14 +4,19 @@ import {
   periodStatusColors,
   quoteStatusColors,
   timesheetStatusColors,
+  roleColors,
+  taskStatusColors,
+  miscStatusColors,
 } from '@/lib/constants'
-import type { ProjectStatus, PeriodStatus, QuoteStatus, TimesheetStatus } from '@/api/types'
+import type { ProjectStatus, PeriodStatus, QuoteStatus, TimesheetStatus, UserRole, TaskStatus } from '@/api/types'
 
 type KnownStatus =
   | ProjectStatus
   | PeriodStatus
   | QuoteStatus
   | TimesheetStatus
+  | UserRole
+  | TaskStatus
 
 const STATUS_LABEL: Record<string, string> = {
   // ProjectStatus
@@ -32,6 +37,16 @@ const STATUS_LABEL: Record<string, string> = {
   // TimesheetStatus
   SUBMITTED: 'Submitted',
   APPROVED: 'Approved',
+  // TaskStatus (lowercase)
+  planned: 'Planned',
+  active: 'Active',
+  done: 'Done',
+  // Misc
+  ACTIVE: 'Active',
+  INACTIVE: 'Inactive',
+  ACTUAL: 'Actual',
+  PLANNED: 'Planned',
+  CLOSED: 'Closed',
 }
 
 /**
@@ -44,6 +59,9 @@ function resolveColors(status: string): string {
     periodStatusColors as Record<string, string>,
     quoteStatusColors as Record<string, string>,
     timesheetStatusColors as Record<string, string>,
+    roleColors as Record<string, string>,
+    taskStatusColors as Record<string, string>,
+    miscStatusColors as Record<string, string>,
   ]
   for (const map of allMaps) {
     if (status in map) return map[status]
@@ -53,26 +71,25 @@ function resolveColors(status: string): string {
 
 export interface StatusBadgeProps {
   status: KnownStatus | string
-  className?: string
+  label?: string
 }
 
 /**
  * A small pill badge that colours itself according to the provided status
- * string using the colour maps from mock data.
+ * string using the colour maps from constants.
  */
-export function StatusBadge({ status, className }: StatusBadgeProps) {
+export function StatusBadge({ status, label }: StatusBadgeProps) {
   const colors = resolveColors(status)
-  const label = STATUS_LABEL[status] ?? status
+  const displayLabel = label ?? STATUS_LABEL[status] ?? status
 
   return (
     <span
       className={cn(
         'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
         colors,
-        className,
       )}
     >
-      {label}
+      {displayLabel}
     </span>
   )
 }

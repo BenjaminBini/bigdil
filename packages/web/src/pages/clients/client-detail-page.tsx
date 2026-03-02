@@ -105,10 +105,12 @@ function NotFound({ onBack }: { onBack: () => void }) {
   return (
     <div className="mx-auto max-w-6xl p-6">
       <p className="text-gray-500">Client not found.</p>
-      <Button variant="ghost" className="mt-4" onClick={onBack}>
+      <div className="mt-4">
+      <Button variant="ghost" onClick={onBack}>
         <ChevronLeft />
         Back to Clients
       </Button>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,6 @@
 import type { Employee } from '@/api/types'
+import { Card } from '@/components/ui/card'
+import { ColorValue } from '@/components/shared/color-value'
 import { formatCurrency, formatDate } from '@/lib/format'
 
 interface EmployeeRateHistoryTableProps {
@@ -7,7 +9,7 @@ interface EmployeeRateHistoryTableProps {
 
 export function EmployeeRateHistoryTable({ employee }: EmployeeRateHistoryTableProps) {
   return (
-    <div className="overflow-hidden rounded-md border bg-white shadow-xs">
+    <Card variant="flush">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b bg-gray-50">
@@ -21,7 +23,7 @@ export function EmployeeRateHistoryTable({ employee }: EmployeeRateHistoryTableP
             <tr key={index} className="border-b transition-colors hover:bg-gray-50 last:border-0">
               <td className="px-3 py-2.5 text-gray-700">{formatDate(entry.validFrom)}</td>
               <td className="px-3 py-2.5 text-gray-500">
-                {entry.validTo ? formatDate(entry.validTo) : <span className="font-medium text-green-700">Present</span>}
+                {entry.validTo ? formatDate(entry.validTo) : <ColorValue value="Present" sentiment="positive" />}
               </td>
               <td className="px-3 py-2.5 text-right font-medium tabular-nums text-gray-900">
                 {formatCurrency(entry.costRatePerDay)}
@@ -30,6 +32,6 @@ export function EmployeeRateHistoryTable({ employee }: EmployeeRateHistoryTableP
           ))}
         </tbody>
       </table>
-    </div>
+    </Card>
   )
 }

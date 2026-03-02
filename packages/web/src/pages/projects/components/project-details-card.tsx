@@ -10,11 +10,11 @@ interface ProjectDetailsCardProps {
 
 export function ProjectDetailsCard({ project }: ProjectDetailsCardProps) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Project Details</CardTitle>
+    <Card variant="compact">
+      <CardHeader>
+        <CardTitle>Project Details</CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent>
         <div className="divide-y divide-gray-100">
           <DetailRow label="Client" value={project.clientName ?? <span className="text-gray-400">—</span>} />
           <DetailRow

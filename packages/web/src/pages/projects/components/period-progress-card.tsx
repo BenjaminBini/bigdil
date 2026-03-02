@@ -1,5 +1,6 @@
 import { Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { ProgressBar } from '@/components/shared/progress-bar'
 import { formatDate } from '@/lib/format'
 import type { Period } from '@/api/types'
@@ -14,19 +15,17 @@ export function PeriodProgressCard({ periods }: PeriodProgressCardProps) {
   const activePeriod = periods.find((period) => period.status === 'OPEN' || period.status === 'CONSOLIDATION')
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Period Progress</CardTitle>
+    <Card variant="compact">
+      <CardHeader>
+        <CardTitle>Period Progress</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 pt-0">
+      <CardContent>
         <div className="flex items-center gap-2">
           <Clock className="size-4 shrink-0 text-green-600" />
           <p className="text-sm font-medium text-gray-900">
             Period {activePeriod?.periodNumber ?? '—'} of {totalPeriods}
             {activePeriod && (
-              <span className="ml-1.5 rounded bg-green-100 px-1.5 py-0.5 text-xs font-normal text-green-700">
-                {activePeriod.status === 'CONSOLIDATION' ? 'Consolidation' : 'Open'}
-              </span>
+              <StatusBadge status={activePeriod.status} />
             )}
           </p>
         </div>

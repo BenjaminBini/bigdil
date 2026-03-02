@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { AlertTriangle, CheckCircle2, ChevronRight, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { WarningButton } from '@/components/shared/button-adapters'
 import { AlertBanner } from '@/components/shared/alert-banner'
+import { ColorValue } from '@/components/shared/color-value'
 import { StatusItem } from '@/components/shared/status-item'
 import type { Period, TimesheetEntry, WorkTableCell } from '@/api/types'
 import { Step1PlanActualTable } from './step1-plan-actual-table'
@@ -61,15 +61,15 @@ export function Step1Checklist({
         Review the checklist before closing Period {period.periodNumber} ({period.startDate} – {period.endDate}).
       </p>
 
-      <Card variant="muted" className="divide-y">
+      <Card variant="muted">
         <StatusItem
           icon={allApproved
             ? <CheckCircle2 className="size-5 text-green-600" />
             : <XCircle className="size-5 text-red-500" />}
           title="All timesheets approved"
           description={
-            <p className={cn(allApproved ? 'text-green-700' : 'text-red-600')}>
-              {approved}/{total} approved
+            <p>
+              <ColorValue value={`${approved}/${total} approved`} sentiment={allApproved ? 'positive' : 'negative'} />
               {!allApproved && (
                 <span className="ml-1 text-gray-500">
                   ({periodTimesheets

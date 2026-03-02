@@ -16,7 +16,7 @@ export function AlertsCard({ alerts }: AlertsCardProps) {
       <CardHeader>
         <CardTitle>Alerts</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         {alerts.periodsNeedingClosure.length > 0 && (
           <div>
             <h4 className="mb-2 text-sm font-medium">Periods in Consolidation (ready to close)</h4>

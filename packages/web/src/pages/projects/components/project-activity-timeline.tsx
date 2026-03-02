@@ -19,11 +19,11 @@ export function ProjectActivityTimeline({ periods }: ProjectActivityTimelineProp
     }))
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Recent Activity</CardTitle>
+    <Card variant="compact">
+      <CardHeader>
+        <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent>
         {timeline.length === 0 ? (
           <p className="py-4 text-sm text-gray-400">No closed periods yet.</p>
         ) : (

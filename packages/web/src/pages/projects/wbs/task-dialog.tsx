@@ -69,7 +69,7 @@ export function TaskDialog({ open, title, form, onChange, onSave, onClose }: Tas
               value={form.status}
               onValueChange={(v) => onChange({ ...form, status: v as TaskStatus })}
             >
-              <SelectTrigger id="task-status" className="w-full">
+              <SelectTrigger id="task-status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

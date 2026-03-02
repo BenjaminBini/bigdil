@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export type KpiCardVariant = 'default' | 'highlight' | 'warning' | 'dim'
+export type KpiCardVariant = 'default' | 'highlight' | 'warning' | 'dim' | 'inline'
 
 export interface KpiCardProps {
   label: string
@@ -24,10 +24,11 @@ export interface KpiCardProps {
 }
 
 const VARIANT_CONTAINER: Record<KpiCardVariant, string> = {
-  default: 'border-border bg-card',
-  highlight: 'border-green-200 bg-green-50',
-  warning: 'border-amber-200 bg-amber-50',
-  dim: 'border-border bg-card opacity-60',
+  default: 'rounded-lg border p-4 shadow-xs border-border bg-card',
+  highlight: 'rounded-lg border p-4 shadow-xs border-green-200 bg-green-50',
+  warning: 'rounded-lg border p-4 shadow-xs border-amber-200 bg-amber-50',
+  dim: 'rounded-lg border p-4 shadow-xs border-border bg-card opacity-60',
+  inline: '',
 }
 
 const VARIANT_VALUE: Record<KpiCardVariant, string> = {
@@ -35,6 +36,7 @@ const VARIANT_VALUE: Record<KpiCardVariant, string> = {
   highlight: 'text-green-700',
   warning: 'text-amber-700',
   dim: 'text-muted-foreground',
+  inline: 'text-foreground',
 }
 
 function formatValue(value: string | number): string {
@@ -63,7 +65,6 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        'rounded-lg border p-4 shadow-xs',
         VARIANT_CONTAINER[variant],
         className,
       )}

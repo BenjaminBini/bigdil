@@ -16,7 +16,7 @@ export function EmployeeInfoCards({ employee }: EmployeeInfoCardsProps) {
         <CardHeader>
           <CardTitle>Employee Info</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent>
           <DetailRow
             label="Status"
             value={<ActiveBadge active={employee.active} />}
@@ -28,7 +28,8 @@ export function EmployeeInfoCards({ employee }: EmployeeInfoCardsProps) {
         </CardContent>
       </Card>
 
-      <Card className="lg:col-span-2">
+      <div className="lg:col-span-2">
+      <Card>
         <CardHeader>
           <CardTitle>Cost Rate History</CardTitle>
         </CardHeader>
@@ -53,6 +54,7 @@ export function EmployeeInfoCards({ employee }: EmployeeInfoCardsProps) {
           </Table>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }

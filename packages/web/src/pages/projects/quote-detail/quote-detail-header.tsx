@@ -50,7 +50,7 @@ export function QuoteDetailHeader({
 
       <div className="flex shrink-0 items-center gap-2">
         {isDraft && (
-          <Button onClick={onValidate} className="gap-1.5">
+          <Button onClick={onValidate}>
             <CheckCircle className="size-4" />
             Validate Quote
           </Button>

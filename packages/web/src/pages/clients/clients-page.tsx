@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Plus, Search } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/shared/search-input'
 import { useProjects, useReferenceData } from '@/api/hooks'
 import type { Client, ProjectListItem } from '@/api/types'
 import { ClientsListTable } from './components/clients-list-table'
@@ -105,13 +105,11 @@ export default function ClientsPage() {
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
-        <Input
+      <div className="max-w-sm">
+        <SearchInput
           placeholder="Search clients..."
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          className="pl-8"
         />
       </div>
 

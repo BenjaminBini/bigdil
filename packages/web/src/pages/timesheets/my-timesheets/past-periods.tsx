@@ -4,6 +4,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
   Table,
@@ -27,17 +28,15 @@ export function PastPeriods({ open, onOpenChange, rows }: PastPeriodsProps) {
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
       <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className="flex items-center gap-2 text-sm font-medium text-gray-700 transition-colors hover:text-gray-900"
-        >
+        <Button variant="ghost" size="sm">
           {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
           Past Periods ({rows.length})
-        </button>
+        </Button>
       </CollapsibleTrigger>
 
       <CollapsibleContent>
-        <Card variant="flush" className="mt-3">
+        <div className="mt-3">
+        <Card variant="flush">
           <div className="border-b bg-gray-50 px-5 py-3">
             <h3 className="text-sm font-semibold text-gray-700">Frozen Periods - Read Only</h3>
           </div>
@@ -72,6 +71,7 @@ export function PastPeriods({ open, onOpenChange, rows }: PastPeriodsProps) {
             </TableBody>
           </Table>
         </Card>
+        </div>
       </CollapsibleContent>
     </Collapsible>
   )

@@ -18,11 +18,11 @@ interface MarginInsightProps {
 export function MarginInsightPanel({ insight }: MarginInsightProps) {
   return (
     <div className="shrink-0 border-t bg-white px-4 py-4">
-      <Card variant="flush">
-        <CardHeader className="border-b bg-slate-50 px-4 py-3">
-          <CardTitle className="text-sm font-semibold text-slate-800">Margin Insight</CardTitle>
+      <Card variant="compact">
+        <CardHeader>
+          <CardTitle>Margin Insight</CardTitle>
         </CardHeader>
-        <CardContent className="px-4 py-3">
+        <CardContent>
           <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {insight.employees.map((emp) => {
               const hasImpact = emp.rateImpact !== 0
@@ -49,14 +49,18 @@ export function MarginInsightPanel({ insight }: MarginInsightProps) {
                     </span>
                   </div>
                   <div className="text-xs text-slate-600">
-                    <span className={cn(isNegative ? 'text-red-700' : hasImpact ? 'text-emerald-700' : 'text-slate-600')}>
-                      {emp.actualCostRate}€/d (actual) vs {emp.assumedCostRate}€/d (assumed)
-                    </span>
+                    <ColorValue
+                      value={`${emp.actualCostRate}€/d (actual) vs ${emp.assumedCostRate}€/d (assumed)`}
+                      sentiment={isNegative ? 'negative' : hasImpact ? 'positive' : 'neutral'}
+                    />
                     {hasImpact && (
-                      <span className={cn('ml-1.5 font-semibold', isNegative ? 'text-red-700' : 'text-emerald-700')}>
-                        → {isNegative ? '+' : ''}
-                        {emp.rateImpact}€/d impact
-                      </span>
+                      <>
+                        {' '}
+                        <ColorValue
+                          value={`→ ${isNegative ? '+' : ''}${emp.rateImpact}€/d impact`}
+                          sentiment={isNegative ? 'negative' : 'positive'}
+                        />
+                      </>
                     )}
                   </div>
                   <div className="font-mono text-xs text-slate-500">ETC: {formatCurrency(emp.etcCost)}</div>
@@ -65,23 +69,24 @@ export function MarginInsightPanel({ insight }: MarginInsightProps) {
             })}
           </div>
 
-          <MetricStrip
-            className="border-t pt-3"
-            items={[
-              { label: 'Total ETC Cost', value: <span className="font-mono font-semibold">{formatCurrency(insight.totalEtcCost)}</span> },
-              { label: 'Contract Value', value: <span className="font-mono font-semibold">{formatCurrency(insight.totalContractValue)}</span> },
-              {
-                label: 'Margin Forecast',
-                value: (
-                  <>
-                    <ColorValue value={insight.marginForecast} format="currency" className="font-mono" />
-                    {' '}
-                    <span className="text-sm">({insight.marginPercent.toFixed(1)}%)</span>
-                  </>
-                ),
-              },
-            ]}
-          />
+          <div className="border-t pt-3">
+            <MetricStrip
+              items={[
+                { label: 'Total ETC Cost', value: <ColorValue value={insight.totalEtcCost} format="currency" sentiment="neutral" /> },
+                { label: 'Contract Value', value: <ColorValue value={insight.totalContractValue} format="currency" sentiment="neutral" /> },
+                {
+                  label: 'Margin Forecast',
+                  value: (
+                    <>
+                      <ColorValue value={insight.marginForecast} format="currency" />
+                      {' '}
+                      <ColorValue value={`(${insight.marginPercent.toFixed(1)}%)`} sentiment={insight.marginPercent >= 0 ? 'positive' : 'negative'} />
+                    </>
+                  ),
+                },
+              ]}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

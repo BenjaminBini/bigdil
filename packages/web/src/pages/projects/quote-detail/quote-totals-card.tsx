@@ -9,13 +9,13 @@ interface QuoteTotalsCardProps {
 
 export function QuoteTotalsCard({ totalRow }: QuoteTotalsCardProps) {
   return (
-    <Card variant="muted" className="p-4">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-        <KpiCard label="Total Days" value={String(totalRow.days)} className="border-0 bg-transparent p-0 shadow-none" />
-        <KpiCard label="Revenue (ex-VAT)" value={formatCurrency(totalRow.revenue)} className="border-0 bg-transparent p-0 shadow-none" />
-        <KpiCard label="Budget Cost" value={formatCurrency(totalRow.cost)} valueClassName="text-gray-600" className="border-0 bg-transparent p-0 shadow-none" />
-        <KpiCard label="Margin" value={formatCurrency(totalRow.margin)} valueClassName="text-gray-800" className="border-0 bg-transparent p-0 shadow-none" />
-        <KpiCard label="Margin %" value={`${totalRow.marginPct?.toFixed(1)}%`} valueClassName="text-gray-800" className="border-0 bg-transparent p-0 shadow-none" />
+    <Card variant="muted">
+      <div className="grid grid-cols-2 gap-4 px-4 sm:grid-cols-5">
+        <KpiCard label="Total Days" value={String(totalRow.days)} variant="inline" />
+        <KpiCard label="Revenue (ex-VAT)" value={formatCurrency(totalRow.revenue)} variant="inline" />
+        <KpiCard label="Budget Cost" value={formatCurrency(totalRow.cost)} variant="inline" />
+        <KpiCard label="Margin" value={formatCurrency(totalRow.margin)} variant="inline" />
+        <KpiCard label="Margin %" value={`${totalRow.marginPct?.toFixed(1)}%`} variant="inline" />
       </div>
     </Card>
   )

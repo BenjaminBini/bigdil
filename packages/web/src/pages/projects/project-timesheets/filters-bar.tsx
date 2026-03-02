@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -51,71 +52,79 @@ export function FiltersBar({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <Select value={periodFilter} onValueChange={setPeriodFilter}>
-        <SelectTrigger className="w-56">
-          <SelectValue placeholder="All periods" />
-        </SelectTrigger>
-        <SelectContent>
-          {periodOptions.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="w-56">
+        <Select value={periodFilter} onValueChange={setPeriodFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="All periods" />
+          </SelectTrigger>
+          <SelectContent>
+            {periodOptions.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-        <SelectTrigger className="w-44">
-          <SelectValue placeholder="All employees" />
-        </SelectTrigger>
-        <SelectContent>
-          {employeeOptions.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="w-44">
+        <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="All employees" />
+          </SelectTrigger>
+          <SelectContent>
+            {employeeOptions.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Select value={taskFilter} onValueChange={setTaskFilter}>
-        <SelectTrigger className="w-56">
-          <SelectValue placeholder="All tasks" />
-        </SelectTrigger>
-        <SelectContent>
-          {taskOptions.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="w-56">
+        <Select value={taskFilter} onValueChange={setTaskFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="All tasks" />
+          </SelectTrigger>
+          <SelectContent>
+            {taskOptions.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Select value={statusFilter} onValueChange={setStatusFilter}>
-        <SelectTrigger className="w-40">
-          <SelectValue placeholder="All statuses" />
-        </SelectTrigger>
-        <SelectContent>
-          {statusOptions.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="w-40">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            {statusOptions.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {hasFilters && (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => {
             setPeriodFilter(ALL_VALUE)
             setEmployeeFilter(ALL_VALUE)
             setTaskFilter(ALL_VALUE)
             setStatusFilter(ALL_VALUE)
           }}
-          className="text-xs text-gray-500 underline hover:text-gray-700 transition-colors"
         >
           Clear filters
-        </button>
+        </Button>
       )}
     </div>
   )

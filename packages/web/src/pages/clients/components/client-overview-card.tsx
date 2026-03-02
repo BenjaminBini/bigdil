@@ -9,11 +9,11 @@ interface ClientOverviewCardProps {
 
 export function ClientOverviewCard({ client }: ClientOverviewCardProps) {
   return (
-    <Card className="shadow-xs">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-gray-800">Contact Information</CardTitle>
+    <Card variant="compact">
+      <CardHeader>
+        <CardTitle>Contact Information</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <IconBlock icon={<User className="size-4" />} label="Contact Name" value={<p className="text-sm font-medium text-gray-900">{client.contactName}</p>} />
           <IconBlock
@@ -25,12 +25,13 @@ export function ClientOverviewCard({ client }: ClientOverviewCardProps) {
               </a>
             }
           />
-          <IconBlock
-            icon={<MapPin className="size-4" />}
-            label="Address"
-            className="sm:col-span-2"
-            value={<p className="text-sm font-medium text-gray-900">{client.address}</p>}
-          />
+          <div className="sm:col-span-2">
+            <IconBlock
+              icon={<MapPin className="size-4" />}
+              label="Address"
+              value={<p className="text-sm font-medium text-gray-900">{client.address}</p>}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

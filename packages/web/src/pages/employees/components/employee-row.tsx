@@ -27,14 +27,14 @@ export function EmployeeRow({ employee, projectCount }: EmployeeRowProps) {
         <TableRow className={cn('cursor-pointer hover:bg-gray-50', !employee.active && 'opacity-50')} onClick={() => setOpen((value) => !value)}>
           <TableCell className="w-8 pr-0">
             <CollapsibleTrigger asChild>
-              <button
-                type="button"
-                className="text-gray-400 transition-colors hover:text-gray-700"
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 aria-label={open ? 'Collapse details' : 'Expand details'}
                 onClick={(event) => event.stopPropagation()}
               >
                 {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-              </button>
+              </Button>
             </CollapsibleTrigger>
           </TableCell>
           <TableCell className="py-3.5 font-medium text-gray-900">{employee.name}</TableCell>

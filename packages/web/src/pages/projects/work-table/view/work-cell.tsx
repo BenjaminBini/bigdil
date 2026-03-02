@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import type { PeriodStatus } from '@/api/types'
 import { formatDays } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { CompactInput } from '@/components/shared/compact-input'
 import type { RowKind } from '@/lib/work-table/types'
 
 interface WorkCellProps {
@@ -54,11 +55,10 @@ export function WorkCell({ days, periodStatus, rowKind }: WorkCellProps) {
   if (editing) {
     return (
       <td className={cn('border-b border-r border-slate-100 p-0 min-w-[56px] w-14', cellBg)}>
-        <input
+        <CompactInput
           ref={inputRef}
           type="text"
           inputMode="decimal"
-          className="h-full w-full rounded-sm border border-sky-400 bg-white px-1.5 py-1 text-right text-xs font-mono outline-none"
           value={inputVal}
           onChange={(e) => setInputVal(e.target.value)}
           onBlur={handleBlur}

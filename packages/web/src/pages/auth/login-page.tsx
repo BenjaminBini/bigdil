@@ -37,9 +37,9 @@ export default function LoginPage() {
         </div>
 
         {/* Form card */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">Sign in to your account</CardTitle>
+        <Card variant="compact">
+          <CardHeader>
+            <CardTitle>Sign in to your account</CardTitle>
             <CardDescription>Enter your credentials to access your workspace</CardDescription>
           </CardHeader>
           <CardContent>
@@ -68,7 +68,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <Button type="submit" className="w-full mt-2" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading}>
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>

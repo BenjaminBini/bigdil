@@ -1,6 +1,7 @@
 import { Lock } from 'lucide-react'
 import { TreeRowLabel } from '@/components/shared/tree-row-label'
 import { ColorValue } from '@/components/shared/color-value'
+import { CompactInput } from '@/components/shared/compact-input'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/format'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -98,9 +99,8 @@ function EditableRate({ value, isReadOnly, isGrandTotal, isFrozenRate = false }:
       {isReadOnly ? (
         formatCurrency(value)
       ) : (
-        <input
+        <CompactInput
           type="number"
-          className="w-20 rounded border border-gray-300 px-1.5 py-0.5 text-right text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
           defaultValue={value}
           min={0}
         />

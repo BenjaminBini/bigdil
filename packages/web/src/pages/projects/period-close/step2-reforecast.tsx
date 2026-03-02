@@ -53,7 +53,8 @@ export function Step2Reforecast({
         Review and adjust the forecast for future periods. Showing up to 5 future periods.
       </p>
 
-      <Card variant="flush" className="overflow-x-auto">
+      <div className="overflow-x-auto">
+      <Card variant="flush">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 border-b">
@@ -91,29 +92,31 @@ export function Step2Reforecast({
           </tbody>
         </table>
       </Card>
+      </div>
 
-      <MetricStrip
-        className="rounded-lg border bg-gray-50 px-4 py-3"
-        items={[
-          {
-            label: 'Total planned',
-            value: <span className="font-semibold text-gray-900 tabular-nums">{total.toFixed(2)} days</span>,
-          },
-          {
-            label: 'Quoted',
-            value: <span className="font-semibold text-gray-900 tabular-nums">{quotedDays} days</span>,
-          },
-          {
-            label: 'Variance',
-            value: (
-              <ColorValue
-                value={`${variance >= 0 ? '+' : ''}${variance.toFixed(2)} days`}
-                sentiment={variance > 0 ? 'warning' : variance < 0 ? 'positive' : 'neutral'}
-              />
-            ),
-          },
-        ]}
-      />
+      <Card variant="muted">
+        <MetricStrip
+          items={[
+            {
+              label: 'Total planned',
+              value: <ColorValue value={`${total.toFixed(2)} days`} sentiment="neutral" />,
+            },
+            {
+              label: 'Quoted',
+              value: <ColorValue value={`${quotedDays} days`} sentiment="neutral" />,
+            },
+            {
+              label: 'Variance',
+              value: (
+                <ColorValue
+                  value={`${variance >= 0 ? '+' : ''}${variance.toFixed(2)} days`}
+                  sentiment={variance > 0 ? 'warning' : variance < 0 ? 'positive' : 'neutral'}
+                />
+              ),
+            },
+          ]}
+        />
+      </Card>
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={onBack}>
