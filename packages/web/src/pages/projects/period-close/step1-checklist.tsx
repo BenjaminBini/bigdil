@@ -3,8 +3,8 @@ import { AlertTriangle, CheckCircle2, ChevronRight, XCircle } from 'lucide-react
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { formatDays } from '@/lib/format'
 import type { Period, TimesheetEntry, WorkTableCell } from '@/api/types'
+import { Step1PlanActualTable } from './step1-plan-actual-table'
 
 interface Step1Props {
   period: Period
@@ -89,60 +89,7 @@ export function Step1Checklist({
         </div>
       </div>
 
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Plan vs. Actual — Period {period.periodNumber}</h3>
-        <div className="rounded-lg border bg-white overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="px-4 py-2.5 text-left font-medium text-gray-600">Employee</th>
-                <th className="px-4 py-2.5 text-left font-medium text-gray-600">Task</th>
-                <th className="px-4 py-2.5 text-right font-medium text-gray-600">Planned Days</th>
-                <th className="px-4 py-2.5 text-right font-medium text-gray-600">Actual Days</th>
-                <th className="px-4 py-2.5 text-right font-medium text-gray-600">Delta</th>
-                <th className="px-4 py-2.5 text-left font-medium text-gray-600">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {planActualRows.map((row) => {
-                const delta = row.actualDays - row.plannedDays
-                return (
-                  <tr key={row.id} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="px-4 py-2.5 text-gray-900 font-medium">{row.employee}</td>
-                    <td className="px-4 py-2.5 text-gray-600">{row.task}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">
-                      {formatDays(row.plannedDays)}
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">
-                      {formatDays(row.actualDays)}
-                    </td>
-                    <td
-                      className={cn(
-                        'px-4 py-2.5 text-right tabular-nums font-medium',
-                        delta > 0 ? 'text-amber-600' : delta < 0 ? 'text-blue-600' : 'text-gray-400',
-                      )}
-                    >
-                      {delta === 0 ? '—' : delta > 0 ? `+${formatDays(delta)}` : formatDays(delta)}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span
-                        className={cn(
-                          'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                          row.status === 'APPROVED' && 'bg-green-100 text-green-800',
-                          row.status === 'SUBMITTED' && 'bg-amber-100 text-amber-800',
-                          row.status === 'DRAFT' && 'bg-gray-100 text-gray-700',
-                        )}
-                      >
-                        {row.status}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Step1PlanActualTable periodNumber={period.periodNumber} rows={planActualRows} />
 
       {!allApproved && (
         <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">

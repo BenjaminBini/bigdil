@@ -5,7 +5,11 @@ import type { TimesheetStatus } from '@/api/types'
 import { PageHeader } from '@/components/shared/page-header'
 import { ActiveTimesheetTable } from './my-timesheets/active-timesheet-table'
 import { ActiveBanner } from './my-timesheets/active-banner'
-import { buildClosedPeriodRows, buildEntryRows, CURRENT_EMPLOYEE_ID } from './my-timesheets/model'
+import {
+  buildClosedPeriodRows,
+  buildEntryRows,
+  CURRENT_EMPLOYEE_ID,
+} from './my-timesheets/timesheet-row-mappers'
 import { PastPeriods } from './my-timesheets/past-periods'
 import type { EntryRowState } from './my-timesheets/types'
 

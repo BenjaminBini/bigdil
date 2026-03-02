@@ -27,7 +27,7 @@ export default defineConfig([
     files: ['src/**/*.tsx'],
     ignores: ['src/components/ui/**'],
     rules: {
-      'max-lines': ['error', { max: 250, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['error', { max: 150, skipBlankLines: true, skipComments: true }],
     },
   },
 ])

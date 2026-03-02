@@ -5,12 +5,12 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
 import { timesheetStatusColors, timesheetStatusLabels } from '@/lib/constants'
 import { formatDaysWithUnit } from '@/lib/format'
+import { HeadCell } from './head-cell'
 import { deltaColor, formatDelta } from './model'
 import type { ApprovalRow } from './types'
 
@@ -140,18 +140,5 @@ export function ApprovalsTable({
         <span>{draftCount} not yet submitted</span>
       </div>
     </div>
-  )
-}
-
-interface HeadCellProps {
-  label: string
-  className?: string
-}
-
-function HeadCell({ label, className }: HeadCellProps) {
-  return (
-    <TableHead className={['text-xs font-semibold uppercase tracking-wide text-gray-500', className].join(' ').trim()}>
-      {label}
-    </TableHead>
   )
 }
