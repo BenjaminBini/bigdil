@@ -6,7 +6,7 @@ import {
   WorkTableLoadingState,
   WorkTableProjectNotFound,
   WorkTableUnavailableState,
-} from '@/components/shared/view/work-table-state'
+} from './work-table/view/work-table-state'
 
 export default function WorkTablePage() {
   const { id: projectId } = useParams<{ id: string }>()

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 
@@ -5,7 +6,7 @@ interface DataTableToolbarProps {
   searchPlaceholder: string
   searchValue: string
   onSearchChange: (value: string) => void
-  toolbar?: React.ReactNode
+  toolbar?: ReactNode
 }
 
 export function DataTableToolbar({

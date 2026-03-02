@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -25,7 +26,7 @@ export interface DataTableProps<TData> {
   data: TData[]
   searchColumn?: string
   searchPlaceholder?: string
-  toolbar?: React.ReactNode
+  toolbar?: ReactNode
   className?: string
 }
 

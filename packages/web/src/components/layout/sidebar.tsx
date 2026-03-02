@@ -2,10 +2,14 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SidebarNavGroup } from './sidebar/nav-group'
-import { navGroups } from './sidebar/navigation'
+import { buildNavGroups } from './sidebar/navigation'
+
+// TODO: replace with actual authenticated user role
+const currentUserRole = 'PM' as const
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
+  const navGroups = buildNavGroups(currentUserRole)
 
   return (
     <aside className={cn('flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-200', collapsed ? 'w-14' : 'w-56')}>

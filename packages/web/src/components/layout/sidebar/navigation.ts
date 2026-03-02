@@ -1,3 +1,4 @@
+import type { ElementType } from 'react'
 import {
   BarChart3,
   Building2,
@@ -10,20 +11,12 @@ import {
   UserCog,
   Users,
 } from 'lucide-react'
-import type { User } from '@/api/types'
-
-const currentUser: User = {
-  id: 'u1',
-  email: 'marie.dupont@acme-consulting.fr',
-  role: 'PM',
-  name: 'Marie Dupont',
-  employeeId: null,
-}
+import type { UserRole } from '@/api/types'
 
 export interface NavItem {
   label: string
   to: string
-  icon: React.ElementType
+  icon: ElementType
 }
 
 export interface NavGroup {
@@ -31,8 +24,7 @@ export interface NavGroup {
   items: NavItem[]
 }
 
-function buildNavGroups(): NavGroup[] {
-  const { role } = currentUser
+export function buildNavGroups(role: UserRole): NavGroup[] {
 
   const groups: NavGroup[] = [
     {
@@ -74,4 +66,3 @@ function buildNavGroups(): NavGroup[] {
   return groups
 }
 
-export const navGroups = buildNavGroups()

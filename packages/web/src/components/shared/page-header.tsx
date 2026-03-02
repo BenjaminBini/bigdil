@@ -1,10 +1,11 @@
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 export interface PageHeaderProps {
   title: string
   subtitle?: string
   /** Slot for action buttons rendered on the right side */
-  actions?: React.ReactNode
+  actions?: ReactNode
   className?: string
 }
 
