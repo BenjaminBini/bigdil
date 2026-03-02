@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/page-header'
+import { Legend } from '@/components/shared/legend'
 import { useProject, useProjectTimesheets, useReferenceData, useWorkTable } from '@/api/hooks'
 import { formatShortDate } from '@/lib/format'
 import { FiltersBar } from './project-timesheets/filters-bar'
@@ -119,16 +120,10 @@ export default function ProjectTimesheetsPage() {
           getProfileName={getProfileName}
         />
 
-        <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block size-3 rounded-sm bg-white border border-gray-200" />
-            Frozen period — frozen cost rates
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block size-3 rounded-sm bg-amber-50 border border-amber-200" />
-            Open period — cost rates pending approval
-          </span>
-        </div>
+        <Legend items={[
+          { swatch: 'bg-white', swatchBorder: 'border-gray-200', label: 'Frozen period — frozen cost rates' },
+          { swatch: 'bg-amber-50', swatchBorder: 'border-amber-200', label: 'Open period — cost rates pending approval' },
+        ]} />
       </div>
     </div>
   )
