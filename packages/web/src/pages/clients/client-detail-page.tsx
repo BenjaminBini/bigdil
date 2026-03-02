@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Building2, ChevronLeft, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { IconBox } from '@/components/shared/icon-box'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useProjects, useReferenceData } from '@/api/hooks'
 import type { ProjectListItem } from '@/api/types'
@@ -64,19 +65,13 @@ export default function ClientDetailPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <button
-        onClick={() => navigate('/clients')}
-        className="inline-flex items-center gap-1 text-sm text-gray-500 transition-colors hover:text-gray-800"
-      >
-        <ChevronLeft className="size-4" />
-        Clients
-      </button>
+      <Button variant="ghost" size="sm" onClick={() => navigate('/clients')}>
+        <ChevronLeft className="size-4" /> Clients
+      </Button>
 
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
-            <Building2 className="size-5" />
-          </div>
+          <IconBox icon={Building2} size="md" variant="muted" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">{client.name}</h1>
             <p className="mt-0.5 text-sm text-gray-500">

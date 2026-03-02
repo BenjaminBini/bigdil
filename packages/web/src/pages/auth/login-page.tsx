@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { BriefcaseBusiness } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { IconBox } from '@/components/shared/icon-box'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,9 +29,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-6">
         {/* Brand */}
         <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center justify-center size-12 rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <BriefcaseBusiness className="size-6" />
-          </div>
+          <IconBox icon={BriefcaseBusiness} size="md" variant="primary" />
           <div className="text-center">
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">BigDil</h1>
             <p className="text-sm text-gray-500 mt-0.5">Professional Services Automation</p>
