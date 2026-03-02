@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router'
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -8,8 +7,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
+import { StatusBadge } from '@/components/shared/status-badge'
 import type { ProjectListItem } from '@/api/types'
-import { projectStatusColors, projectStatusLabels } from '@/lib/constants'
 import { formatCurrency, formatDate } from '@/lib/format'
 
 interface ProjectsTableProps {
@@ -42,7 +41,7 @@ export function ProjectsTable({ rows }: ProjectsTableProps) {
                 <TableCell className="py-3.5 text-sm text-gray-500">{row.clientName ?? <span className="text-gray-400">—</span>}</TableCell>
                 <TableCell className="py-3.5 font-medium text-gray-900">{row.name}</TableCell>
                 <TableCell>
-                  <Badge className={projectStatusColors[row.status]}>{projectStatusLabels[row.status]}</Badge>
+                  <StatusBadge status={row.status} />
                 </TableCell>
                 <TableCell className="text-right font-medium text-gray-900">{formatCurrency(row.contractValue)}</TableCell>
                 <TableCell>

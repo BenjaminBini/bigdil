@@ -1,6 +1,5 @@
 import { KeyRound, Pencil, UserX } from 'lucide-react'
 import type { Employee, User } from '@/api/types'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -10,6 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
+import { ActiveBadge } from '@/pages/employees/components/active-badge'
 import { LAST_LOGIN_DATES } from './data'
 import { RoleBadge } from './role-badge'
 
@@ -54,9 +54,7 @@ export function UsersTable({ users, employees, onEdit, onResetPassword, onDeacti
                   {linkedEmployee ? linkedEmployee.name : <span className="text-gray-400">—</span>}
                 </TableCell>
                 <TableCell>
-                  <Badge className={isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                    {isActive ? 'Active' : 'Inactive'}
-                  </Badge>
+                  <ActiveBadge active={isActive} />
                 </TableCell>
                 <TableCell className="text-sm tabular-nums text-gray-500">
                   {loginDate ? formatLastLogin(loginDate) : <span className="text-gray-400">—</span>}
@@ -77,9 +75,8 @@ export function UsersTable({ users, employees, onEdit, onResetPassword, onDeacti
                       Reset Password
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="destructive-outline"
                       size="sm"
-                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
                       onClick={() => onDeactivate(user)}
                       title="Deactivate user"
                     >

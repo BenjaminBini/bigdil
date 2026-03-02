@@ -18,7 +18,7 @@ interface MarginInsightProps {
 export function MarginInsightPanel({ insight }: MarginInsightProps) {
   return (
     <div className="shrink-0 border-t bg-white px-4 py-4">
-      <Card className="overflow-hidden py-0">
+      <Card variant="flush">
         <CardHeader className="border-b bg-slate-50 px-4 py-3">
           <CardTitle className="text-sm font-semibold text-slate-800">Margin Insight</CardTitle>
         </CardHeader>

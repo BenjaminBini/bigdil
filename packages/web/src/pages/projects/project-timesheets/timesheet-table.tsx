@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -7,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { timesheetStatusColors, timesheetStatusLabels } from '@/lib/constants'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDaysWithUnit } from '@/lib/format'
 import { deltaColor, formatDelta, type TimesheetRow } from './model'
 
@@ -61,19 +60,7 @@ export function TimesheetTable({
                   <TableCell className="py-3">
                     <div className="flex items-center gap-1.5">
                       <span className="font-medium text-gray-700 text-sm">{row.periodLabel}</span>
-                      {row.periodStatus === 'FROZEN' ? (
-                        <Badge className="bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0">
-                          Frozen
-                        </Badge>
-                      ) : row.periodStatus === 'CONSOLIDATION' ? (
-                        <Badge className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0">
-                          Consolidation
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0">
-                          Open
-                        </Badge>
-                      )}
+                      <StatusBadge status={row.periodStatus} />
                     </div>
                   </TableCell>
                   <TableCell className="py-3 font-medium text-gray-900">{row.employeeName}</TableCell>
@@ -99,9 +86,7 @@ export function TimesheetTable({
                     )}
                   </TableCell>
                   <TableCell className="py-3">
-                    <Badge className={timesheetStatusColors[row.status]}>
-                      {timesheetStatusLabels[row.status]}
-                    </Badge>
+                    <StatusBadge status={row.status} />
                   </TableCell>
                 </TableRow>
               )

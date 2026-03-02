@@ -1,7 +1,6 @@
 import { Link } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { projectStatusColors } from '@/lib/constants'
+import { StatusBadge } from '@/components/shared/status-badge'
 import type { DashboardData } from '@/api/types'
 
 interface ActiveProjectsCardProps {
@@ -26,7 +25,7 @@ export function ActiveProjectsCard({ projects }: ActiveProjectsCardProps) {
                 <div className="font-medium">{project.name}</div>
                 <div className="text-sm text-muted-foreground">{project.clientName}</div>
               </div>
-              <Badge className={projectStatusColors[project.status]}>{project.status}</Badge>
+              <StatusBadge status={project.status} />
             </Link>
           ))}
           {projects.length === 0 && <p className="text-sm text-muted-foreground">No active projects</p>}

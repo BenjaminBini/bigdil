@@ -1,8 +1,7 @@
 import { Link } from 'react-router'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { timesheetStatusColors } from '@/lib/constants'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDate, formatDays } from '@/lib/format'
 import type { EmployeeDetail } from '@/api/types'
 
@@ -40,7 +39,7 @@ export function RecentTimesheetsCard({ timesheets }: RecentTimesheetsCardProps) 
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Badge className={timesheetStatusColors[timesheet.status]}>{timesheet.status}</Badge>
+                    <StatusBadge status={timesheet.status} />
                   </TableCell>
                   <TableCell className="text-right">{formatDays(Number(timesheet.days))}</TableCell>
                   <TableCell className="text-right">

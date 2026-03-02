@@ -1,7 +1,7 @@
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DetailRow } from '@/components/shared/detail-row'
+import { ActiveBadge } from '@/pages/employees/components/active-badge'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { EmployeeDetail } from '@/api/types'
 
@@ -19,11 +19,7 @@ export function EmployeeInfoCards({ employee }: EmployeeInfoCardsProps) {
         <CardContent className="space-y-3">
           <DetailRow
             label="Status"
-            value={
-              <Badge className={employee.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}>
-                {employee.active ? 'Active' : 'Inactive'}
-              </Badge>
-            }
+            value={<ActiveBadge active={employee.active} />}
           />
           <DetailRow
             label="Current Cost Rate"

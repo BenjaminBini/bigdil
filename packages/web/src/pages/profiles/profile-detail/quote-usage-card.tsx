@@ -1,8 +1,7 @@
 import { Link } from 'react-router'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { quoteStatusColors } from '@/lib/constants'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { ProfileDetail } from '@/api/types'
 
@@ -41,7 +40,7 @@ export function QuoteUsageCard({ usage }: QuoteUsageCardProps) {
                   </TableCell>
                   <TableCell>{entry.quoteTitle}</TableCell>
                   <TableCell>
-                    <Badge className={quoteStatusColors[entry.quoteStatus]}>{entry.quoteStatus}</Badge>
+                    <StatusBadge status={entry.quoteStatus} />
                   </TableCell>
                   <TableCell className="text-right">{formatDays(entry.days)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(entry.sellRatePerDay)}</TableCell>

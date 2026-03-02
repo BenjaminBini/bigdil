@@ -1,7 +1,6 @@
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DetailRow } from '@/components/shared/detail-row'
-import { projectStatusColors, projectStatusLabels } from '@/lib/constants'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { formatDate } from '@/lib/format'
 import type { ProjectDetail } from '@/api/types'
 
@@ -20,7 +19,7 @@ export function ProjectDetailsCard({ project }: ProjectDetailsCardProps) {
           <DetailRow label="Client" value={project.clientName ?? <span className="text-gray-400">—</span>} />
           <DetailRow
             label="Status"
-            value={<Badge className={projectStatusColors[project.status]}>{projectStatusLabels[project.status]}</Badge>}
+            value={<StatusBadge status={project.status} />}
           />
           <DetailRow label="Start Date" value={project.startDate ? formatDate(project.startDate) : <span className="text-gray-400">Not set</span>} />
           <DetailRow label="End Date" value={project.endDate ? formatDate(project.endDate) : <span className="text-gray-400">Not set</span>} />

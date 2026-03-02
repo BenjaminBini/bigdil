@@ -18,6 +18,8 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        "ghost-destructive":
+          "text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50 dark:hover:text-red-400",
         link: "text-primary underline-offset-4 hover:underline",
         success:
           "bg-green-600 text-white hover:bg-green-700 focus-visible:ring-green-600/20",

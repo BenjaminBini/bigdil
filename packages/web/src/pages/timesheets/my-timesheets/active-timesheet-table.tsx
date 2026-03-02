@@ -1,5 +1,4 @@
 import { Save, Send } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -10,8 +9,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { Textarea } from '@/components/ui/textarea'
-import { timesheetStatusColors, timesheetStatusLabels } from '@/lib/constants'
 import { formatDays, formatDaysWithUnit } from '@/lib/format'
 import type { EntryRowState } from './types'
 
@@ -45,7 +44,7 @@ export function ActiveTimesheetTable({
           <h2 className="font-semibold text-gray-900">{projectName}</h2>
           <p className="mt-0.5 text-xs text-gray-500">Active period</p>
         </div>
-        <Badge className="bg-green-100 text-green-700">Open</Badge>
+        <StatusBadge status="OPEN" />
       </div>
 
       <Table>
@@ -74,11 +73,12 @@ export function ActiveTimesheetTable({
                   step={0.25}
                   value={row.actualDays}
                   onChange={(e) => onUpdateRow(row.id, 'actualDays', e.target.value)}
-                  className="ml-auto h-8 w-24 text-right text-sm"
+                  size="sm"
+                  className="ml-auto w-24 text-right"
                 />
               </TableCell>
               <TableCell className="py-3">
-                <Badge className={timesheetStatusColors[row.status]}>{timesheetStatusLabels[row.status]}</Badge>
+                <StatusBadge status={row.status} />
               </TableCell>
               <TableCell className="py-2">
                 <Textarea

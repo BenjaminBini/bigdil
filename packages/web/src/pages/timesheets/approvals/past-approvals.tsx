@@ -1,5 +1,4 @@
 import { ChevronDown, ChevronRight, Lock } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
-import { timesheetStatusColors } from '@/lib/constants'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { formatCurrency } from '@/lib/format'
 import type { PastPeriodSummary } from './types'
 
@@ -64,7 +63,7 @@ export function PastApprovals({ open, onOpenChange, rows }: PastApprovalsProps) 
                   <TableCell className="py-2.5">
                     <span className="inline-flex items-center gap-1.5">
                       <Lock className="size-3 text-gray-400" />
-                      <Badge className={timesheetStatusColors.APPROVED}>Approved</Badge>
+                      <StatusBadge status="APPROVED" />
                     </span>
                   </TableCell>
                 </TableRow>

@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { projectStatusColors, projectStatusLabels } from '@/lib/constants'
+import { projectStatusLabels } from '@/lib/constants'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { ProjectKpiCard, type ProjectKpiCardProps } from './project-kpi-card'
 import { ProjectActions } from './project-actions'
 
@@ -31,7 +31,7 @@ export function ProjectHeader({ projectId, name, status, clientId, clientName, k
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">{name}</h1>
-              <Badge className={projectStatusColors[status]}>{projectStatusLabels[status]}</Badge>
+              <StatusBadge status={status} />
             </div>
             <p className="text-sm text-gray-500">
               Client:{' '}

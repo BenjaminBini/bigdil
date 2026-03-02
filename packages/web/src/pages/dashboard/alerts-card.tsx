@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { StatusBadge } from '@/components/shared/status-badge'
 import type { DashboardData } from '@/api/types'
 
 interface AlertsCardProps {
@@ -28,9 +29,7 @@ export function AlertsCard({ alerts }: AlertsCardProps) {
                 <span>
                   {period.projectName} - Period {period.periodNumber}
                 </span>
-                <Badge variant="outline" className="bg-amber-100 text-amber-700">
-                  CONSOLIDATION
-                </Badge>
+                <StatusBadge status="CONSOLIDATION" />
               </Link>
             ))}
           </div>
@@ -44,7 +43,7 @@ export function AlertsCard({ alerts }: AlertsCardProps) {
               className="flex items-center justify-between rounded border p-2 text-sm transition-colors hover:bg-accent"
             >
               <span>{alerts.overdueApprovals} timesheet(s) awaiting approval</span>
-              <Badge variant="outline" className="bg-amber-100 text-amber-800">
+              <Badge variant="outline">
                 Review
               </Badge>
             </Link>

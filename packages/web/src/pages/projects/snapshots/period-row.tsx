@@ -2,13 +2,14 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { AlertTriangle, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   TableCell,
   TableRow,
 } from '@/components/ui/table'
-import { periodStatusColors, periodStatusLabels } from '@/lib/constants'
+import { SuccessButton, WarningButton } from '@/components/shared/button-adapters'
+import { StatusBadge } from '@/components/shared/status-badge'
+import { periodStatusLabels } from '@/lib/constants'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { PeriodStatus } from '@/api/types'
 
@@ -67,9 +68,7 @@ export function PeriodRow({
         {formatDate(startDate)} – {formatDate(endDate)}
       </TableCell>
       <TableCell>
-        <Badge className={periodStatusColors[status]}>
-          {periodStatusLabels[status]}
-        </Badge>
+        <StatusBadge status={status} />
       </TableCell>
       <TableCell className="text-gray-600 text-sm tabular-nums whitespace-nowrap">
         {snapshotDate ? formatDate(snapshotDate) : dash}
@@ -109,17 +108,17 @@ export function PeriodRow({
           </Button>
         )}
         {status === 'CONSOLIDATION' && (
-          <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white" onClick={onFreezePeriod}>
+          <WarningButton size="sm" onClick={onFreezePeriod}>
             Freeze Period
-          </Button>
+          </WarningButton>
         )}
         {status === 'OPEN' && (
-          <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={handleStartConsolidation}>
+          <WarningButton size="sm" onClick={handleStartConsolidation}>
             Start Consolidation
-          </Button>
+          </WarningButton>
         )}
         {status === 'FUTURE' && canOpen && (
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleOpen}>
+          <Button size="sm" onClick={handleOpen}>
             Open Period
           </Button>
         )}

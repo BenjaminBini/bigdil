@@ -1,12 +1,10 @@
 import { useNavigate } from 'react-router'
-import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
 import { SortableHead } from '@/components/shared/sortable-head'
-import { projectStatusColors } from '@/lib/constants'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { ProjectListItem, ProjectStatus } from '@/api/types'
 import {
-  STATUS_LABELS,
   type ClientProjectSortKey,
   type SortDir,
 } from './client-project-table-utils'
@@ -51,9 +49,7 @@ export function ClientProjectsTable({ rows, sortKey, sortDir, onSort }: ClientPr
                 )}
               </TableCell>
               <TableCell>
-                <Badge className={projectStatusColors[project.status as ProjectStatus]}>
-                  {STATUS_LABELS[project.status as ProjectStatus]}
-                </Badge>
+                <StatusBadge status={project.status as ProjectStatus} />
               </TableCell>
               <TableCell className="text-right font-medium text-gray-900">{formatCurrency(contractValue)}</TableCell>
               <TableCell className="text-right text-gray-700">

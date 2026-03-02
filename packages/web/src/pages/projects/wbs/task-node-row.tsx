@@ -49,7 +49,7 @@ export function TaskNodeRow({
         <Button variant="ghost" size="icon-sm" onClick={() => onEdit(task)} aria-label="Edit task" title="Edit">
           <Pencil className="size-3.5" />
         </Button>
-        <Button variant="ghost" size="icon-sm" aria-label="Archive task" title="Archive" className="text-gray-400 hover:text-red-500">
+        <Button variant="ghost-destructive" size="icon-sm" aria-label="Archive task" title="Archive">
           <Archive className="size-3.5" />
         </Button>
       </div>

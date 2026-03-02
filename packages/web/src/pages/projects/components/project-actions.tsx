@@ -1,5 +1,6 @@
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { SuccessButton, WarningButton } from '@/components/shared/button-adapters'
 import type { ProjectStatus } from '@/api/types'
 
 interface ProjectActionsProps {
@@ -15,12 +16,12 @@ export function ProjectActions({ status }: ProjectActionsProps) {
     case 'IN_PROGRESS':
       return (
         <>
-          <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => actionToast('Activate Next Period')}>
+          <Button size="sm" onClick={() => actionToast('Activate Next Period')}>
             Activate Next Period
           </Button>
-          <Button size="sm" className="bg-orange-500 text-white hover:bg-orange-600" onClick={() => actionToast('Close Period')}>
+          <WarningButton size="sm" onClick={() => actionToast('Close Period')}>
             Close Period
-          </Button>
+          </WarningButton>
           <Button size="sm" variant="outline" disabled title="Cannot complete while periods remain open">
             Complete Project
           </Button>
@@ -29,26 +30,26 @@ export function ProjectActions({ status }: ProjectActionsProps) {
     case 'TO_PLAN':
       return (
         <>
-          <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => actionToast('Set Dates & Plan')}>
+          <Button size="sm" onClick={() => actionToast('Set Dates & Plan')}>
             Set Dates &amp; Plan
           </Button>
-          <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" disabled title="Complete planning before starting">
+          <SuccessButton size="sm" disabled title="Complete planning before starting">
             Start Project
-          </Button>
+          </SuccessButton>
         </>
       )
     case 'DRAFT':
       return (
-        <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => actionToast('Send for Approval')}>
+        <Button size="sm" onClick={() => actionToast('Send for Approval')}>
           Send for Approval
         </Button>
       )
     case 'WAITING_APPROVAL':
       return (
         <>
-          <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => actionToast('Client Approved')}>
+          <SuccessButton size="sm" onClick={() => actionToast('Client Approved')}>
             Client Approved
-          </Button>
+          </SuccessButton>
           <Button size="sm" variant="destructive" onClick={() => actionToast('Client Rejected')}>
             Client Rejected
           </Button>

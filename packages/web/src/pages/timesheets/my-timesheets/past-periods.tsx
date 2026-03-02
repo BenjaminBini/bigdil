@@ -1,5 +1,4 @@
 import { ChevronDown, ChevronRight, Lock } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
-import { timesheetStatusColors, timesheetStatusLabels } from '@/lib/constants'
+import { StatusBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { ClosedPeriodRow } from './types'
 
@@ -61,9 +60,7 @@ export function PastPeriods({ open, onOpenChange, rows }: PastPeriodsProps) {
                   <TableCell className="py-2.5">
                     <span className="inline-flex items-center gap-1.5">
                       <Lock className="size-3 text-gray-400" />
-                      <Badge className={timesheetStatusColors[row.status]}>
-                        {timesheetStatusLabels[row.status]}
-                      </Badge>
+                      <StatusBadge status={row.status} />
                     </span>
                   </TableCell>
                   <TableCell className="py-2.5 text-right text-gray-700">

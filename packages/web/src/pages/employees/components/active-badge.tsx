@@ -1,21 +1,17 @@
-import { Badge } from '@/components/ui/badge'
-
 interface ActiveBadgeProps {
   active: boolean
 }
 
 export function ActiveBadge({ active }: ActiveBadgeProps) {
-  if (active) {
-    return (
-      <Badge className="border-green-200 bg-green-100 text-green-800 hover:bg-green-100">
-        Active
-      </Badge>
-    )
-  }
-
   return (
-    <Badge className="border-red-200 bg-red-100 text-red-800 hover:bg-red-100">
-      Inactive
-    </Badge>
+    <span
+      className={
+        active
+          ? 'inline-flex items-center rounded-full border border-green-200 bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800'
+          : 'inline-flex items-center rounded-full border border-red-200 bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800'
+      }
+    >
+      {active ? 'Active' : 'Inactive'}
+    </span>
   )
 }
