@@ -2,13 +2,6 @@ import type { Employee, TimesheetEntry } from '@/api/types'
 import { formatDaysWithUnit } from '@/lib/format'
 import type { ApprovalRow, PastPeriodSummary } from './types'
 
-export function deltaColor(delta: number): string {
-  const abs = Math.abs(delta)
-  if (abs === 0) return 'text-green-600'
-  if (abs < 1) return 'text-amber-600'
-  return 'text-red-600'
-}
-
 export function formatDelta(delta: number): string {
   if (delta === 0) return '—'
   const sign = delta > 0 ? '+' : ''

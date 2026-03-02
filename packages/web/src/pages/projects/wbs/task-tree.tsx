@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { Card } from '@/components/ui/card'
 import type { Task } from '@/api/types'
 import { TaskNodeRow } from './task-node-row'
 
@@ -13,7 +14,7 @@ function PhaseBlock({ phase, onAddSubTask, onEdit }: PhaseBlockProps) {
   const [expanded, setExpanded] = useState(true)
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xs">
+    <Card variant="flush">
       <TaskNodeRow
         task={phase}
         isPhase
@@ -38,15 +39,15 @@ function PhaseBlock({ phase, onAddSubTask, onEdit }: PhaseBlockProps) {
           ))}
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 
 function StandaloneTask({ task, onEdit }: { task: Task; onEdit: (task: Task) => void }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xs">
+    <Card variant="flush">
       <TaskNodeRow task={task} isPhase={false} onAddSubTask={() => {}} onEdit={onEdit} />
-    </div>
+    </Card>
   )
 }
 
@@ -63,9 +64,9 @@ export function WbsTaskTree({ tasks, onAddSubTask, onEdit }: WbsTreeProps) {
         task.children && task.children.length > 0 ? (
           <PhaseBlock key={task.id} phase={task} onAddSubTask={onAddSubTask} onEdit={onEdit} />
         ) : task.parentTaskId === null ? (
-          <div key={task.id} className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xs">
+          <Card key={task.id} variant="flush">
             <TaskNodeRow task={task} isPhase isExpanded={false} onToggle={() => {}} onAddSubTask={onAddSubTask} onEdit={onEdit} />
-          </div>
+          </Card>
         ) : (
           <StandaloneTask key={task.id} task={task} onEdit={onEdit} />
         ),

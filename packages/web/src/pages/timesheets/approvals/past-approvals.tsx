@@ -4,6 +4,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -36,7 +37,7 @@ export function PastApprovals({ open, onOpenChange, rows }: PastApprovalsProps) 
       </CollapsibleTrigger>
 
       <CollapsibleContent>
-        <div className="mt-3 overflow-hidden rounded-lg border bg-white shadow-xs">
+        <Card variant="flush" className="mt-3">
           <div className="border-b bg-gray-50 px-5 py-3">
             <h3 className="text-sm font-semibold text-gray-700">Frozen Periods - All Approved</h3>
           </div>
@@ -70,7 +71,7 @@ export function PastApprovals({ open, onOpenChange, rows }: PastApprovalsProps) 
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       </CollapsibleContent>
     </Collapsible>
   )

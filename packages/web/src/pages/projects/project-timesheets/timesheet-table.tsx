@@ -6,9 +6,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { ColorValue } from '@/components/shared/color-value'
 import { formatCurrency, formatDaysWithUnit } from '@/lib/format'
-import { deltaColor, formatDelta, type TimesheetRow } from './model'
+import { formatDelta, type TimesheetRow } from './model'
 
 interface TimesheetTableProps {
   rows: TimesheetRow[]
@@ -28,7 +30,7 @@ export function TimesheetTable({
   getProfileName,
 }: TimesheetTableProps) {
   return (
-    <div className="rounded-lg border bg-white shadow-xs overflow-hidden">
+    <Card variant="flush">
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
@@ -68,8 +70,11 @@ export function TimesheetTable({
                   <TableCell className="py-3 text-gray-600 text-sm">{getProfileName(row.profileId)}</TableCell>
                   <TableCell className="py-3 text-right text-gray-700">{formatDaysWithUnit(row.plannedDays)}</TableCell>
                   <TableCell className="py-3 text-right text-gray-700">{formatDaysWithUnit(row.actualDays)}</TableCell>
-                  <TableCell className={['py-3 text-right font-medium tabular-nums', deltaColor(delta)].join(' ')}>
-                    {formatDelta(delta)}
+                  <TableCell className="py-3 text-right">
+                    <ColorValue
+                      value={formatDelta(delta)}
+                      sentiment={Math.abs(delta) === 0 ? 'positive' : Math.abs(delta) < 1 ? 'warning' : 'negative'}
+                    />
                   </TableCell>
                   <TableCell className="py-3 text-right text-gray-700">
                     {row.costRate != null ? (
@@ -100,8 +105,11 @@ export function TimesheetTable({
               </TableCell>
               <TableCell className="py-3 text-right text-gray-900">{formatDaysWithUnit(totalPlanned)}</TableCell>
               <TableCell className="py-3 text-right text-gray-900">{formatDaysWithUnit(totalActual)}</TableCell>
-              <TableCell className={['py-3 text-right font-medium tabular-nums', deltaColor(totalActual - totalPlanned)].join(' ')}>
-                {formatDelta(totalActual - totalPlanned)}
+              <TableCell className="py-3 text-right">
+                <ColorValue
+                  value={formatDelta(totalActual - totalPlanned)}
+                  sentiment={Math.abs(totalActual - totalPlanned) === 0 ? 'positive' : Math.abs(totalActual - totalPlanned) < 1 ? 'warning' : 'negative'}
+                />
               </TableCell>
               <TableCell />
               <TableCell className="py-3 text-right text-gray-900">
@@ -112,6 +120,6 @@ export function TimesheetTable({
           )}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   )
 }

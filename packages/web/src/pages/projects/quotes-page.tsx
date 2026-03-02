@@ -2,9 +2,9 @@ import { useParams, useNavigate } from 'react-router'
 import { Plus } from 'lucide-react'
 import { useProject } from '@/api/hooks'
 import type { Quote } from '@/api/types'
-import { quoteStatusColors } from '@/lib/constants'
 import { formatCurrency, formatDate } from '@/lib/format'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { cn } from '@/lib/utils'
+import { StatusBadge } from '@/components/shared/status-badge'
 
 // ---- Helpers ----
 
@@ -24,21 +24,6 @@ function computeQuoteTotals(quote: Quote) {
   const totalMargin = totalRevenue - totalBudgetCost
   const marginPct = totalRevenue > 0 ? (totalMargin / totalRevenue) * 100 : 0
   return { totalDays, totalRevenue, totalBudgetCost, totalMargin, marginPct }
-}
-
-// ---- Status badge ----
-
-function QuoteStatusBadge({ status }: { status: Quote['status'] }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-        quoteStatusColors[status],
-      )}
-    >
-      {status}
-    </span>
-  )
 }
 
 // ---- Quotes page ----
@@ -70,7 +55,7 @@ export default function QuotesPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border bg-white shadow-xs overflow-hidden">
+      <Card variant="flush">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
@@ -106,7 +91,7 @@ export default function QuotesPage() {
                       {quote.title}
                     </TableCell>
                     <TableCell>
-                      <QuoteStatusBadge status={quote.status} />
+                      <StatusBadge status={quote.status} />
                     </TableCell>
                     <TableCell className="text-gray-600 tabular-nums">
                       {formatDate(quote.effectiveAt)}
@@ -135,7 +120,7 @@ export default function QuotesPage() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </Card>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useParams } from 'react-router'
 import { toast } from 'sonner'
 import { Download } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSnapshot, useProject, useProjectTimesheets, useReferenceData } from '@/api/hooks'
@@ -52,9 +53,7 @@ export default function SnapshotDetailPage() {
             <h1 className="text-2xl font-bold tracking-tight text-gray-900">
               Snapshot — Period {snapshot.periodNumber}
             </h1>
-            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">
-              CLOSED
-            </span>
+            <Badge className="bg-gray-100 text-gray-600">CLOSED</Badge>
           </div>
           <p className="text-sm text-gray-500">
             Snapshot recorded: {formatDate(snapshot.snapshotAt)}

@@ -1,5 +1,5 @@
 import { Lock } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -83,16 +83,9 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
                   {formatDays(row.totalDays)}
                 </TableCell>
                 <TableCell>
-                  <span
-                    className={cn(
-                      'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                      row.isActual
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-blue-100 text-blue-800',
-                    )}
-                  >
+                  <Badge className={row.isActual ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
                     {row.isActual ? 'Actual' : 'Planned'}
-                  </span>
+                  </Badge>
                 </TableCell>
               </TableRow>
             ))}
