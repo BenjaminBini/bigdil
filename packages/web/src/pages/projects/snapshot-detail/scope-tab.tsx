@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { KpiCard } from '@/components/shared/kpi-card'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { SnapshotScopeLine } from '@/api/types'
 
@@ -64,25 +65,11 @@ export function ScopeTab({ rows, getTaskName, getProfileName }: ScopeTabProps) {
         </Table>
       </div>
 
-      <div className="flex flex-wrap gap-4 text-sm text-right">
-        <div className="rounded-lg border bg-gray-50 px-4 py-2 text-right">
-          <p className="text-xs text-gray-500">Total Days</p>
-          <p className="font-semibold tabular-nums">{formatDays(totalDays)}</p>
-        </div>
-        <div className="rounded-lg border bg-gray-50 px-4 py-2 text-right">
-          <p className="text-xs text-gray-500">Total Revenue</p>
-          <p className="font-semibold tabular-nums">{formatCurrency(totalRevenue)}</p>
-        </div>
-        <div className="rounded-lg border bg-gray-50 px-4 py-2 text-right">
-          <p className="text-xs text-gray-500">Total Budget Cost</p>
-          <p className="font-semibold tabular-nums">{formatCurrency(totalBudgetCost)}</p>
-        </div>
-        <div className="rounded-lg border bg-green-50 border-green-200 px-4 py-2 text-right">
-          <p className="text-xs text-green-600">Total Margin</p>
-          <p className="font-semibold tabular-nums text-green-700">
-            {formatCurrency(totalRevenue - totalBudgetCost)}
-          </p>
-        </div>
+      <div className="flex flex-wrap gap-4">
+        <KpiCard label="Total Days" value={formatDays(totalDays)} />
+        <KpiCard label="Total Revenue" value={formatCurrency(totalRevenue)} />
+        <KpiCard label="Total Budget Cost" value={formatCurrency(totalBudgetCost)} />
+        <KpiCard label="Total Margin" value={formatCurrency(totalRevenue - totalBudgetCost)} variant="highlight" />
       </div>
     </div>
   )

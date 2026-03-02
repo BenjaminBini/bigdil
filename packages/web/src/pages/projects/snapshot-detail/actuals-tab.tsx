@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { MetricStrip } from '@/components/shared/metric-strip'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { Snapshot, TimesheetEntry } from '@/api/types'
 
@@ -99,14 +100,10 @@ export function ActualsTab({
           <h3 className="text-sm font-semibold text-gray-700">
             Period {snapshot.periodNumber} — Approved Timesheets
           </h3>
-          <div className="flex gap-3 text-sm">
-            <span className="text-gray-500">
-              Cost: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(periodCost)}</span>
-            </span>
-            <span className="text-gray-500">
-              Sell: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(periodSell)}</span>
-            </span>
-          </div>
+          <MetricStrip items={[
+            { label: 'Cost', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(periodCost)}</span> },
+            { label: 'Sell', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(periodSell)}</span> },
+          ]} />
         </div>
         <div className="rounded-lg border bg-white overflow-hidden">
           <Table>
@@ -121,14 +118,10 @@ export function ActualsTab({
           <h3 className="text-sm font-semibold text-gray-700">
             Cumulative — Periods 1–{snapshot.periodNumber}
           </h3>
-          <div className="flex gap-3 text-sm">
-            <span className="text-gray-500">
-              Cost: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(cumCost)}</span>
-            </span>
-            <span className="text-gray-500">
-              Sell: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(cumSell)}</span>
-            </span>
-          </div>
+          <MetricStrip items={[
+            { label: 'Cost', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(cumCost)}</span> },
+            { label: 'Sell', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(cumSell)}</span> },
+          ]} />
         </div>
         <div className="rounded-lg border bg-white overflow-hidden">
           <Table>
