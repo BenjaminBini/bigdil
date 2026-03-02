@@ -4,10 +4,10 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { HeadCell } from '@/components/shared/head-cell'
 import type { ProjectListItem } from '@/api/types'
 import { projectStatusColors, projectStatusLabels } from '@/lib/constants'
 import { formatCurrency, formatDate } from '@/lib/format'
@@ -60,18 +60,5 @@ export function ProjectsTable({ rows }: ProjectsTableProps) {
         </TableBody>
       </Table>
     </div>
-  )
-}
-
-interface HeadCellProps {
-  label: string
-  className?: string
-}
-
-function HeadCell({ label, className }: HeadCellProps) {
-  return (
-    <TableHead className={['text-xs font-semibold uppercase tracking-wide text-gray-500', className].join(' ').trim()}>
-      {label}
-    </TableHead>
   )
 }

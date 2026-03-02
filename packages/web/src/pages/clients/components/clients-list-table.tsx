@@ -1,12 +1,11 @@
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { SortableHead } from '@/components/shared/sortable-head'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { ClientListRow, ClientSortKey, SortDir } from './clients-list-model'
 
@@ -61,25 +60,5 @@ export function ClientsListTable({ rows, sortKey, sortDir, onSort, onOpenClient 
         </TableBody>
       </Table>
     </div>
-  )
-}
-
-interface SortableHeadProps {
-  label: string
-  col: ClientSortKey
-  sortKey: ClientSortKey
-  sortDir: SortDir
-  onSort: (key: ClientSortKey) => void
-  align?: 'left' | 'right'
-}
-
-function SortableHead({ label, col, sortKey, sortDir, onSort, align = 'left' }: SortableHeadProps) {
-  const icon = col !== sortKey ? <ArrowUpDown className="ml-1 size-3.5 opacity-40" /> : sortDir === 'asc' ? <ArrowUp className="ml-1 size-3.5" /> : <ArrowDown className="ml-1 size-3.5" />
-  const alignClass = align === 'right' ? 'justify-end w-full' : ''
-
-  return (
-    <TableHead className={`cursor-pointer select-none hover:text-gray-900 ${align === 'right' ? 'text-right' : ''}`} onClick={() => onSort(col)}>
-      <span className={`inline-flex items-center ${alignClass}`}>{label}{icon}</span>
-    </TableHead>
   )
 }

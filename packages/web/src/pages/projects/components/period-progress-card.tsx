@@ -1,5 +1,6 @@
 import { Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ProgressBar } from '@/components/shared/progress-bar'
 import { formatDate } from '@/lib/format'
 import type { Period } from '@/api/types'
 
@@ -32,12 +33,7 @@ export function PeriodProgressCard({ periods }: PeriodProgressCardProps) {
 
         <p className="text-sm text-gray-500">{frozenPeriods} period{frozenPeriods !== 1 ? 's' : ''} frozen</p>
 
-        <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-          <div
-            className="h-full rounded-full bg-green-500 transition-all"
-            style={{ width: totalPeriods > 0 ? `${(frozenPeriods / totalPeriods) * 100}%` : '0%' }}
-          />
-        </div>
+        <ProgressBar percent={totalPeriods > 0 ? (frozenPeriods / totalPeriods) * 100 : 0} />
 
         <p className="text-xs text-gray-400">
           {activePeriod ? `${formatDate(activePeriod.startDate)} - ${formatDate(activePeriod.endDate)}` : '—'}

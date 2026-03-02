@@ -1,7 +1,7 @@
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { FieldRow, SectionCard, Toggle } from './ui'
+import { FieldRow, SectionCard, Toggle } from '@/components/shared/section-card'
 
 interface UnassignedBehaviorSectionProps {
   enabled: boolean

@@ -1,5 +1,6 @@
-import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { Period, ProfileTaskPeriodStart } from '@/api/types'
+import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
+import { TreeRowLabel } from '@/components/shared/tree-row-label'
 import { cn } from '@/lib/utils'
 import { getRowBackground } from '@/lib/work-table/display'
 import { PlanningDetailCard } from './planning-detail-card'
@@ -50,9 +51,9 @@ export function WorkGridRow({
             : undefined
         }
       >
-        <td
+        <StickyColumnCell
           className={cn(
-            'sticky left-0 z-20 min-w-[260px] w-[260px] whitespace-nowrap border-b border-slate-200 px-3 py-1.5 shadow-[2px_0_0_0_#cbd5e1]',
+            'border-b border-slate-200',
             rowBg,
             row.kind === 'phase' && 'text-sm font-bold text-slate-800',
             row.kind === 'task' && 'font-semibold text-slate-700',
@@ -63,42 +64,25 @@ export function WorkGridRow({
             row.kind === 'grand-total' && 'font-bold text-slate-900',
           )}
         >
-          <div className="flex items-center gap-1.5">
-            {row.depth > 0 && <span style={{ display: 'inline-block', width: row.depth * 16 }} />}
-
-            {row.kind === 'phase' && (
-              <button
-                onClick={() => togglePhase(row.phaseId)}
-                className="shrink-0 text-slate-400 transition-colors hover:text-slate-700"
-                aria-label={collapsedPhases.has(row.phaseId) ? 'Expand phase' : 'Collapse phase'}
-              >
-                {collapsedPhases.has(row.phaseId) ? (
-                  <ChevronRight className="size-3.5" />
-                ) : (
-                  <ChevronDown className="size-3.5" />
-                )}
-              </button>
-            )}
-
-            {row.kind === 'task' && row.taskId && (
-              <button
-                onClick={() => toggleTask(row.taskId!)}
-                className="shrink-0 text-slate-400 transition-colors hover:text-slate-700"
-                aria-label={collapsedTasks.has(row.taskId) ? 'Expand task' : 'Collapse task'}
-              >
-                {collapsedTasks.has(row.taskId) ? (
-                  <ChevronRight className="size-3.5" />
-                ) : (
-                  <ChevronDown className="size-3.5" />
-                )}
-              </button>
-            )}
-
-            <span className="max-w-[210px] truncate" title={row.label}>
-              {row.label}
-            </span>
-          </div>
-        </td>
+          <TreeRowLabel
+            label={row.label}
+            depth={row.depth}
+            isExpanded={
+              row.kind === 'phase'
+                ? !collapsedPhases.has(row.phaseId)
+                : row.kind === 'task' && row.taskId
+                  ? !collapsedTasks.has(row.taskId)
+                  : undefined
+            }
+            onToggle={
+              row.kind === 'phase'
+                ? () => togglePhase(row.phaseId)
+                : row.kind === 'task' && row.taskId
+                  ? () => toggleTask(row.taskId!)
+                  : undefined
+            }
+          />
+        </StickyColumnCell>
 
         {periods.map((period) => (
           <WorkCell key={period.id} days={row.cells[period.id]} periodStatus={period.status} rowKind={row.kind} />

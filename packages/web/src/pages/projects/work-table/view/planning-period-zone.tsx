@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { FormulaBlock, PLANNING_DETAIL_CLASSES } from './planning-detail-shared'
+import { FormulaBlock, PLANNING_DETAIL_CLASSES } from '@/components/shared/metric-display'
 
 interface PlanningPeriodZoneProps {
   remainingDays: number

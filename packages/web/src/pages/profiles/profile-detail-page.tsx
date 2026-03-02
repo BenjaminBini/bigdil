@@ -1,8 +1,8 @@
 import { Link, useParams } from 'react-router'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageHeader } from '@/components/shared/page-header'
+import { KpiCard } from '@/components/shared/kpi-card'
 import { useProfile } from '@/api/hooks'
 import { formatCurrency } from '@/lib/format'
 import { AppliedRatesCard } from './profile-detail/applied-rates-card'
@@ -31,27 +31,14 @@ export default function ProfileDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <MetricCard title="Default Sell Rate" value={`${formatCurrency(data.defaultSellRatePerDay)}/day`} />
-        <MetricCard title="Default Cost Rate" value={`${formatCurrency(data.defaultCostRatePerDay)}/day`} />
-        <MetricCard title="Default Margin" value={`${formatCurrency(defaultMargin)}/day (${defaultMarginPct}%)`} />
+        <KpiCard label="Default Sell Rate" value={`${formatCurrency(data.defaultSellRatePerDay)}/day`} />
+        <KpiCard label="Default Cost Rate" value={`${formatCurrency(data.defaultCostRatePerDay)}/day`} />
+        <KpiCard label="Default Margin" value={`${formatCurrency(defaultMargin)}/day (${defaultMarginPct}%)`} />
       </div>
 
       <QuoteUsageCard usage={data.usage} />
       <ProfileAssignmentsCard assignments={data.activeAssignments} />
       <AppliedRatesCard rates={data.appliedRates} />
     </div>
-  )
-}
-
-function MetricCard({ title, value }: { title: string; value: string }) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-      </CardContent>
-    </Card>
   )
 }

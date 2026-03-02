@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DetailRow } from '@/components/shared/detail-row'
 import { projectStatusColors, projectStatusLabels } from '@/lib/constants'
 import { formatDate } from '@/lib/format'
 import type { ProjectDetail } from '@/api/types'
@@ -28,14 +28,5 @@ export function ProjectDetailsCard({ project }: ProjectDetailsCardProps) {
         </div>
       </CardContent>
     </Card>
-  )
-}
-
-function DetailRow({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-gray-100 py-2 last:border-0">
-      <span className="shrink-0 text-sm text-gray-500">{label}</span>
-      <span className="text-right text-sm font-medium text-gray-900">{value}</span>
-    </div>
   )
 }

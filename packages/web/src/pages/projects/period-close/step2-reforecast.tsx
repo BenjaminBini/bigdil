@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MetricStrip } from '@/components/shared/metric-strip'
 import type { Period } from '@/api/types'
 import type { ForecastRow } from './types'
 
@@ -91,29 +92,32 @@ export function Step2Reforecast({
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-gray-50 px-4 py-3 text-sm">
-        <span className="text-gray-600">
-          Total planned:{' '}
-          <span className="font-semibold text-gray-900 tabular-nums">{total.toFixed(2)} days</span>
-        </span>
-        <span className="text-gray-400">|</span>
-        <span className="text-gray-600">
-          Quoted:{' '}
-          <span className="font-semibold text-gray-900 tabular-nums">{quotedDays} days</span>
-        </span>
-        <span className="text-gray-400">|</span>
-        <span className="text-gray-600">
-          Variance:{' '}
-          <span
-            className={cn(
-              'font-semibold tabular-nums',
-              variance > 0 ? 'text-amber-600' : variance < 0 ? 'text-blue-600' : 'text-green-700',
-            )}
-          >
-            {variance >= 0 ? `+${variance.toFixed(2)}` : variance.toFixed(2)} days
-          </span>
-        </span>
-      </div>
+      <MetricStrip
+        className="rounded-lg border bg-gray-50 px-4 py-3"
+        items={[
+          {
+            label: 'Total planned',
+            value: <span className="font-semibold text-gray-900 tabular-nums">{total.toFixed(2)} days</span>,
+          },
+          {
+            label: 'Quoted',
+            value: <span className="font-semibold text-gray-900 tabular-nums">{quotedDays} days</span>,
+          },
+          {
+            label: 'Variance',
+            value: (
+              <span
+                className={cn(
+                  'font-semibold tabular-nums',
+                  variance > 0 ? 'text-amber-600' : variance < 0 ? 'text-blue-600' : 'text-green-700',
+                )}
+              >
+                {variance >= 0 ? `+${variance.toFixed(2)}` : variance.toFixed(2)} days
+              </span>
+            ),
+          },
+        ]}
+      />
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={onBack}>

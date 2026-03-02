@@ -1,3 +1,4 @@
+import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { cn } from '@/lib/utils'
 import { FROZEN_COLS, FROZEN_GROUPS, FROZEN_SUBGROUPS } from '@/lib/work-table/frozen'
 
@@ -5,12 +6,9 @@ export function ConsolidationGridHeader() {
   return (
     <thead>
       <tr className="bg-slate-100 text-slate-600">
-        <th
-          className="sticky left-0 z-30 min-w-[260px] w-[260px] whitespace-nowrap border-b border-slate-300 bg-slate-100 px-3 py-1.5 text-left font-semibold shadow-[2px_0_0_0_#94a3b8]"
-          rowSpan={3}
-        >
+        <StickyColumnCell as="th" zIndex={30} shadowColor="#94a3b8" className="border-b border-slate-300 bg-slate-100 text-left font-semibold" rowSpan={3}>
           Task / Phase
-        </th>
+        </StickyColumnCell>
         {FROZEN_GROUPS.map((group, index) => (
           <th
             key={group.label}

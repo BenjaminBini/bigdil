@@ -1,5 +1,6 @@
 import { Lock } from 'lucide-react'
 import type { Period } from '@/api/types'
+import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { formatShortDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -11,9 +12,9 @@ export function WorkGridHeader({ periods }: WorkGridHeaderProps) {
   return (
     <thead>
       <tr className="bg-slate-100 text-slate-600">
-        <th className="sticky left-0 z-30 min-w-[260px] w-[260px] whitespace-nowrap border-b border-slate-300 bg-slate-100 px-3 py-1.5 text-left font-semibold shadow-[2px_0_0_0_#94a3b8]">
+        <StickyColumnCell as="th" zIndex={30} shadowColor="#94a3b8" className="border-b border-slate-300 bg-slate-100 text-left font-semibold">
           Task / Phase
-        </th>
+        </StickyColumnCell>
 
         {periods.map((period) => {
           const isFrozen = period.status === 'FROZEN'

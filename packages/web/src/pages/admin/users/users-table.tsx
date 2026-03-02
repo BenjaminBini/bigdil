@@ -6,10 +6,10 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { HeadCell } from '@/components/shared/head-cell'
 import { LAST_LOGIN_DATES } from './data'
 import { RoleBadge } from './role-badge'
 
@@ -103,17 +103,4 @@ function formatLastLogin(date: string): string {
     month: 'short',
     year: 'numeric',
   }).format(new Date(date))
-}
-
-interface HeadCellProps {
-  label: string
-  className?: string
-}
-
-function HeadCell({ label, className }: HeadCellProps) {
-  return (
-    <TableHead className={['text-xs font-semibold uppercase tracking-wide text-gray-500', className].join(' ').trim()}>
-      {label}
-    </TableHead>
-  )
 }

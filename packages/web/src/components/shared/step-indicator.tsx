@@ -1,12 +1,23 @@
 import { CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const STEP_LABELS = ['Checklist', 'Re-forecast', 'Preview', 'Confirm']
+export interface StepIndicatorProps {
+  /** Labels for each step */
+  labels: string[]
+  /** Current step number (1-based) */
+  current: number
+  className?: string
+}
 
-export function StepIndicator({ current }: { current: number }) {
+/**
+ * A horizontal wizard step indicator with numbered circles and labels.
+ * Steps before `current` are shown as completed (green check), the current
+ * step is highlighted, and future steps are dimmed.
+ */
+export function StepIndicator({ labels, current, className }: StepIndicatorProps) {
   return (
-    <div className="flex items-center gap-0">
-      {STEP_LABELS.map((label, idx) => {
+    <div className={cn('flex items-center gap-0', className)}>
+      {labels.map((label, idx) => {
         const step = idx + 1
         const done = step < current
         const active = step === current
@@ -32,7 +43,7 @@ export function StepIndicator({ current }: { current: number }) {
                 {label}
               </span>
             </div>
-            {idx < STEP_LABELS.length - 1 && (
+            {idx < labels.length - 1 && (
               <div
                 className={cn(
                   'h-0.5 w-16 mx-1 mb-4',

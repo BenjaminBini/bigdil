@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { MetricStrip } from '@/components/shared/metric-strip'
 import { formatCurrency, formatDays } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { MarginInsightEmployee } from '@/lib/work-table/types'
@@ -63,35 +64,24 @@ export function MarginInsightPanel({ insight }: MarginInsightProps) {
             })}
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 border-t pt-3 text-sm">
-            <Stat label="Total ETC Cost" value={formatCurrency(insight.totalEtcCost)} />
-            <span className="text-slate-400">|</span>
-            <Stat label="Contract Value" value={formatCurrency(insight.totalContractValue)} />
-            <span className="text-slate-400">|</span>
-            <span className={cn('font-medium', insight.marginForecast >= 0 ? 'text-emerald-700' : 'text-red-700')}>
-              <span className="text-slate-800">Margin Forecast:</span>{' '}
-              <span className="font-mono font-semibold">
-                {formatCurrency(insight.marginForecast)}{' '}
-                <span className="text-sm">({insight.marginPercent.toFixed(1)}%)</span>
-              </span>
-            </span>
-          </div>
+          <MetricStrip
+            className="border-t pt-3"
+            items={[
+              { label: 'Total ETC Cost', value: <span className="font-mono font-semibold">{formatCurrency(insight.totalEtcCost)}</span> },
+              { label: 'Contract Value', value: <span className="font-mono font-semibold">{formatCurrency(insight.totalContractValue)}</span> },
+              {
+                label: 'Margin Forecast',
+                value: (
+                  <span className={cn('font-mono font-semibold', insight.marginForecast >= 0 ? 'text-emerald-700' : 'text-red-700')}>
+                    {formatCurrency(insight.marginForecast)}{' '}
+                    <span className="text-sm">({insight.marginPercent.toFixed(1)}%)</span>
+                  </span>
+                ),
+              },
+            ]}
+          />
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-interface StatProps {
-  label: string
-  value: string
-}
-
-function Stat({ label, value }: StatProps) {
-  return (
-    <span className="text-slate-600">
-      <span className="font-medium text-slate-800">{label}:</span>{' '}
-      <span className="font-mono font-semibold">{value}</span>
-    </span>
   )
 }

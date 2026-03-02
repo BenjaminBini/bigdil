@@ -1,3 +1,4 @@
+import { KpiCard } from '@/components/shared/kpi-card'
 import { formatCurrency } from '@/lib/format'
 import type { QuoteGridRow } from './model'
 
@@ -9,27 +10,12 @@ export function QuoteTotalsCard({ totalRow }: QuoteTotalsCardProps) {
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-        <Metric label="Total Days" value={String(totalRow.days)} />
-        <Metric label="Revenue (ex-VAT)" value={formatCurrency(totalRow.revenue)} />
-        <Metric label="Budget Cost" value={formatCurrency(totalRow.cost)} valueClassName="text-gray-600" />
-        <Metric label="Margin" value={formatCurrency(totalRow.margin)} valueClassName="text-gray-800" />
-        <Metric label="Margin %" value={`${totalRow.marginPct?.toFixed(1)}%`} valueClassName="text-gray-800" />
+        <KpiCard label="Total Days" value={String(totalRow.days)} className="border-0 bg-transparent p-0 shadow-none" />
+        <KpiCard label="Revenue (ex-VAT)" value={formatCurrency(totalRow.revenue)} className="border-0 bg-transparent p-0 shadow-none" />
+        <KpiCard label="Budget Cost" value={formatCurrency(totalRow.cost)} valueClassName="text-gray-600" className="border-0 bg-transparent p-0 shadow-none" />
+        <KpiCard label="Margin" value={formatCurrency(totalRow.margin)} valueClassName="text-gray-800" className="border-0 bg-transparent p-0 shadow-none" />
+        <KpiCard label="Margin %" value={`${totalRow.marginPct?.toFixed(1)}%`} valueClassName="text-gray-800" className="border-0 bg-transparent p-0 shadow-none" />
       </div>
-    </div>
-  )
-}
-
-interface MetricProps {
-  label: string
-  value: string
-  valueClassName?: string
-}
-
-function Metric({ label, value, valueClassName }: MetricProps) {
-  return (
-    <div>
-      <p className="mb-0.5 text-xs text-gray-500">{label}</p>
-      <p className={`text-base font-semibold tabular-nums text-gray-900 ${valueClassName ?? ''}`}>{value}</p>
     </div>
   )
 }

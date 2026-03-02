@@ -8,7 +8,7 @@ import {
 import { useProject, useProjectTimesheets, useWorkTable, useReferenceData } from '@/api/hooks'
 import type { WorkTableCell, Quote } from '@/api/types'
 import type { ForecastRow } from './period-close/types'
-import { StepIndicator } from './period-close/step-indicator'
+import { StepIndicator } from '@/components/shared/step-indicator'
 import { Step1Checklist } from './period-close/step1-checklist'
 import { Step2Reforecast } from './period-close/step2-reforecast'
 import { Step3Preview } from './period-close/step3-preview'
@@ -88,7 +88,7 @@ export default function PeriodCloseWizard({ open, onClose, projectId }: PeriodCl
         </DialogHeader>
 
         <div className="flex justify-center py-2">
-          <StepIndicator current={step} />
+          <StepIndicator labels={['Checklist', 'Re-forecast', 'Preview', 'Confirm']} current={step} />
         </div>
 
         <div className="mt-2">

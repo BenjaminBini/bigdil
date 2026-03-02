@@ -9,10 +9,10 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { HeadCell } from '@/components/shared/head-cell'
 import { timesheetStatusColors, timesheetStatusLabels } from '@/lib/constants'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { ClosedPeriodRow } from './types'
@@ -76,18 +76,5 @@ export function PastPeriods({ open, onOpenChange, rows }: PastPeriodsProps) {
         </div>
       </CollapsibleContent>
     </Collapsible>
-  )
-}
-
-interface HeadCellProps {
-  label: string
-  className?: string
-}
-
-function HeadCell({ label, className }: HeadCellProps) {
-  return (
-    <TableHead className={['text-xs font-semibold uppercase tracking-wide text-gray-500', className].join(' ').trim()}>
-      {label}
-    </TableHead>
   )
 }

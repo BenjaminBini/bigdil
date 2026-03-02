@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { FieldRow, SectionCard } from './ui'
+import { FieldRow, SectionCard } from '@/components/shared/section-card'
 
 interface WeekSettingsSectionProps {
   weekStart: string

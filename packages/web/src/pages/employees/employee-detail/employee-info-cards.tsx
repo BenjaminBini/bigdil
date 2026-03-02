@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { DetailRow } from '@/components/shared/detail-row'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { EmployeeDetail } from '@/api/types'
 
@@ -16,16 +17,18 @@ export function EmployeeInfoCards({ employee }: EmployeeInfoCardsProps) {
           <CardTitle>Employee Info</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Status</span>
-            <Badge className={employee.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}>
-              {employee.active ? 'Active' : 'Inactive'}
-            </Badge>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">Current Cost Rate</span>
-            <span className="font-medium">{formatCurrency(employee.currentCostRatePerDay)}/day</span>
-          </div>
+          <DetailRow
+            label="Status"
+            value={
+              <Badge className={employee.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}>
+                {employee.active ? 'Active' : 'Inactive'}
+              </Badge>
+            }
+          />
+          <DetailRow
+            label="Current Cost Rate"
+            value={`${formatCurrency(employee.currentCostRatePerDay)}/day`}
+          />
         </CardContent>
       </Card>
 

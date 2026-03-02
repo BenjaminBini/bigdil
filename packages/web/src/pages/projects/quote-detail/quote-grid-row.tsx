@@ -1,4 +1,5 @@
-import { ChevronDown, ChevronRight, Lock } from 'lucide-react'
+import { Lock } from 'lucide-react'
+import { TreeRowLabel } from '@/components/shared/tree-row-label'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/format'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -26,19 +27,14 @@ export function QuoteGridRowView({ row, isReadOnly, collapsed, onToggle, hasChil
   return (
     <tr className={cn('border-b transition-colors', isGrandTotal && 'border-t-2 border-t-gray-300 bg-gray-100 font-bold', isPhase && 'bg-gray-50/80', isTask && 'bg-white', isProfile && 'bg-white hover:bg-blue-50/30', !isGrandTotal && !isPhase && 'hover:bg-gray-50/50')}>
       <td className="whitespace-nowrap px-3 py-2.5">
-        <div className="flex items-center gap-1.5">
-          {row.depth > 0 && <span style={{ display: 'inline-block', width: row.depth * 20 }} className="shrink-0" />}
-          {hasChildren ? (
-            <button onClick={() => onToggle(row.id)} className="shrink-0 rounded p-0.5 text-gray-400 hover:bg-gray-200">
-              {isCollapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
-            </button>
-          ) : (
-            <span className="inline-block w-[18px] shrink-0" />
-          )}
-          <span className={cn('truncate', isPhase && 'font-semibold text-gray-900', isTask && 'font-medium text-gray-800', isProfile && 'text-sm text-gray-600', isGrandTotal && 'font-bold text-gray-900')}>
-            {row.label}
-          </span>
-        </div>
+        <TreeRowLabel
+          label={row.label}
+          depth={row.depth}
+          indentPx={20}
+          isExpanded={hasChildren ? !isCollapsed : undefined}
+          onToggle={hasChildren ? () => onToggle(row.id) : undefined}
+          className={cn(isPhase && 'font-semibold text-gray-900', isTask && 'font-medium text-gray-800', isProfile && 'text-sm text-gray-600', isGrandTotal && 'font-bold text-gray-900')}
+        />
       </td>
 
       <td className={cn('px-3 py-2.5 text-right tabular-nums', isAggregate ? 'font-semibold text-gray-900' : 'text-gray-700')}>{row.days}</td>

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { AlertTriangle, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   TableCell,
@@ -66,14 +67,9 @@ export function PeriodRow({
         {formatDate(startDate)} – {formatDate(endDate)}
       </TableCell>
       <TableCell>
-        <span
-          className={cn(
-            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-            periodStatusColors[status],
-          )}
-        >
+        <Badge className={periodStatusColors[status]}>
           {periodStatusLabels[status]}
-        </span>
+        </Badge>
       </TableCell>
       <TableCell className="text-gray-600 text-sm tabular-nums whitespace-nowrap">
         {snapshotDate ? formatDate(snapshotDate) : dash}

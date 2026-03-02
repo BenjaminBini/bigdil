@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 import { formatDays } from '@/lib/format'
 import type { TimesheetStatus } from '@/api/types'
 
@@ -50,7 +51,7 @@ export function Step1PlanActualTable({ periodNumber, rows }: Step1PlanActualTabl
                     {delta === 0 ? '—' : delta > 0 ? `+${formatDays(delta)}` : formatDays(delta)}
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className={statusPillClass(row.status)}>{row.status}</span>
+                    <Badge className={statusBadgeColor(row.status)}>{row.status}</Badge>
                   </td>
                 </tr>
               )
@@ -62,11 +63,10 @@ export function Step1PlanActualTable({ periodNumber, rows }: Step1PlanActualTabl
   )
 }
 
-function statusPillClass(status: TimesheetStatus): string {
-  const base = 'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium'
-  if (status === 'APPROVED') return `${base} bg-green-100 text-green-800`
-  if (status === 'SUBMITTED') return `${base} bg-amber-100 text-amber-800`
-  return `${base} bg-gray-100 text-gray-700`
+function statusBadgeColor(status: TimesheetStatus): string {
+  if (status === 'APPROVED') return 'bg-green-100 text-green-800'
+  if (status === 'SUBMITTED') return 'bg-amber-100 text-amber-800'
+  return 'bg-gray-100 text-gray-700'
 }
 
 function Head({ label, align }: { label: string; align: 'left' | 'right' }) {

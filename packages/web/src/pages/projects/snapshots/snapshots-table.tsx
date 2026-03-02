@@ -1,4 +1,5 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
+import { HeadCell } from '@/components/shared/head-cell'
 import type { Period, Snapshot } from '@/api/types'
 import { PeriodRow } from './period-row'
 
@@ -89,18 +90,5 @@ export function SnapshotsTable({ periods, snapshots, contractValue, projectId, o
         </TableBody>
       </Table>
     </div>
-  )
-}
-
-interface HeadCellProps {
-  label: string
-  className?: string
-}
-
-function HeadCell({ label, className }: HeadCellProps) {
-  return (
-    <TableHead className={['text-xs font-semibold uppercase tracking-wide text-gray-500', className].join(' ').trim()}>
-      {label}
-    </TableHead>
   )
 }

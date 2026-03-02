@@ -1,4 +1,5 @@
 import type { Period } from '@/api/types'
+import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { formatDays } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -10,9 +11,9 @@ interface ColumnTotalsRowProps {
 export function ColumnTotalsRow({ periods, byCellPeriod }: ColumnTotalsRowProps) {
   return (
     <tr className="border-t-2 border-slate-300 bg-slate-100 font-bold text-slate-800">
-      <td className="sticky left-0 z-20 min-w-[260px] w-[260px] whitespace-nowrap bg-slate-100 px-3 py-1.5 text-xs font-bold shadow-[2px_0_0_0_#94a3b8]">
+      <StickyColumnCell shadowColor="#94a3b8" className="bg-slate-100 text-xs font-bold">
         Column Totals
-      </td>
+      </StickyColumnCell>
       {periods.map((period) => {
         const total = byCellPeriod[period.id] ?? 0
         return (

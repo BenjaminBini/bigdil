@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router'
 import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
+import { SortableHead } from '@/components/shared/sortable-head'
 import { projectStatusColors } from '@/lib/constants'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { ProjectListItem, ProjectStatus } from '@/api/types'
 import {
-  SortIcon,
   STATUS_LABELS,
   type ClientProjectSortKey,
   type SortDir,
@@ -64,28 +64,5 @@ export function ClientProjectsTable({ rows, sortKey, sortDir, onSort }: ClientPr
         </TableBody>
       </Table>
     </div>
-  )
-}
-
-interface SortableHeadProps {
-  label: string
-  col: ClientProjectSortKey
-  sortKey: ClientProjectSortKey
-  sortDir: SortDir
-  onSort: (key: ClientProjectSortKey) => void
-  align?: 'left' | 'right'
-}
-
-function SortableHead({ label, col, sortKey, sortDir, onSort, align = 'left' }: SortableHeadProps) {
-  return (
-    <TableHead
-      className={`cursor-pointer select-none hover:text-gray-900 ${align === 'right' ? 'text-right' : ''}`}
-      onClick={() => onSort(col)}
-    >
-      <span className={`inline-flex items-center ${align === 'right' ? 'w-full justify-end' : ''}`}>
-        {label}
-        <SortIcon col={col} sortKey={sortKey} sortDir={sortDir} />
-      </span>
-    </TableHead>
   )
 }

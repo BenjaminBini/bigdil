@@ -1,4 +1,5 @@
-import { MetricLine, PLANNING_DETAIL_CLASSES } from './planning-detail-shared'
+import { MetricLine, PLANNING_DETAIL_CLASSES } from '@/components/shared/metric-display'
+import { ProgressBar } from '@/components/shared/progress-bar'
 
 interface PlanningZoneProps {
   soldDays: number
@@ -17,9 +18,7 @@ export function PlanningZone({ soldDays, spentDays, remainingDays, spentPct, for
         <MetricLine label="Spent" value={formatDays(spentDays)} />
         <MetricLine label="Remaining" value={formatDays(remainingDays)} />
       </div>
-      <div className="mt-2 h-1 w-full rounded-full bg-slate-100">
-        <div className="h-1 rounded-full bg-blue-500 transition-all" style={{ width: `${spentPct}%` }} />
-      </div>
+      <ProgressBar percent={spentPct} color="bg-blue-500" className="mt-2 h-1" />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { NumberedList } from '@/components/shared/numbered-list'
 
 const nextSteps = [
   'Set start and end dates for the project',
@@ -18,16 +19,7 @@ export function ProjectNextStepsCard() {
           Set start and end dates to generate the period grid, then distribute quoted days across
           periods.
         </p>
-        <ol className="space-y-3">
-          {nextSteps.map((step, index) => (
-            <li key={step} className="flex items-start gap-3">
-              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2 border-gray-300 text-xs font-bold text-gray-400">
-                {index + 1}
-              </span>
-              <span className="text-sm text-gray-600">{step}</span>
-            </li>
-          ))}
-        </ol>
+        <NumberedList items={nextSteps} />
       </CardContent>
     </Card>
   )

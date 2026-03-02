@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table'
 import { timesheetStatusColors, timesheetStatusLabels } from '@/lib/constants'
 import { formatDaysWithUnit } from '@/lib/format'
-import { HeadCell } from './head-cell'
+import { HeadCell } from '@/components/shared/head-cell'
 import type { ApprovalRow } from './types'
 
 interface ApprovalsTableProps {
