@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { MetricStrip } from '@/components/shared/metric-strip'
+import { CompactInput } from '@/components/shared/compact-input'
+import { ColorValue } from '@/components/shared/color-value'
 import type { Period } from '@/api/types'
 import type { ForecastRow } from './types'
 
@@ -76,8 +76,7 @@ export function Step2Reforecast({
                   const cellKey = `${row.key}|${pid}`
                   return (
                     <td key={pid} className="px-1 py-1 text-center">
-                      <Input
-                        className="h-7 w-14 text-center text-xs px-1 tabular-nums"
+                      <CompactInput
                         value={cells[cellKey] ?? ''}
                         onChange={(e) =>
                           setCells((prev) => ({ ...prev, [cellKey]: e.target.value }))
@@ -106,14 +105,10 @@ export function Step2Reforecast({
           {
             label: 'Variance',
             value: (
-              <span
-                className={cn(
-                  'font-semibold tabular-nums',
-                  variance > 0 ? 'text-amber-600' : variance < 0 ? 'text-blue-600' : 'text-green-700',
-                )}
-              >
-                {variance >= 0 ? `+${variance.toFixed(2)}` : variance.toFixed(2)} days
-              </span>
+              <ColorValue
+                value={`${variance >= 0 ? '+' : ''}${variance.toFixed(2)} days`}
+                sentiment={variance > 0 ? 'warning' : variance < 0 ? 'positive' : 'neutral'}
+              />
             ),
           },
         ]}
@@ -124,7 +119,7 @@ export function Step2Reforecast({
           <ChevronLeft className="size-4" />
           Back
         </Button>
-        <Button className="bg-gray-900 hover:bg-gray-800" onClick={onNext}>
+        <Button onClick={onNext}>
           Next
           <ChevronRight className="size-4" />
         </Button>

@@ -75,7 +75,7 @@ export function Step3Preview({ onBack, onNext }: { onBack: () => void; onNext: (
           <ChevronLeft className="size-4" />
           Back
         </Button>
-        <Button className="bg-gray-900 hover:bg-gray-800" onClick={onNext}>
+        <Button onClick={onNext}>
           Next
           <ChevronRight className="size-4" />
         </Button>

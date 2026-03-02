@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, ChevronRight, XCircle } from 'lucide-react
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { WarningButton } from '@/components/shared/button-adapters'
 import { AlertBanner } from '@/components/shared/alert-banner'
 import { StatusItem } from '@/components/shared/status-item'
 import type { Period, TimesheetEntry, WorkTableCell } from '@/api/types'
@@ -98,13 +99,17 @@ export function Step1Checklist({
       )}
 
       <div className="flex justify-end">
-        <Button
-          onClick={handleNext}
-          className={cn(allApproved ? 'bg-gray-900 hover:bg-gray-800' : 'bg-amber-600 hover:bg-amber-700')}
-        >
-          {allApproved ? 'Next' : 'Next (bypass warning)'}
-          <ChevronRight className="size-4" />
-        </Button>
+        {allApproved ? (
+          <Button onClick={handleNext}>
+            Next
+            <ChevronRight className="size-4" />
+          </Button>
+        ) : (
+          <WarningButton onClick={handleNext}>
+            Next (bypass warning)
+            <ChevronRight className="size-4" />
+          </WarningButton>
+        )}
       </div>
     </div>
   )

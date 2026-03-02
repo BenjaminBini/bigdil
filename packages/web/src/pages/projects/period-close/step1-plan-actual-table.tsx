@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
 import { formatDays } from '@/lib/format'
+import { ColorValue } from '@/components/shared/color-value'
+import { StatusBadge } from '@/components/shared/status-badge'
 import type { TimesheetStatus } from '@/api/types'
 
 interface PlanActualRow {
@@ -42,16 +43,14 @@ export function Step1PlanActualTable({ periodNumber, rows }: Step1PlanActualTabl
                   <td className="px-4 py-2.5 text-gray-600">{row.task}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">{formatDays(row.plannedDays)}</td>
                   <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">{formatDays(row.actualDays)}</td>
-                  <td
-                    className={cn(
-                      'px-4 py-2.5 text-right tabular-nums font-medium',
-                      delta > 0 ? 'text-amber-600' : delta < 0 ? 'text-blue-600' : 'text-gray-400',
-                    )}
-                  >
-                    {delta === 0 ? '—' : delta > 0 ? `+${formatDays(delta)}` : formatDays(delta)}
+                  <td className="px-4 py-2.5 text-right">
+                    <ColorValue
+                      value={delta === 0 ? '—' : delta > 0 ? `+${formatDays(delta)}` : formatDays(delta)}
+                      sentiment={delta > 0 ? 'warning' : delta < 0 ? 'positive' : 'neutral'}
+                    />
                   </td>
                   <td className="px-4 py-2.5">
-                    <Badge className={statusBadgeColor(row.status)}>{row.status}</Badge>
+                    <StatusBadge status={row.status} />
                   </td>
                 </tr>
               )
@@ -61,12 +60,6 @@ export function Step1PlanActualTable({ periodNumber, rows }: Step1PlanActualTabl
       </div>
     </div>
   )
-}
-
-function statusBadgeColor(status: TimesheetStatus): string {
-  if (status === 'APPROVED') return 'bg-green-100 text-green-800'
-  if (status === 'SUBMITTED') return 'bg-amber-100 text-amber-800'
-  return 'bg-gray-100 text-gray-700'
 }
 
 function Head({ label, align }: { label: string; align: 'left' | 'right' }) {

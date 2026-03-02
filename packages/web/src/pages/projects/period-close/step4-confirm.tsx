@@ -1,6 +1,7 @@
 import { CheckCircle2, ChevronLeft, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { WarningButton } from '@/components/shared/button-adapters'
 import { StatusItem } from '@/components/shared/status-item'
 import type { Period } from '@/api/types'
 
@@ -50,9 +51,9 @@ export function Step4Confirm({ period, onBack, onClose }: Step4Props) {
           <ChevronLeft className="size-4" />
           Back
         </Button>
-        <Button className="bg-orange-600 hover:bg-orange-700 text-white" onClick={handleClose}>
+        <WarningButton onClick={handleClose}>
           Close Period {period.periodNumber}
-        </Button>
+        </WarningButton>
       </div>
     </div>
   )
