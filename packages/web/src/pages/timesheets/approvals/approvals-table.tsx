@@ -1,6 +1,4 @@
 import { Check, CheckCheck, X } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -8,9 +6,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { timesheetStatusColors, timesheetStatusLabels } from '@/lib/constants'
 import { formatDaysWithUnit } from '@/lib/format'
 import { HeadCell } from '@/components/shared/head-cell'
+import { SuccessButton, ApproveButton, RejectButton } from '@/components/shared/button-adapters'
+import { ColorValue } from '@/components/shared/color-value'
+import { StatusBadge } from '@/components/shared/status-badge'
 import type { ApprovalRow } from './types'
 
 interface ApprovalsTableProps {
@@ -23,13 +23,6 @@ interface ApprovalsTableProps {
   getEmployeeName: (id: string) => string
   getTaskName: (id: string) => string
   getProfileName: (id: string) => string
-}
-
-function deltaColor(delta: number): string {
-  const absoluteDelta = Math.abs(delta)
-  if (absoluteDelta === 0) return 'text-green-600'
-  if (absoluteDelta < 1) return 'text-amber-600'
-  return 'text-red-600'
 }
 
 function formatDelta(delta: number): string {
@@ -62,15 +55,10 @@ export function ApprovalsTable({
         </div>
         <div className="flex items-center gap-2">
           {!hasAnySubmitted && <span className="text-xs italic text-gray-400">No submissions yet</span>}
-          <Button
-            size="sm"
-            onClick={onApproveAll}
-            disabled={approveAllDisabled}
-            className="bg-green-600 text-white hover:bg-green-700 disabled:opacity-40"
-          >
+          <SuccessButton size="sm" disabled={approveAllDisabled} onClick={onApproveAll}>
             <CheckCheck className="size-3.5" />
             Approve All
-          </Button>
+          </SuccessButton>
         </div>
       </div>
 
@@ -98,33 +86,26 @@ export function ApprovalsTable({
                 <TableCell className="py-3 text-sm text-gray-600">{getProfileName(row.profileId)}</TableCell>
                 <TableCell className="py-3 text-right text-gray-700">{formatDaysWithUnit(row.plannedDays)}</TableCell>
                 <TableCell className="py-3 text-right text-gray-700">{formatDaysWithUnit(row.submittedDays)}</TableCell>
-                <TableCell className={['py-3 text-right font-medium tabular-nums', deltaColor(delta)].join(' ')}>
-                  {formatDelta(delta)}
+                <TableCell className="py-3 text-right">
+                  <ColorValue
+                    value={formatDelta(delta)}
+                    sentiment={Math.abs(delta) === 0 ? 'neutral' : Math.abs(delta) < 1 ? 'warning' : 'negative'}
+                  />
                 </TableCell>
                 <TableCell className="py-3">
-                  <Badge className={timesheetStatusColors[row.status]}>{timesheetStatusLabels[row.status]}</Badge>
+                  <StatusBadge status={row.status} />
                 </TableCell>
                 <TableCell className="py-2">
                   {row.status === 'SUBMITTED' ? (
                     <div className="flex items-center gap-1.5">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 border-green-300 px-2 text-green-700 hover:border-green-400 hover:bg-green-50"
-                        onClick={() => onApprove(row.id)}
-                      >
+                      <ApproveButton onClick={() => onApprove(row.id)}>
                         <Check className="size-3.5" />
                         Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 border-red-300 px-2 text-red-600 hover:border-red-400 hover:bg-red-50"
-                        onClick={() => onReject(row.id)}
-                      >
+                      </ApproveButton>
+                      <RejectButton onClick={() => onReject(row.id)}>
                         <X className="size-3.5" />
                         Reject
-                      </Button>
+                      </RejectButton>
                     </div>
                   ) : (
                     <span className="text-xs italic text-gray-400">
