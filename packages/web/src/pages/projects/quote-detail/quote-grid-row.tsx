@@ -1,5 +1,6 @@
 import { Lock } from 'lucide-react'
 import { TreeRowLabel } from '@/components/shared/tree-row-label'
+import { ColorValue } from '@/components/shared/color-value'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/format'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -22,7 +23,7 @@ export function QuoteGridRowView({ row, isReadOnly, collapsed, onToggle, hasChil
   const hasChildren = hasChildrenSet.has(row.id)
   const isCollapsed = collapsed[row.id] ?? false
 
-  const marginColor = row.margin < 0 ? 'text-red-600' : row.marginPct !== null && row.marginPct >= 40 ? 'text-green-700' : 'text-gray-800'
+  const marginSentiment = row.margin < 0 ? 'negative' : row.marginPct !== null && row.marginPct >= 40 ? 'positive' : 'neutral'
 
   return (
     <tr className={cn('border-b transition-colors', isGrandTotal && 'border-t-2 border-t-gray-300 bg-gray-100 font-bold', isPhase && 'bg-gray-50/80', isTask && 'bg-white', isProfile && 'bg-white hover:bg-blue-50/30', !isGrandTotal && !isPhase && 'hover:bg-gray-50/50')}>
@@ -53,8 +54,12 @@ export function QuoteGridRowView({ row, isReadOnly, collapsed, onToggle, hasChil
         {formatCurrency(row.cost)}
       </td>
 
-      <td className={cn('px-3 py-2.5 text-right tabular-nums font-medium', marginColor)}>{formatCurrency(row.margin)}</td>
-      <td className={cn('px-3 py-2.5 text-right tabular-nums', marginColor)}>{row.marginPct !== null ? `${row.marginPct.toFixed(1)}%` : '—'}</td>
+      <td className="px-3 py-2.5 text-right tabular-nums font-medium">
+        <ColorValue value={row.margin} sentiment={marginSentiment} format="currency" />
+      </td>
+      <td className="px-3 py-2.5 text-right tabular-nums">
+        {row.marginPct !== null ? <ColorValue value={row.marginPct} sentiment={marginSentiment} format="percent" /> : '—'}
+      </td>
     </tr>
   )
 }

@@ -1,44 +1,9 @@
-import { cn } from '@/lib/utils'
+import { KpiCard } from '@/components/shared/kpi-card'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { SnapshotMetrics } from '@/api/types'
+import type { KpiCardProps } from '@/components/shared/kpi-card'
 
-interface SnapshotMetricCardProps {
-  label: string
-  value: string
-  sub?: string
-  highlight?: boolean
-  dim?: boolean
-}
-
-function SnapshotMetricCard({ label, value, sub, highlight, dim }: SnapshotMetricCardProps) {
-  return (
-    <div
-      className={cn(
-        'flex flex-col gap-1 rounded-lg border px-4 py-3 bg-white',
-        highlight && 'border-green-200 bg-green-50',
-        dim && 'opacity-60',
-      )}
-    >
-      <span className="text-xs font-medium text-gray-500 whitespace-nowrap">{label}</span>
-      <span
-        className={cn(
-          'text-lg font-semibold leading-tight tabular-nums',
-          highlight ? 'text-green-700' : 'text-gray-900',
-          dim && 'text-gray-400',
-        )}
-      >
-        {value}
-      </span>
-      {sub && (
-        <span className={cn('text-xs', highlight ? 'text-green-600' : 'text-gray-500')}>
-          {sub}
-        </span>
-      )}
-    </div>
-  )
-}
-
-function buildKpis(m: SnapshotMetrics): SnapshotMetricCardProps[] {
+function buildKpis(m: SnapshotMetrics): KpiCardProps[] {
   const contractValue = m.contractValue
   const marginPct = contractValue > 0 ? (m.marginForecast / contractValue) * 100 : 0
   return [
@@ -49,18 +14,18 @@ function buildKpis(m: SnapshotMetrics): SnapshotMetricCardProps[] {
     {
       label: 'Margin Forecast',
       value: formatCurrency(m.marginForecast),
-      sub: `${marginPct.toFixed(1)}% of contract`,
-      highlight: true,
+      description: `${marginPct.toFixed(1)}% of contract`,
+      variant: 'highlight',
     },
     {
       label: 'Executed Days',
       value: `${formatDays(m.executedDaysPeriod)} days`,
-      sub: 'This period',
+      description: 'This period',
     },
     {
       label: 'Produced Value (period)',
       value: formatCurrency(m.producedExecutionValuePeriod),
-      highlight: true,
+      variant: 'highlight',
     },
     {
       label: 'Produced to Date',
@@ -74,7 +39,7 @@ export function MetricsTab({ metrics }: { metrics: SnapshotMetrics }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-4">
       {kpis.map((kpi) => (
-        <SnapshotMetricCard key={kpi.label} {...kpi} />
+        <KpiCard key={kpi.label} {...kpi} />
       ))}
     </div>
   )
