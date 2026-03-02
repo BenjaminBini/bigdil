@@ -71,11 +71,3 @@ export const LAST_LOGIN_DATES: Record<string, string> = {
 }
 
 export const ROLE_OPTIONS: UserRole[] = ['ADMIN', 'PM', 'CONSULTANT', 'FINANCE', 'EXEC']
-
-export const ROLE_BADGE_COLORS: Record<UserRole, string> = {
-  ADMIN: 'bg-purple-100 text-purple-800',
-  PM: 'bg-blue-100 text-blue-800',
-  CONSULTANT: 'bg-green-100 text-green-800',
-  FINANCE: 'bg-amber-100 text-amber-800',
-  EXEC: 'bg-gray-100 text-gray-700',
-}

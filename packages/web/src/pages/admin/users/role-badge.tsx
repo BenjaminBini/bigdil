@@ -1,20 +1,14 @@
 import type { UserRole } from '@/api/types'
-import { cn } from '@/lib/utils'
-import { ROLE_BADGE_COLORS } from './data'
+import { Badge } from '@/components/ui/badge'
 
-interface RoleBadgeProps {
-  role: UserRole
+const ROLE_STYLE: Record<UserRole, string> = {
+  ADMIN: 'bg-purple-100 text-purple-800',
+  PM: 'bg-blue-100 text-blue-800',
+  CONSULTANT: 'bg-green-100 text-green-800',
+  FINANCE: 'bg-amber-100 text-amber-800',
+  EXEC: 'bg-gray-100 text-gray-700',
 }
 
-export function RoleBadge({ role }: RoleBadgeProps) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-        ROLE_BADGE_COLORS[role],
-      )}
-    >
-      {role}
-    </span>
-  )
+export function RoleBadge({ role }: { role: UserRole }) {
+  return <Badge className={ROLE_STYLE[role]}>{role}</Badge>
 }
