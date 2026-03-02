@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
+import { Card } from '@/components/ui/card'
 import type { Period, Snapshot } from '@/api/types'
 import { PeriodRow } from './period-row'
 
@@ -22,7 +23,7 @@ export function SnapshotsTable({ periods, snapshots, contractValue, projectId, o
   const openPeriodNumber = periods.find((period) => period.status === 'OPEN')?.periodNumber ?? null
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+    <Card variant="flush">
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
@@ -89,6 +90,6 @@ export function SnapshotsTable({ periods, snapshots, contractValue, projectId, o
           )}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   )
 }

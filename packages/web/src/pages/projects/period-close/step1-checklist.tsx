@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, ChevronRight, XCircle } from 'lucide-react
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { WarningButton } from '@/components/shared/button-adapters'
 import { AlertBanner } from '@/components/shared/alert-banner'
 import { StatusItem } from '@/components/shared/status-item'
@@ -60,7 +61,7 @@ export function Step1Checklist({
         Review the checklist before closing Period {period.periodNumber} ({period.startDate} – {period.endDate}).
       </p>
 
-      <div className="rounded-lg border bg-gray-50 divide-y">
+      <Card variant="muted" className="divide-y">
         <StatusItem
           icon={allApproved
             ? <CheckCircle2 className="size-5 text-green-600" />
@@ -85,7 +86,7 @@ export function Step1Checklist({
           title="Scope additions this period"
           description={<p className="text-green-700">None</p>}
         />
-      </div>
+      </Card>
 
       <Step1PlanActualTable periodNumber={period.periodNumber} rows={planActualRows} />
 

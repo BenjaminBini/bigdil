@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { Card } from '@/components/ui/card'
 import { formatDays } from '@/lib/format'
 import { ColorValue } from '@/components/shared/color-value'
 import { StatusBadge } from '@/components/shared/status-badge'
@@ -22,7 +23,7 @@ export function Step1PlanActualTable({ periodNumber, rows }: Step1PlanActualTabl
   return (
     <div>
       <h3 className="mb-2 text-sm font-semibold text-gray-700">Plan vs. Actual - Period {periodNumber}</h3>
-      <div className="overflow-hidden rounded-lg border bg-white">
+      <Card variant="flush">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-gray-50">
@@ -57,7 +58,7 @@ export function Step1PlanActualTable({ periodNumber, rows }: Step1PlanActualTabl
             })}
           </tbody>
         </table>
-      </div>
+      </Card>
     </div>
   )
 }

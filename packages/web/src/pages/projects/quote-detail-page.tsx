@@ -4,6 +4,7 @@ import { useParams } from 'react-router'
 import { Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { useProject, useReferenceData } from '@/api/hooks'
+import { Card } from '@/components/ui/card'
 import type { Quote, QuoteLine, Task } from '@/api/types'
 import type { QuoteGridRow } from './quote-detail/model'
 import { QuoteDetailHeader } from './quote-detail/quote-detail-header'
@@ -262,7 +263,7 @@ export default function QuoteDetailPage() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+      <Card variant="flush">
         <QuoteGrid
           rows={visibleRows}
           isReadOnly={isValidated}
@@ -270,7 +271,7 @@ export default function QuoteDetailPage() {
           onToggle={toggleCollapse}
           hasChildrenSet={hasChildrenSet}
         />
-      </div>
+      </Card>
 
       {totalRow && <QuoteTotalsCard totalRow={totalRow} />}
 

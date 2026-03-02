@@ -1,5 +1,6 @@
 import { useReferenceData } from '@/api/hooks'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { EmployeesHeader } from './components/employees-header'
 import { EmployeeRow } from './components/employee-row'
 
@@ -21,7 +22,7 @@ export default function EmployeesPage() {
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <EmployeesHeader />
 
-      <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+      <Card variant="flush">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
@@ -42,7 +43,7 @@ export default function EmployeesPage() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </Card>
     </div>
   )
 }

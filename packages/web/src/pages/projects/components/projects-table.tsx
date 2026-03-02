@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { Card } from '@/components/ui/card'
 import type { ProjectListItem } from '@/api/types'
 import { formatCurrency, formatDate } from '@/lib/format'
 
@@ -19,7 +20,7 @@ export function ProjectsTable({ rows }: ProjectsTableProps) {
   const navigate = useNavigate()
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+    <Card variant="flush">
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
@@ -58,6 +59,6 @@ export function ProjectsTable({ rows }: ProjectsTableProps) {
           )}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   )
 }

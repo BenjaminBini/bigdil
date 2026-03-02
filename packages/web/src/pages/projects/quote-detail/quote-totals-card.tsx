@@ -1,3 +1,4 @@
+import { Card } from '@/components/ui/card'
 import { KpiCard } from '@/components/shared/kpi-card'
 import { formatCurrency } from '@/lib/format'
 import type { QuoteGridRow } from './model'
@@ -8,7 +9,7 @@ interface QuoteTotalsCardProps {
 
 export function QuoteTotalsCard({ totalRow }: QuoteTotalsCardProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+    <Card variant="muted" className="p-4">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <KpiCard label="Total Days" value={String(totalRow.days)} className="border-0 bg-transparent p-0 shadow-none" />
         <KpiCard label="Revenue (ex-VAT)" value={formatCurrency(totalRow.revenue)} className="border-0 bg-transparent p-0 shadow-none" />
@@ -16,6 +17,6 @@ export function QuoteTotalsCard({ totalRow }: QuoteTotalsCardProps) {
         <KpiCard label="Margin" value={formatCurrency(totalRow.margin)} valueClassName="text-gray-800" className="border-0 bg-transparent p-0 shadow-none" />
         <KpiCard label="Margin %" value={`${totalRow.marginPct?.toFixed(1)}%`} valueClassName="text-gray-800" className="border-0 bg-transparent p-0 shadow-none" />
       </div>
-    </div>
+    </Card>
   )
 }

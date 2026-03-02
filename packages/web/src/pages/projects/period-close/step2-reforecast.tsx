@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { MetricStrip } from '@/components/shared/metric-strip'
 import { CompactInput } from '@/components/shared/compact-input'
 import { ColorValue } from '@/components/shared/color-value'
@@ -52,7 +53,7 @@ export function Step2Reforecast({
         Review and adjust the forecast for future periods. Showing up to 5 future periods.
       </p>
 
-      <div className="rounded-lg border bg-white overflow-x-auto">
+      <Card variant="flush" className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 border-b">
@@ -89,7 +90,7 @@ export function Step2Reforecast({
             ))}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       <MetricStrip
         className="rounded-lg border bg-gray-50 px-4 py-3"

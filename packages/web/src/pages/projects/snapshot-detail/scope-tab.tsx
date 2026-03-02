@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { KpiCard } from '@/components/shared/kpi-card'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { SnapshotScopeLine } from '@/api/types'
@@ -26,7 +27,7 @@ export function ScopeTab({ rows, getTaskName, getProfileName }: ScopeTabProps) {
       <p className="text-sm text-gray-500">
         Scope lines as of this snapshot — all validated quotes effective at this date.
       </p>
-      <div className="rounded-lg border bg-white overflow-hidden">
+      <Card variant="flush">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
@@ -63,7 +64,7 @@ export function ScopeTab({ rows, getTaskName, getProfileName }: ScopeTabProps) {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       <div className="flex flex-wrap gap-4">
         <KpiCard label="Total Days" value={formatDays(totalDays)} />

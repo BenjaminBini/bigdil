@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { formatDays } from '@/lib/format'
 import type { Snapshot } from '@/api/types'
 
@@ -58,7 +59,7 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white overflow-hidden">
+      <Card variant="flush">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
@@ -97,7 +98,7 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
             ))}
           </TableBody>
         </Table>
-      </div>
+      </Card>
     </div>
   )
 }

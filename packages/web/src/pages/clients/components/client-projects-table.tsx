@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router'
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { SortableHead } from '@/components/shared/sortable-head'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDate } from '@/lib/format'
@@ -26,7 +27,7 @@ export function ClientProjectsTable({ rows, sortKey, sortDir, onSort }: ClientPr
   const navigate = useNavigate()
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+    <Card variant="flush">
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
@@ -59,6 +60,6 @@ export function ClientProjectsTable({ rows, sortKey, sortDir, onSort }: ClientPr
           ))}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   )
 }

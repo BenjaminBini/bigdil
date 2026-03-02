@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { MetricStrip } from '@/components/shared/metric-strip'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { Snapshot, TimesheetEntry } from '@/api/types'
@@ -105,12 +106,12 @@ export function ActualsTab({
             { label: 'Sell', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(periodSell)}</span> },
           ]} />
         </div>
-        <div className="rounded-lg border bg-white overflow-hidden">
+        <Card variant="flush">
           <Table>
             <TableHeader>{colHeaders}</TableHeader>
             <TableBody>{renderRows(periodActuals)}</TableBody>
           </Table>
-        </div>
+        </Card>
       </div>
 
       <div className="space-y-3">
@@ -123,12 +124,12 @@ export function ActualsTab({
             { label: 'Sell', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(cumSell)}</span> },
           ]} />
         </div>
-        <div className="rounded-lg border bg-white overflow-hidden">
+        <Card variant="flush">
           <Table>
             <TableHeader>{colHeaders}</TableHeader>
             <TableBody>{renderRows(cumulativeActuals)}</TableBody>
           </Table>
-        </div>
+        </Card>
       </div>
     </div>
   )

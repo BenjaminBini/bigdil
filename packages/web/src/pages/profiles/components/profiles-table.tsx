@@ -1,5 +1,6 @@
 import { Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/format'
 import type { Profile } from '@/api/types'
@@ -12,7 +13,7 @@ interface ProfilesTableProps {
 
 export function ProfilesTable({ profiles, onEdit }: ProfilesTableProps) {
   return (
-    <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+    <Card variant="flush">
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
@@ -45,6 +46,6 @@ export function ProfilesTable({ profiles, onEdit }: ProfilesTableProps) {
           })}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   )
 }

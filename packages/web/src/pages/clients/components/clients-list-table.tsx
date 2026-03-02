@@ -6,6 +6,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { SortableHead } from '@/components/shared/sortable-head'
+import { Card } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { ClientListRow, ClientSortKey, SortDir } from './clients-list-model'
 
@@ -19,7 +20,7 @@ interface ClientsListTableProps {
 
 export function ClientsListTable({ rows, sortKey, sortDir, onSort, onOpenClient }: ClientsListTableProps) {
   return (
-    <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+    <Card variant="flush">
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
@@ -59,6 +60,6 @@ export function ClientsListTable({ rows, sortKey, sortDir, onSort, onOpenClient 
           )}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   )
 }

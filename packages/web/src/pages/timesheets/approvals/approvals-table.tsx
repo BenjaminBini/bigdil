@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 import { formatDaysWithUnit } from '@/lib/format'
 import { HeadCell } from '@/components/shared/head-cell'
 import { SuccessButton, ApproveButton, RejectButton } from '@/components/shared/button-adapters'
@@ -47,7 +48,7 @@ export function ApprovalsTable({
   const draftCount = rows.filter((r) => r.status === 'DRAFT').length
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+    <Card variant="flush">
       <div className="flex items-center justify-between border-b bg-gray-50 px-5 py-4">
         <div>
           <h2 className="font-semibold text-gray-900">Active period approvals</h2>
@@ -132,6 +133,6 @@ export function ApprovalsTable({
         <span className="text-gray-300">|</span>
         <span>{draftCount} not yet submitted</span>
       </div>
-    </div>
+    </Card>
   )
 }

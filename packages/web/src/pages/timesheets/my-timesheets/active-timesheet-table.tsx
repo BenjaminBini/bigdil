@@ -1,5 +1,6 @@
 import { Save, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -38,7 +39,7 @@ export function ActiveTimesheetTable({
   getProfileName,
 }: ActiveTimesheetTableProps) {
   return (
-    <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+    <Card variant="flush">
       <div className="flex items-center justify-between border-b bg-gray-50 px-5 py-4">
         <div>
           <h2 className="font-semibold text-gray-900">{projectName}</h2>
@@ -114,6 +115,6 @@ export function ActiveTimesheetTable({
           Submit
         </Button>
       </div>
-    </div>
+    </Card>
   )
 }

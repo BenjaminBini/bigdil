@@ -1,6 +1,7 @@
 import { KeyRound, Pencil, UserX } from 'lucide-react'
 import type { Employee, User } from '@/api/types'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -23,7 +24,7 @@ interface UsersTableProps {
 
 export function UsersTable({ users, employees, onEdit, onResetPassword, onDeactivate }: UsersTableProps) {
   return (
-    <div className="overflow-hidden rounded-lg border bg-white shadow-xs">
+    <Card variant="flush">
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
@@ -90,7 +91,7 @@ export function UsersTable({ users, employees, onEdit, onResetPassword, onDeacti
           })}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   )
 }
 
