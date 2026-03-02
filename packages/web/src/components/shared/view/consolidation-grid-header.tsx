@@ -1,0 +1,63 @@
+import { cn } from '@/lib/utils'
+import { FROZEN_COLS, FROZEN_GROUPS, FROZEN_SUBGROUPS } from '@/pages/projects/work-table/frozen'
+
+export function ConsolidationGridHeader() {
+  return (
+    <thead>
+      <tr className="bg-slate-100 text-slate-600">
+        <th
+          className="sticky left-0 z-30 min-w-[260px] w-[260px] whitespace-nowrap border-b border-slate-300 bg-slate-100 px-3 py-1.5 text-left font-semibold shadow-[2px_0_0_0_#94a3b8]"
+          rowSpan={3}
+        >
+          Task / Phase
+        </th>
+        {FROZEN_GROUPS.map((group, index) => (
+          <th
+            key={group.label}
+            colSpan={group.colSpan}
+            className={cn(
+              'whitespace-nowrap border-b border-slate-300 bg-slate-200 px-2 py-1 text-center text-xs font-bold uppercase tracking-wider text-slate-700',
+              index === 0 ? 'border-r-2 border-r-slate-300' : 'border-r border-r-slate-300',
+            )}
+          >
+            {group.label}
+          </th>
+        ))}
+      </tr>
+
+      <tr className="bg-slate-100 text-slate-500">
+        {FROZEN_SUBGROUPS.map((subgroup, index) => (
+          <th
+            key={`${subgroup.label}-${index}`}
+            colSpan={subgroup.colSpan}
+            className={cn(
+              'whitespace-nowrap border-b border-slate-200 bg-slate-100 px-1 py-1 text-center text-[10px] font-semibold uppercase tracking-wider',
+              index === 2 || index === 5 ? 'border-r-2 border-r-slate-400' : 'border-r-2 border-r-slate-300',
+            )}
+          >
+            {subgroup.label}
+          </th>
+        ))}
+      </tr>
+
+      <tr className="bg-slate-50 text-slate-500">
+        {FROZEN_COLS.map((col, index) => (
+          <th
+            key={col.key}
+            className={cn(
+              'whitespace-nowrap border-b-2 border-slate-300 bg-slate-50 px-1 py-1 text-right text-[10px] font-medium',
+              index === 7 || index === 13
+                ? 'border-r-2 border-r-slate-400'
+                : index === 3 || index === 6 || index === 10 || index === 12
+                  ? 'border-r-2 border-r-slate-300'
+                  : 'border-r border-r-slate-100',
+            )}
+            style={{ width: col.w, minWidth: col.w }}
+          >
+            {col.label}
+          </th>
+        ))}
+      </tr>
+    </thead>
+  )
+}
