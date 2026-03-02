@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { ColorValue } from '@/components/shared/color-value'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useFinancialReport } from '@/api/hooks'
 import { formatCurrency } from '@/lib/format'
@@ -46,7 +46,11 @@ export function FinancialTab() {
                   <TableCell className="text-right">{formatCurrency(row.eacCost)}</TableCell>
                   <TableCell className="text-right font-medium">{formatCurrency(row.marginForecast)}</TableCell>
                   <TableCell className="text-right">
-                    <Badge className={marginBadgeClass(row.marginPercent)}>{row.marginPercent.toFixed(1)}%</Badge>
+                    <ColorValue
+                      value={row.marginPercent}
+                      format="percent"
+                      sentiment={row.marginPercent >= 40 ? 'positive' : row.marginPercent >= 20 ? 'warning' : 'negative'}
+                    />
                   </TableCell>
                   <TableCell className="text-right">{formatCurrency(row.actualCostToDate)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(row.producedValueToDate)}</TableCell>
@@ -76,8 +80,3 @@ function TotalsRow({ data }: { data: Awaited<ReturnType<typeof useFinancialRepor
   )
 }
 
-function marginBadgeClass(marginPercent: number): string {
-  if (marginPercent >= 40) return 'bg-green-100 text-green-800'
-  if (marginPercent >= 20) return 'bg-amber-100 text-amber-800'
-  return 'bg-red-100 text-red-800'
-}

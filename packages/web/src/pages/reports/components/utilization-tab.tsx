@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ColorValue } from '@/components/shared/color-value'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useUtilizationReport } from '@/api/hooks'
 
@@ -46,9 +46,11 @@ export function UtilizationTab() {
                       if (!period) return <TableCell key={periodNumber} className="text-center text-muted-foreground">—</TableCell>
                       return (
                         <TableCell key={periodNumber} className="text-center">
-                          <Badge className={`${utilizationBadgeClass(period.utilization)} text-xs`}>
-                            {period.utilization.toFixed(0)}%
-                          </Badge>
+                          <ColorValue
+                            value={period.utilization}
+                            format="percent"
+                            sentiment={period.utilization >= 80 ? 'positive' : period.utilization >= 50 ? 'warning' : 'negative'}
+                          />
                         </TableCell>
                       )
                     })}
@@ -63,8 +65,3 @@ export function UtilizationTab() {
   )
 }
 
-function utilizationBadgeClass(utilization: number): string {
-  if (utilization >= 80) return 'bg-green-100 text-green-800'
-  if (utilization >= 50) return 'bg-amber-100 text-amber-800'
-  return 'bg-red-100 text-red-800'
-}
