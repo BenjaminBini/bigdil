@@ -11,98 +11,105 @@ Business components in `pages/` have two architectural violations:
 1. **className overrides on UI components** — 31 files pass custom Tailwind classes to Button, Card, Input, etc., breaking the component contract (e.g. `<Button className="bg-green-600 hover:bg-green-700">`).
 2. **Raw HTML with Tailwind** — 408 raw `<div>`/`<span>` elements across 90 files build layout/styling that should be expressed through components.
 
-## Principle
+## Principle — Three-Layer UI Architecture
 
-- **Domain-agnostic variants** (success, danger, compact, warning) belong in `components/ui/`.
-- **Domain-specific compositions** stay in `pages/` and use those variants without className.
-- Business components express **intent** (what), not **appearance** (how).
+1. **Primitives** (`components/ui/`) — Button, Dialog, Card with CVA variants. The engine.
+2. **Adapters** (`components/ui/` or `components/shared/`) — Domain-agnostic preset compositions: `WarningModal`, `ConfirmModal`, `SuccessButton`, `DangerButton`, `CompactInput`. They wrap primitives with preset styling, hide className/variant details, and carry **zero business knowledge**. Test: *can this adapter exist in a completely different app?*
+3. **Business components** (`pages/`) — Use adapters or (when no adapter fits) primitives with variant props. **Never touch className.**
+
+**Prefer adapters over exposing variants.** When an adapter would need to know about domain types (quotes, timesheets, etc.) to work, fall back to exposing the primitive with variants. Otherwise, always create the adapter layer.
 
 ## Design
 
-### Part A: UI Component Variant Expansions
+### Part A: Primitive Expansions (Layer 1)
+
+Add variants to existing UI primitives so adapters can compose them.
 
 #### Button — new variants
 
-| Variant | Purpose | Replaces |
-|---------|---------|----------|
-| `success` | Green confirm/approve actions | `className="bg-green-600 text-white hover:bg-green-700"` |
-| `warning` | Amber/orange caution actions | `className="bg-amber-600 hover:bg-amber-700"` |
-| `success-outline` | Outlined green (approve in tables) | `className="border-green-300 text-green-700 hover:bg-green-50"` |
-| `destructive-outline` | Outlined red (reject in tables) | `className="border-red-300 text-red-600 hover:bg-red-50"` |
+| Variant | Purpose |
+|---------|---------|
+| `success` | Green confirm/approve actions |
+| `warning` | Amber/orange caution actions |
+| `success-outline` | Outlined green for secondary approve actions |
+| `destructive-outline` | Outlined red for reject/cancel actions |
 
 #### Input — size variants
 
-Currently has no size system.
-
-| Size | Purpose | Replaces |
-|------|---------|----------|
-| `sm` | Compact table cell inputs | `className="h-7 w-14 text-xs px-1"` |
-| `default` | Standard (current behavior) | — |
+| Size | Purpose |
+|------|---------|
+| `sm` | Compact table cell inputs (h-7, text-xs) |
+| `default` | Standard (current behavior) |
 
 #### Card — intent variants
 
-Currently has no variant system.
+| Variant | Purpose |
+|---------|---------|
+| `default` | White bg, standard border (current) |
+| `muted` | Gray-50 bg, for summary/readonly sections |
+| `flush` | No padding, for embedding tables |
 
-| Variant | Purpose | Replaces |
-|---------|---------|----------|
-| `default` | White bg, standard border | current default |
-| `muted` | Gray-50 bg, for summary/readonly | `className="bg-gray-50"` |
-| `flush` | No padding (for embedding tables) | `className="p-0 overflow-hidden"` |
+### Part B: Adapter Components (Layer 2)
 
-### Part B: New Shared Primitives
+Domain-agnostic compositions that wrap primitives. Business components use these instead of touching Button/Card/Dialog directly with className.
 
-#### ColorValue — semantic number coloring
+#### Button Adapters
 
-Replaces the most pervasive anti-pattern: inline ternaries for positive/negative/warning colors.
+| Adapter | Wraps | Usage |
+|---------|-------|-------|
+| `SuccessButton` | `Button variant="success"` | `<SuccessButton>Approve All</SuccessButton>` |
+| `WarningButton` | `Button variant="warning"` | `<WarningButton>Bypass Warning</WarningButton>` |
+| `DangerButton` | `Button variant="destructive"` | `<DangerButton>Close Period</DangerButton>` |
+| `ApproveButton` | `Button variant="success-outline" size="sm"` | `<ApproveButton onClick={...}>Approve</ApproveButton>` |
+| `RejectButton` | `Button variant="destructive-outline" size="sm"` | `<RejectButton onClick={...}>Reject</RejectButton>` |
 
-```tsx
-<ColorValue value={margin} sentiment="auto" format="percent" />
-```
+#### Input Adapters
 
-Props:
+| Adapter | Wraps | Usage |
+|---------|-------|-------|
+| `CompactInput` | `Input size="sm"` + centered tabular-nums | `<CompactInput value={days} onChange={...} />` |
+
+#### Modal Adapters
+
+| Adapter | Wraps | Usage |
+|---------|-------|-------|
+| `ConfirmModal` | Dialog + primary action button | `<ConfirmModal title="..." onConfirm={...}>` |
+| `WarningModal` | Dialog + warning-styled action | `<WarningModal title="..." onConfirm={...}>` |
+| `DangerModal` | Dialog + destructive action | `<DangerModal title="..." onConfirm={...}>` |
+
+*Note: `ConfirmDialog` already exists in shared/. WarningModal and DangerModal extend the same pattern with different button variants.*
+
+#### Display Adapters
+
+| Adapter | Wraps | Usage |
+|---------|-------|-------|
+| `ColorValue` | `<span>` with semantic color | `<ColorValue value={margin} sentiment="auto" format="currency" />` |
+| `Legend` | flex row of icon+label items | `<Legend items={[{ icon, label, color }]} />` |
+| `IconBox` | icon in rounded container | `<IconBox icon={Building2} size="md" variant="muted" />` |
+| `SummaryCards` | horizontal row of KpiCards | `<SummaryCards items={[{ label, value }]} />` |
+
+#### ColorValue Props
 - `value`: number or string to display
-- `sentiment`: `"auto"` (positive=green, negative=red) | `"positive"` | `"negative"` | `"neutral"` | `"warning"`
+- `sentiment`: `"auto"` (>=0 green, <0 red) | `"positive"` | `"negative"` | `"neutral"` | `"warning"`
 - `format`: `"currency"` | `"percent"` | `"days"` | `"number"` | `"raw"`
-- `className`: optional, for layout positioning only (not color)
 
-#### Legend — chart/table legend row
-
-Replaces repeated flex+icon+label patterns in work-table-header, project-timesheets-page, etc.
-
-```tsx
-<Legend items={[
-  { icon: <Lock className="size-2" />, label: "Frozen", color: "slate" },
-  { icon: <Circle />, label: "Open", color: "blue" },
-]} />
-```
-
-Props:
+#### Legend Props
 - `items`: array of `{ icon: ReactNode, label: string, color?: string }`
-- `className`: optional
 
-#### IconBox — icon in a rounded container
-
-Replaces `<div className="flex size-11 items-center justify-center rounded-xl bg-gray-100">` pattern.
-
-```tsx
-<IconBox icon={Building2} size="md" variant="muted" />
-```
-
-Props:
+#### IconBox Props
 - `icon`: Lucide icon component
 - `size`: `"sm"` | `"md"` | `"lg"`
 - `variant`: `"muted"` | `"primary"` | `"accent"`
-- `className`: optional
 
-### Part C: Business Component Cleanup Rules
+### Part C: Business Component Cleanup Rules (Layer 3)
 
-After expanding the library, business components follow these rules:
+After building Layers 1 + 2, business components follow these rules:
 
-1. **Never pass className to a UI component** for visual overrides — use variants/props.
-2. **Never use raw `<div>` for layout patterns** that have a component equivalent.
-3. **Express intent, not appearance** — `<Button variant="success">` not `<Button className="bg-green-600">`.
-4. **Conditional colors via ColorValue** — not inline ternaries with Tailwind classes.
-5. **Domain-specific buttons** stay in `pages/` composing UI variants: `<Button variant="success" onClick={onApprove}>Approve</Button>`.
+1. **Prefer adapters** — use `<SuccessButton>`, `<WarningModal>`, `<CompactInput>`, `<ColorValue>` over primitives with variant props.
+2. **Fall back to primitives with variants** — when no adapter fits and one would need domain knowledge.
+3. **Never pass className to any UI/adapter component** — if you need a new visual variation, create an adapter or variant.
+4. **Never use raw `<div>` for patterns that have a component** — use Legend, IconBox, SummaryCards, etc.
+5. **Conditional colors via ColorValue** — not inline ternaries with Tailwind classes.
 
 ## Worst Offenders (priority cleanup targets)
 
