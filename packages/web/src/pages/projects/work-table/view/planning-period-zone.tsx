@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils'
 import { FormulaBlock, PLANNING_DETAIL_CLASSES } from '@/components/shared/metric-display'
+import { ColorValue } from '@/components/shared/color-value'
 
 interface PlanningPeriodZoneProps {
   remainingDays: number
@@ -67,8 +67,8 @@ export function PlanningPeriodZone({
         <div>
           <div className={PLANNING_DETAIL_CLASSES.row}>
             <span className={PLANNING_DETAIL_CLASSES.label}>Margin</span>
-            <span className={cn(PLANNING_DETAIL_CLASSES.marginValue, periodMargin >= 0 ? 'text-emerald-600' : 'text-red-600')}>
-              {formatCurrency(periodMargin)}
+            <span className={PLANNING_DETAIL_CLASSES.marginValue}>
+              <ColorValue value={periodMargin} format="currency" />
               {production !== 0 && <span className="ml-0.5 text-[9px] opacity-70">{((periodMargin / production) * 100).toFixed(1)}%</span>}
             </span>
           </div>

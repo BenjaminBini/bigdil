@@ -1,6 +1,6 @@
-import { cn } from '@/lib/utils'
 import type { FrozenData } from '@/lib/work-table/types'
 import { FormulaBlock, PLANNING_DETAIL_CLASSES } from '@/components/shared/metric-display'
+import { ColorValue } from '@/components/shared/color-value'
 
 interface PlanningTotalZoneProps {
   data: FrozenData
@@ -28,8 +28,8 @@ export function PlanningTotalZone({ data, sellRate, formatDays, formatCurrency }
         <div>
           <div className={PLANNING_DETAIL_CLASSES.row}>
             <span className={PLANNING_DETAIL_CLASSES.label}>Margin</span>
-            <span className={cn(PLANNING_DETAIL_CLASSES.marginValue, data.trMargin >= 0 ? 'text-emerald-600' : 'text-red-600')}>
-              {formatCurrency(data.trMargin)}
+            <span className={PLANNING_DETAIL_CLASSES.marginValue}>
+              <ColorValue value={data.trMargin} format="currency" />
               {data.trMarginPct != null && <span className="ml-0.5 text-[9px] opacity-70">{data.trMarginPct.toFixed(1)}%</span>}
             </span>
           </div>

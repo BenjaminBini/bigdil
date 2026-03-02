@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MetricStrip } from '@/components/shared/metric-strip'
+import { ColorValue } from '@/components/shared/color-value'
 import { formatCurrency, formatDays } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { MarginInsightEmployee } from '@/lib/work-table/types'
@@ -72,10 +73,11 @@ export function MarginInsightPanel({ insight }: MarginInsightProps) {
               {
                 label: 'Margin Forecast',
                 value: (
-                  <span className={cn('font-mono font-semibold', insight.marginForecast >= 0 ? 'text-emerald-700' : 'text-red-700')}>
-                    {formatCurrency(insight.marginForecast)}{' '}
+                  <>
+                    <ColorValue value={insight.marginForecast} format="currency" className="font-mono" />
+                    {' '}
                     <span className="text-sm">({insight.marginPercent.toFixed(1)}%)</span>
-                  </span>
+                  </>
                 ),
               },
             ]}

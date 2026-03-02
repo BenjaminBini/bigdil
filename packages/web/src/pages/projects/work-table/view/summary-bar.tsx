@@ -1,6 +1,6 @@
 import { MetricStrip } from '@/components/shared/metric-strip'
+import { ColorValue } from '@/components/shared/color-value'
 import { formatCurrency, formatDays } from '@/lib/format'
-import { cn } from '@/lib/utils'
 import type { FrozenData } from '@/lib/work-table/types'
 
 interface SummaryBarProps {
@@ -16,35 +16,22 @@ export function SummaryBar({ totalToPlan, grandTotalFrozen }: SummaryBarProps) {
           {
             label: 'To plan',
             value: (
-              <span
-                className={cn(
-                  'font-mono font-semibold',
-                  totalToPlan === 0
-                    ? 'text-emerald-600'
-                    : totalToPlan > 0
-                      ? 'text-amber-600'
-                      : 'text-red-600',
-                )}
-              >
-                {totalToPlan > 0 ? '+' : ''}
-                {formatDays(totalToPlan)}d
-              </span>
+              <ColorValue
+                value={`${totalToPlan > 0 ? '+' : ''}${formatDays(totalToPlan)}d`}
+                sentiment={totalToPlan === 0 ? 'positive' : totalToPlan > 0 ? 'warning' : 'negative'}
+                className="font-mono"
+              />
             ),
           },
           {
             label: 'Project margin',
             value: grandTotalFrozen ? (
-              <span
-                className={cn(
-                  'font-mono font-semibold',
-                  grandTotalFrozen.trMargin >= 0 ? 'text-emerald-700' : 'text-red-600',
-                )}
-              >
-                {formatCurrency(grandTotalFrozen.trMargin)}
+              <>
+                <ColorValue value={grandTotalFrozen.trMargin} format="currency" className="font-mono" />
                 {grandTotalFrozen.trMarginPct != null && (
                   <span className="ml-1 text-xs opacity-70">({grandTotalFrozen.trMarginPct.toFixed(1)}%)</span>
                 )}
-              </span>
+              </>
             ) : (
               <span className="text-slate-400">—</span>
             ),
@@ -52,17 +39,12 @@ export function SummaryBar({ totalToPlan, grandTotalFrozen }: SummaryBarProps) {
           {
             label: 'Period margin',
             value: grandTotalFrozen ? (
-              <span
-                className={cn(
-                  'font-mono font-semibold',
-                  grandTotalFrozen.prMargin >= 0 ? 'text-emerald-700' : 'text-red-600',
-                )}
-              >
-                {formatCurrency(grandTotalFrozen.prMargin)}
+              <>
+                <ColorValue value={grandTotalFrozen.prMargin} format="currency" className="font-mono" />
                 {grandTotalFrozen.prMarginPct != null && (
                   <span className="ml-1 text-xs opacity-70">({grandTotalFrozen.prMarginPct.toFixed(1)}%)</span>
                 )}
-              </span>
+              </>
             ) : (
               <span className="text-slate-400">—</span>
             ),

@@ -1,4 +1,5 @@
 import { Lock } from 'lucide-react'
+import { Legend } from '@/components/shared/legend'
 
 interface WorkTableHeaderProps {
   projectName: string
@@ -15,26 +16,12 @@ export function WorkTableHeader({ projectName, periodCount }: WorkTableHeaderPro
         </p>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <span className="flex items-center gap-1">
-          <span className="inline-flex size-3 items-center justify-center rounded-sm border border-slate-200 bg-slate-100">
-            <Lock className="size-2 text-slate-400" />
-          </span>
-          Frozen
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block size-3 rounded-sm border border-amber-200 bg-amber-100" />
-          Consolidation
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block size-3 rounded-sm border border-sky-200 bg-sky-100" />
-          Open
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block size-3 rounded-sm border border-slate-200 bg-white" />
-          Future
-        </span>
-      </div>
+      <Legend items={[
+        { icon: <Lock className="size-2 text-slate-400" />, label: 'Frozen' },
+        { swatch: 'bg-amber-100', swatchBorder: 'border-amber-200', label: 'Consolidation' },
+        { swatch: 'bg-sky-100', swatchBorder: 'border-sky-200', label: 'Open' },
+        { swatch: 'bg-white', swatchBorder: 'border-slate-200', label: 'Future' },
+      ]} />
     </div>
   )
 }
