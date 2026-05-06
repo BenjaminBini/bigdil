@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import {
   Collapsible,
@@ -10,8 +11,22 @@ import { TableCell, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/format'
 import type { Employee } from '@/api/types'
+import { FlexBetween } from '@/components/shared/layouts'
+import { SectionTitle } from '@/components/shared/page-title'
+import { TdPrimary, TdNumeric, NullCell } from '@/components/shared/table-cells'
 import { ActiveBadge } from './active-badge'
 import { EmployeeRateHistoryTable } from './employee-rate-history-table'
+import { AddRateDialog } from './add-rate-dialog'
+
+function ExpandedDetail({ children, colSpan }: { children: ReactNode; colSpan: number }) {
+  return (
+    <tr>
+      <td colSpan={colSpan} className="border-b p-0">
+        <div className="bg-gray-50/70 px-6 py-4">{children}</div>
+      </td>
+    </tr>
+  )
+}
 
 interface EmployeeRowProps {
   employee: Employee
@@ -20,11 +35,12 @@ interface EmployeeRowProps {
 
 export function EmployeeRow({ employee, projectCount }: EmployeeRowProps) {
   const [open, setOpen] = useState(false)
+  const [showAddRate, setShowAddRate] = useState(false)
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} asChild>
       <>
-        <TableRow className={cn('cursor-pointer hover:bg-gray-50', !employee.active && 'opacity-50')} onClick={() => setOpen((value) => !value)}>
+        <TableRow variant="interactive" className={cn(!employee.active && 'opacity-50')} onClick={() => setOpen((value) => !value)}>
           <TableCell className="w-8 pr-0">
             <CollapsibleTrigger asChild>
               <Button
@@ -33,33 +49,40 @@ export function EmployeeRow({ employee, projectCount }: EmployeeRowProps) {
                 aria-label={open ? 'Collapse details' : 'Expand details'}
                 onClick={(event) => event.stopPropagation()}
               >
-                {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+                {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </Button>
             </CollapsibleTrigger>
           </TableCell>
-          <TableCell className="py-3.5 font-medium text-gray-900">{employee.name}</TableCell>
+          <TdPrimary>{employee.name}</TdPrimary>
           <TableCell><ActiveBadge active={employee.active} /></TableCell>
-          <TableCell className="text-right tabular-nums text-gray-700">{formatCurrency(employee.currentCostRatePerDay)}</TableCell>
-          <TableCell className="text-right text-gray-700">{projectCount === 0 ? <span className="text-gray-400">—</span> : projectCount}</TableCell>
+          <TdNumeric>{formatCurrency(employee.currentCostRatePerDay)}</TdNumeric>
+          <TdNumeric>{projectCount === 0 ? <NullCell /> : projectCount}</TdNumeric>
         </TableRow>
 
         <CollapsibleContent asChild>
-          <tr>
-            <td colSpan={5} className="border-b p-0">
-              <div className="bg-gray-50/70 px-6 py-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-gray-700">Cost Rate History</h3>
-                  <Button variant="outline" size="sm" onClick={(event) => event.stopPropagation()}>
-                    <Plus />
-                    Add Rate Period
-                  </Button>
-                </div>
-                <EmployeeRateHistoryTable employee={employee} />
-              </div>
-            </td>
-          </tr>
+          <ExpandedDetail colSpan={5}>
+            <FlexBetween className="mb-3">
+              <SectionTitle>Cost Rate History</SectionTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(event) => { event.stopPropagation(); setShowAddRate(true) }}
+              >
+                <Plus />
+                Add Rate Period
+              </Button>
+            </FlexBetween>
+            <EmployeeRateHistoryTable employee={employee} />
+          </ExpandedDetail>
         </CollapsibleContent>
       </>
     </Collapsible>
+
+    <AddRateDialog
+      employeeId={employee.id}
+      employeeName={employee.name}
+      open={showAddRate}
+      onClose={() => setShowAddRate(false)}
+    />
   )
 }

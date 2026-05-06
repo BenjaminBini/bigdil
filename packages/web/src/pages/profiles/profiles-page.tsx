@@ -1,8 +1,14 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { useReferenceData } from '@/api/hooks'
+import { toast } from 'sonner'
+import { useReferenceData, useCreateProfile, useUpdateProfile } from '@/api/hooks'
 import type { Profile } from '@/api/types'
 import { Button } from '@/components/ui/button'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { FlexBetween } from '@/components/shared/layouts'
+import { PageTitle } from '@/components/shared/page-title'
+import { MutedText } from '@/components/shared/muted-text'
+import { TextCaption } from '@/components/shared/text-caption'
 import {
   ProfileFormDialog,
   type ProfileFormState,
@@ -21,9 +27,11 @@ export default function ProfilesPage() {
   const [form, setForm] = useState<ProfileFormState>(emptyForm)
 
   const { data: refData, isLoading, error } = useReferenceData()
+  const createProfile = useCreateProfile()
+  const updateProfile = useUpdateProfile()
 
-  if (isLoading) return <div className="p-6">Loading...</div>
-  if (error || !refData) return <div className="p-6">Error loading data</div>
+  if (isLoading) return <LoadingState />
+  if (error || !refData) return <ErrorState />
 
   function openNew() {
     setEditingProfile(null)
@@ -48,28 +56,50 @@ export default function ProfilesPage() {
   }
 
   function handleSave() {
-    closeDialog()
+    const sellRate = parseFloat(form.sellRate)
+    const costRate = parseFloat(form.costRate)
+    if (!form.name.trim()) { toast.error('Name is required'); return }
+    if (isNaN(sellRate) || sellRate < 0) { toast.error('Invalid sell rate'); return }
+    if (isNaN(costRate) || costRate < 0) { toast.error('Invalid cost rate'); return }
+
+    if (editingProfile) {
+      updateProfile.mutate(
+        { id: editingProfile.id, name: form.name, defaultSellRatePerDay: sellRate, defaultCostRatePerDay: costRate },
+        {
+          onSuccess: () => { toast.success(`Profile "${form.name}" updated`); closeDialog() },
+          onError: () => toast.error('Failed to update profile'),
+        },
+      )
+    } else {
+      createProfile.mutate(
+        { name: form.name, defaultSellRatePerDay: sellRate, defaultCostRatePerDay: costRate },
+        {
+          onSuccess: () => { toast.success(`Profile "${form.name}" created`); closeDialog() },
+          onError: () => toast.error('Failed to create profile'),
+        },
+      )
+    }
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <div className="flex items-center justify-between">
+    <PageContainer size="md">
+      <FlexBetween>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Profiles</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Billing profiles with default day rates for quote creation.</p>
+          <PageTitle>Profiles</PageTitle>
+          <MutedText spacing="tight">Billing profiles with default day rates for quote creation.</MutedText>
         </div>
         <Button onClick={openNew}>
           <Plus />
           New Profile
         </Button>
-      </div>
+      </FlexBetween>
 
       <ProfilesTable profiles={refData.profiles} onEdit={openEdit} />
 
-      <p className="text-xs text-gray-400">
+      <TextCaption>
         These are default rates for quote creation convenience. They do not affect validated
         quotes or project rates.
-      </p>
+      </TextCaption>
 
       <ProfileFormDialog
         open={dialogOpen}
@@ -79,7 +109,8 @@ export default function ProfilesPage() {
         onClose={closeDialog}
         onSave={handleSave}
         saveLabel={editingProfile ? 'Save Changes' : 'Create Profile'}
+        isPending={createProfile.isPending || updateProfile.isPending}
       />
-    </div>
+    </PageContainer>
   )
 }

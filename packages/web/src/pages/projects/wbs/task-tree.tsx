@@ -1,8 +1,42 @@
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
+import type { ReactNode } from 'react'
 import { Card } from '@/components/ui/card'
+import { VStack } from '@/components/shared/VStack'
 import type { Task } from '@/api/types'
 import { TaskNodeRow } from './task-node-row'
+
+// Page-local tree connector lines for the WBS hierarchy visualization
+function TreeVerticalLine() {
+  return <div className="flex-1 w-px bg-gray-200" />
+}
+
+function TreeHorizontalLine() {
+  return <div className="h-px w-3 bg-gray-200" />
+}
+
+function TaskChildrenBlock({ children }: { children: ReactNode }) {
+  return <div className="border-t border-gray-100">{children}</div>
+}
+
+function TreeChildRow({ hasDivider, children }: { hasDivider: boolean; children: ReactNode }) {
+  return (
+    <div className={hasDivider ? 'flex items-stretch border-b border-gray-100' : 'flex items-stretch'}>
+      {children}
+    </div>
+  )
+}
+
+function TreeConnectorGutter({ children }: { children: ReactNode }) {
+  return (
+    <div className="ml-8 flex w-8 shrink-0 select-none flex-col items-center" aria-hidden>
+      {children}
+    </div>
+  )
+}
+
+function TreeChildContent({ children }: { children: ReactNode }) {
+  return <div className="flex-1 py-0.5 pr-1">{children}</div>
+}
 
 interface PhaseBlockProps {
   phase: Task
@@ -25,19 +59,19 @@ function PhaseBlock({ phase, onAddSubTask, onEdit }: PhaseBlockProps) {
       />
 
       {expanded && phase.children && phase.children.length > 0 && (
-        <div className="border-t border-gray-100">
+        <TaskChildrenBlock>
           {phase.children.map((child, index) => (
-            <div key={child.id} className={cn('flex items-stretch', index < phase.children!.length - 1 && 'border-b border-gray-100')}>
-              <div className="ml-8 flex w-8 shrink-0 select-none flex-col items-center" aria-hidden>
-                <div className="flex-1 w-px bg-gray-200" />
-                {index === phase.children!.length - 1 && <div className="h-px w-3 bg-gray-200" />}
-              </div>
-              <div className="flex-1 py-0.5 pr-1">
+            <TreeChildRow key={child.id} hasDivider={index < phase.children!.length - 1}>
+              <TreeConnectorGutter>
+                <TreeVerticalLine />
+                {index === phase.children!.length - 1 && <TreeHorizontalLine />}
+              </TreeConnectorGutter>
+              <TreeChildContent>
                 <TaskNodeRow task={child} isPhase={false} onAddSubTask={onAddSubTask} onEdit={onEdit} />
-              </div>
-            </div>
+              </TreeChildContent>
+            </TreeChildRow>
           ))}
-        </div>
+        </TaskChildrenBlock>
       )}
     </Card>
   )
@@ -59,7 +93,7 @@ interface WbsTreeProps {
 
 export function WbsTaskTree({ tasks, onAddSubTask, onEdit }: WbsTreeProps) {
   return (
-    <div className="space-y-2">
+    <VStack gap="md">
       {tasks.map((task) =>
         task.children && task.children.length > 0 ? (
           <PhaseBlock key={task.id} phase={task} onAddSubTask={onAddSubTask} onEdit={onEdit} />
@@ -71,6 +105,6 @@ export function WbsTaskTree({ tasks, onAddSubTask, onEdit }: WbsTreeProps) {
           <StandaloneTask key={task.id} task={task} onEdit={onEdit} />
         ),
       )}
-    </div>
+    </VStack>
   )
 }

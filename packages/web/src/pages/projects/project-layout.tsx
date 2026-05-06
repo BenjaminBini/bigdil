@@ -1,6 +1,8 @@
 import { Outlet, useParams } from 'react-router'
 import { useProject } from '@/api/hooks'
 import { formatCurrency } from '@/lib/format'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { DetailPageBackground } from '@/components/shared/detail-layout'
 import type { ProjectKpiCardProps } from './components/project-kpi-card'
 import { ProjectHeader } from './components/project-header'
 
@@ -8,8 +10,8 @@ export default function ProjectLayout() {
   const { id: projectId } = useParams<{ id: string }>()
   const { data, isLoading, error } = useProject(projectId ?? '')
 
-  if (isLoading) return <div className="p-6">Loading...</div>
-  if (error || !data) return <div className="p-6">Error loading project</div>
+  if (isLoading) return <LoadingState />
+  if (error || !data) return <ErrorState message="Error loading project" />
 
   const validatedQuote = data.quotes.find((quote) => quote.status === 'VALIDATED') ?? data.quotes[0] ?? null
   const estimatedCost = validatedQuote ? validatedQuote.lines.reduce((sum, line) => sum + line.budgetCostAmount, 0) : null
@@ -38,7 +40,7 @@ export default function ProjectLayout() {
   ]
 
   return (
-    <div className="bg-gray-50">
+    <DetailPageBackground>
       <ProjectHeader
         projectId={projectId ?? ''}
         name={data.name}
@@ -47,9 +49,9 @@ export default function ProjectLayout() {
         clientName={data.clientName}
         kpis={kpis}
       />
-      <div className="mx-auto max-w-7xl px-6 py-6">
+      <PageContainer>
         <Outlet />
-      </div>
-    </div>
+      </PageContainer>
+    </DetailPageBackground>
   )
 }

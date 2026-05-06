@@ -1,11 +1,13 @@
 /* eslint-disable max-lines */
 import { useState } from 'react'
-import { useParams } from 'react-router'
+import { useParams, useNavigate } from 'react-router'
 import { Info } from 'lucide-react'
 import { toast } from 'sonner'
-import { useProject, useReferenceData } from '@/api/hooks'
+import { useProject, useReferenceData, useValidateQuote, useDuplicateQuote } from '@/api/hooks'
 import { Card } from '@/components/ui/card'
 import { AlertBanner } from '@/components/shared/alert-banner'
+import { LoadingState, ErrorState } from '@/components/shared/page-container'
+import { VStack } from '@/components/shared/VStack'
 import type { Quote, QuoteLine, Task } from '@/api/types'
 import type { QuoteGridRow } from './quote-detail/model'
 import { QuoteDetailHeader } from './quote-detail/quote-detail-header'
@@ -186,17 +188,20 @@ function buildQuoteGrid(
 
 export default function QuoteDetailPage() {
   const { id: projectId, quoteId } = useParams()
+  const navigate = useNavigate()
   const [validateDialogOpen, setValidateDialogOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
   const { data, isLoading, error } = useProject(projectId!)
   const { data: refData, isLoading: refLoading } = useReferenceData()
+  const validateQuote = useValidateQuote(projectId!)
+  const duplicateQuote = useDuplicateQuote(projectId!)
 
-  if (isLoading || refLoading) return <div className="p-6">Loading...</div>
-  if (error || !data || !refData) return <div className="p-6">Error loading data</div>
+  if (isLoading || refLoading) return <LoadingState />
+  if (error || !data || !refData) return <ErrorState />
 
   const quote = data.quotes.find((entry) => entry.id === quoteId)
-  if (!quote) return <div className="mx-auto max-w-6xl p-6"><p className="text-gray-500">Quote not found.</p></div>
+  if (!quote) return <ErrorState message="Quote not found." variant="muted" />
 
   const getTaskName = (taskId: string) => data.flatTasks.find((task) => task.id === taskId)?.name ?? taskId
   const getProfileName = (profileId: string) => refData.profiles.find((profile) => profile.id === profileId)?.name ?? profileId
@@ -213,8 +218,13 @@ export default function QuoteDetailPage() {
   }
 
   function handleValidate() {
-    setValidateDialogOpen(false)
-    toast.success('Quote validated', { description: 'All sell rates for this quote have been frozen.' })
+    validateQuote.mutate(quoteId!, {
+      onSuccess: () => {
+        setValidateDialogOpen(false)
+        toast.success('Quote validated', { description: 'All sell rates for this quote have been frozen.' })
+      },
+      onError: () => toast.error('Failed to validate quote'),
+    })
   }
 
   const gridRows = buildQuoteGrid(
@@ -244,20 +254,28 @@ export default function QuoteDetailPage() {
   const totalRow = gridRows.find((row) => row.kind === 'grand-total')
 
   return (
-    <div className="space-y-6">
+    <VStack gap="xl">
       <QuoteDetailHeader
         quote={quote}
         isDraft={isDraft}
         isValidated={isValidated}
         onValidate={() => setValidateDialogOpen(true)}
-        onDuplicate={() => toast.info('Would duplicate quote')}
+        onDuplicate={() => {
+          duplicateQuote.mutate(quoteId!, {
+            onSuccess: (newQuote) => {
+              toast.success(`"${newQuote.title}" created`)
+              void navigate(`/projects/${projectId}/quotes/${newQuote.id}`)
+            },
+            onError: () => toast.error('Failed to duplicate quote'),
+          })
+        }}
         onExport={() => toast.info('Would export quote')}
       />
 
       {isChangeOrder && (
         <AlertBanner
           variant="warning"
-          icon={<Info className="size-4 text-amber-600" />}
+          icon={<Info size={16} color="#d97706" />}
           title="Change Order"
           description="Adds to existing scope. Sell rates match previously validated rates for the same Task + Profile combinations."
         />
@@ -276,6 +294,6 @@ export default function QuoteDetailPage() {
       {totalRow && <QuoteTotalsCard totalRow={totalRow} />}
 
       <ValidateDialog open={validateDialogOpen} onConfirm={handleValidate} onClose={() => setValidateDialogOpen(false)} />
-    </div>
+    </VStack>
   )
 }

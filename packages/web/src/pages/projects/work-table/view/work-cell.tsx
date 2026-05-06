@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { toast } from 'sonner'
 import type { PeriodStatus } from '@/api/types'
 import { formatDays } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -11,9 +10,10 @@ interface WorkCellProps {
   days: number | undefined
   periodStatus: PeriodStatus
   rowKind: RowKind
+  onSave?: (days: number) => void
 }
 
-export function WorkCell({ days, periodStatus, rowKind }: WorkCellProps) {
+export function WorkCell({ days, periodStatus, rowKind, onSave }: WorkCellProps) {
   const [editing, setEditing] = useState(false)
   const [inputVal, setInputVal] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -33,7 +33,7 @@ export function WorkCell({ days, periodStatus, rowKind }: WorkCellProps) {
     setEditing(false)
     const parsed = parseFloat(inputVal.replace(',', '.'))
     if (!isNaN(parsed) && parsed !== (days ?? 0)) {
-      toast.info(`Would save: ${parsed} days`)
+      onSave?.(parsed)
     }
   }
 

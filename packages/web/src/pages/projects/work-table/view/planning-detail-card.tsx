@@ -1,5 +1,7 @@
 import type { ProfileTaskPeriodStart } from '@/api/types'
 import { formatCurrency, formatDays } from '@/lib/format'
+import { Divider } from '@/components/shared/layouts'
+import { NullCell } from '@/components/shared/table-cells'
 import { PlanningPeriodZone } from './planning-period-zone'
 import { PlanningZone } from './planning-zone'
 import { PlanningTotalZone } from './planning-total-zone'
@@ -12,7 +14,7 @@ interface PlanningDetailCardProps {
 }
 
 export function PlanningDetailCard({ row, frozenData, periodStart }: PlanningDetailCardProps) {
-  if (!frozenData) return <div className="text-xs text-slate-400">—</div>
+  if (!frozenData) return <NullCell />
 
   const soldDays = row.quotedDays
   const spentDays = row.totalActual
@@ -42,7 +44,7 @@ export function PlanningDetailCard({ row, frozenData, periodStart }: PlanningDet
         formatDays={fmtDays}
       />
 
-      <div className="w-px bg-slate-200" />
+      <Divider />
 
       <PlanningTotalZone
         data={frozenData}
@@ -51,7 +53,7 @@ export function PlanningDetailCard({ row, frozenData, periodStart }: PlanningDet
         formatCurrency={fmtCurrency}
       />
 
-      <div className="w-px bg-slate-200" />
+      <Divider />
 
       <PlanningPeriodZone
         remainingDays={remainingDays}

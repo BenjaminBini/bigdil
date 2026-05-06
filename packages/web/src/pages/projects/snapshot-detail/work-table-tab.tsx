@@ -8,6 +8,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
+import { TdDetail, TdNumericPrimary, ThRight } from '@/components/shared/table-cells'
+import { VStack } from '@/components/shared/VStack'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { AlertBanner } from '@/components/shared/alert-banner'
 import { formatDays } from '@/lib/format'
@@ -47,10 +49,10 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
   const aggRows = Array.from(aggMap.values())
 
   return (
-    <div className="pt-4 space-y-4">
+    <VStack gap="xl" pt="md">
       <AlertBanner
         variant="info"
-        icon={<Lock className="size-4 text-blue-500" />}
+        icon={<Lock size={16} color="#3b82f6" />}
         title="Work table as-of this snapshot — READ ONLY"
         description={`This is a frozen view. Showing all periods up to Period ${asOfPeriodNumber}.`}
       />
@@ -58,11 +60,11 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
       <Card variant="flush">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
+            <TableRow variant="header">
               <TableHead>Task</TableHead>
               <TableHead>Profile</TableHead>
               <TableHead>Employee</TableHead>
-              <TableHead className="text-right">Total Days</TableHead>
+              <ThRight>Total Days</ThRight>
               <TableHead>Type</TableHead>
             </TableRow>
           </TableHeader>
@@ -70,14 +72,14 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
             {aggRows.map((row) => (
               <TableRow
                 key={`${row.taskId}|${row.profileId}|${row.employeeId ?? 'unassigned'}`}
-                className="hover:bg-gray-50"
+                variant="interactive"
               >
-                <TableCell className="text-gray-700 text-sm">{getTaskName(row.taskId)}</TableCell>
-                <TableCell className="text-gray-600 text-sm">{getProfileName(row.profileId)}</TableCell>
-                <TableCell className="text-gray-600 text-sm">{getEmployeeName(row.employeeId)}</TableCell>
-                <TableCell className="text-right tabular-nums font-medium text-gray-900">
+                <TdDetail>{getTaskName(row.taskId)}</TdDetail>
+                <TdDetail>{getProfileName(row.profileId)}</TdDetail>
+                <TdDetail>{getEmployeeName(row.employeeId)}</TdDetail>
+                <TdNumericPrimary>
                   {formatDays(row.totalDays)}
-                </TableCell>
+                </TdNumericPrimary>
                 <TableCell>
                   <StatusBadge status={row.isActual ? 'ACTUAL' : 'PLANNED'} />
                 </TableCell>
@@ -86,6 +88,6 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
           </TableBody>
         </Table>
       </Card>
-    </div>
+    </VStack>
   )
 }

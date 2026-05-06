@@ -1,33 +1,49 @@
 import type { ReactNode } from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
-export interface PageHeaderProps {
+const headerVariants = cva('flex flex-wrap items-start justify-between gap-4', {
+  variants: {
+    variant: {
+      default: 'border-b bg-background px-6 py-5',
+      section: '',
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+})
+
+const titleVariants = cva('leading-none font-semibold tracking-tight text-foreground', {
+  variants: {
+    variant: {
+      default: 'text-xl',
+      section: 'text-lg',
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+  },
+})
+
+export interface PageHeaderProps extends VariantProps<typeof headerVariants> {
   title: string
   subtitle?: string
-  /** Slot for action buttons rendered on the right side */
   actions?: ReactNode
   className?: string
 }
 
-/**
- * A standard page-level header with a title, optional subtitle, and an
- * actions slot for buttons/controls aligned to the right.
- */
 export function PageHeader({
   title,
   subtitle,
   actions,
+  variant,
   className,
 }: PageHeaderProps) {
   return (
-    <div
-      className={cn(
-        'flex flex-wrap items-start justify-between gap-4 border-b bg-background px-6 py-5',
-        className,
-      )}
-    >
+    <div className={cn(headerVariants({ variant }), className)}>
       <div className="min-w-0">
-        <h1 className="text-xl font-semibold leading-none tracking-tight text-foreground">
+        <h1 className={titleVariants({ variant })}>
           {title}
         </h1>
         {subtitle && (

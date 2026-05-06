@@ -1,5 +1,5 @@
 import type { Period, ProfileTaskPeriodStart } from '@/api/types'
-import { ColumnTotalsRow } from './column-totals-row'
+import { GridTable } from '@/components/shared/grid-table'
 import type { FrozenData, GridRow } from '@/lib/work-table/types'
 import { WorkGridHeader } from './work-grid-header'
 import { WorkGridRow } from './work-grid-row'
@@ -15,7 +15,7 @@ interface WorkGridTableProps {
   setExpandedProfileId: (id: string | null) => void
   frozenData: Map<string, FrozenData>
   periodStartMap: Map<string, ProfileTaskPeriodStart>
-  columnTotals: { byCellPeriod: Record<string, number> }
+  onSaveCell?: (params: { taskId: string; profileId: string; employeeId?: string; periodId: string; days: number }) => void
 }
 
 export function WorkGridTable({
@@ -29,10 +29,10 @@ export function WorkGridTable({
   setExpandedProfileId,
   frozenData,
   periodStartMap,
-  columnTotals,
+  onSaveCell,
 }: WorkGridTableProps) {
   return (
-    <table className="border-collapse text-xs" style={{ minWidth: 'max-content' }}>
+    <GridTable>
       <WorkGridHeader periods={periods} />
       <tbody>
         {visibleRows.map((row) => (
@@ -48,10 +48,10 @@ export function WorkGridTable({
             setExpandedProfileId={setExpandedProfileId}
             frozenData={frozenData}
             periodStartMap={periodStartMap}
+            onSaveCell={onSaveCell}
           />
         ))}
-        <ColumnTotalsRow periods={periods} byCellPeriod={columnTotals.byCellPeriod} />
       </tbody>
-    </table>
+    </GridTable>
   )
 }

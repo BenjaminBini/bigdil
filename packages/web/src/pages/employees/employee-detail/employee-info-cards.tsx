@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ThRight, TdRight } from '@/components/shared/table-cells'
 import { DetailRow } from '@/components/shared/detail-row'
+import { DetailGrid } from '@/components/shared/layouts'
 import { ActiveBadge } from '@/pages/employees/components/active-badge'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { EmployeeDetail } from '@/api/types'
@@ -11,7 +13,7 @@ interface EmployeeInfoCardsProps {
 
 export function EmployeeInfoCards({ employee }: EmployeeInfoCardsProps) {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <DetailGrid>
       <Card>
         <CardHeader>
           <CardTitle>Employee Info</CardTitle>
@@ -39,7 +41,7 @@ export function EmployeeInfoCards({ employee }: EmployeeInfoCardsProps) {
               <TableRow>
                 <TableHead>Valid From</TableHead>
                 <TableHead>Valid To</TableHead>
-                <TableHead className="text-right">Cost Rate / Day</TableHead>
+                <ThRight>Cost Rate / Day</ThRight>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -47,7 +49,7 @@ export function EmployeeInfoCards({ employee }: EmployeeInfoCardsProps) {
                 <TableRow key={index}>
                   <TableCell>{formatDate(entry.validFrom)}</TableCell>
                   <TableCell>{entry.validTo ? formatDate(entry.validTo) : 'Current'}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(entry.costRatePerDay)}</TableCell>
+                  <TdRight bold>{formatCurrency(entry.costRatePerDay)}</TdRight>
                 </TableRow>
               ))}
             </TableBody>
@@ -55,6 +57,6 @@ export function EmployeeInfoCards({ employee }: EmployeeInfoCardsProps) {
         </CardContent>
       </Card>
       </div>
-    </div>
+    </DetailGrid>
   )
 }

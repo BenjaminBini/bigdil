@@ -10,6 +10,8 @@ export interface AlertBannerProps {
   children?: ReactNode
   variant: AlertBannerVariant
   className?: string
+  /** 'compact' uses smaller padding (px-4 py-3 text-sm) */
+  size?: 'default' | 'compact'
 }
 
 const VARIANT_CLASSES: Record<AlertBannerVariant, string> = {
@@ -40,11 +42,13 @@ export function AlertBanner({
   children,
   variant,
   className,
+  size = 'default',
 }: AlertBannerProps) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-lg border p-4',
+        'flex items-start gap-3 rounded-lg border',
+        size === 'compact' ? 'px-4 py-3 text-sm' : 'p-4',
         VARIANT_CLASSES[variant],
         className,
       )}

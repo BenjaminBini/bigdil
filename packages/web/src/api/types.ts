@@ -35,6 +35,7 @@ export interface Employee {
   name: string
   active: boolean
   currentCostRatePerDay: number
+  assignedProjectCount: number
   costRateHistory: { validFrom: string; validTo: string | null; costRatePerDay: number }[]
 }
 

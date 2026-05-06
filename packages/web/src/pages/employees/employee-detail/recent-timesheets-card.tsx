@@ -1,7 +1,9 @@
-import { Link } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TdRight, ThRight } from '@/components/shared/table-cells'
+import { AppLink } from '@/components/shared/app-link'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { MutedText } from '@/components/shared/muted-text'
 import { formatCurrency, formatDate, formatDays } from '@/lib/format'
 import type { EmployeeDetail } from '@/api/types'
 
@@ -17,7 +19,7 @@ export function RecentTimesheetsCard({ timesheets }: RecentTimesheetsCardProps) 
       </CardHeader>
       <CardContent>
         {timesheets.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No timesheets</p>
+          <MutedText>No timesheets</MutedText>
         ) : (
           <Table>
             <TableHeader>
@@ -25,8 +27,8 @@ export function RecentTimesheetsCard({ timesheets }: RecentTimesheetsCardProps) 
                 <TableHead>Date</TableHead>
                 <TableHead>Project</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Days</TableHead>
-                <TableHead className="text-right">Cost</TableHead>
+                <ThRight>Days</ThRight>
+                <ThRight>Cost</ThRight>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -34,17 +36,17 @@ export function RecentTimesheetsCard({ timesheets }: RecentTimesheetsCardProps) 
                 <TableRow key={timesheet.id}>
                   <TableCell>{formatDate(timesheet.workDate)}</TableCell>
                   <TableCell>
-                    <Link to={`/projects/${timesheet.projectId}`} className="text-blue-600 hover:underline">
+                    <AppLink to={`/projects/${timesheet.projectId}`}>
                       {timesheet.projectId}
-                    </Link>
+                    </AppLink>
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={timesheet.status} />
                   </TableCell>
-                  <TableCell className="text-right">{formatDays(Number(timesheet.days))}</TableCell>
-                  <TableCell className="text-right">
+                  <TdRight>{formatDays(Number(timesheet.days))}</TdRight>
+                  <TdRight>
                     {timesheet.appliedCostAmount ? formatCurrency(Number(timesheet.appliedCostAmount)) : '—'}
-                  </TableCell>
+                  </TdRight>
                 </TableRow>
               ))}
             </TableBody>

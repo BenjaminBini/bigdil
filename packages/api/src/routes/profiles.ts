@@ -3,6 +3,46 @@ import { prisma } from '@bigdil/db'
 
 export const profilesRouter = new Hono()
 
+// POST /api/profiles — create a new profile
+profilesRouter.post('/', async (c) => {
+  const body = await c.req.json<{ name: string; defaultSellRatePerDay: number; defaultCostRatePerDay: number }>()
+
+  if (!body.name?.trim()) return c.json({ error: 'name is required' }, 400)
+  if (typeof body.defaultSellRatePerDay !== 'number') return c.json({ error: 'defaultSellRatePerDay is required' }, 400)
+  if (typeof body.defaultCostRatePerDay !== 'number') return c.json({ error: 'defaultCostRatePerDay is required' }, 400)
+
+  const profile = await prisma.profile.create({
+    data: {
+      id: crypto.randomUUID(),
+      name: body.name.trim(),
+      defaultSellRatePerDay: body.defaultSellRatePerDay,
+      defaultCostRatePerDay: body.defaultCostRatePerDay,
+    },
+  })
+
+  return c.json(profile, 201)
+})
+
+// PATCH /api/profiles/:id — update a profile's name and/or rates
+profilesRouter.patch('/:id', async (c) => {
+  const profileId = c.req.param('id')
+  const body = await c.req.json<{ name?: string; defaultSellRatePerDay?: number; defaultCostRatePerDay?: number }>()
+
+  const existing = await prisma.profile.findUnique({ where: { id: profileId } })
+  if (!existing) return c.json({ error: 'Profile not found' }, 404)
+
+  const profile = await prisma.profile.update({
+    where: { id: profileId },
+    data: {
+      ...(body.name?.trim() ? { name: body.name.trim() } : {}),
+      ...(typeof body.defaultSellRatePerDay === 'number' ? { defaultSellRatePerDay: body.defaultSellRatePerDay } : {}),
+      ...(typeof body.defaultCostRatePerDay === 'number' ? { defaultCostRatePerDay: body.defaultCostRatePerDay } : {}),
+    },
+  })
+
+  return c.json(profile)
+})
+
 // GET /api/profiles/:id — profile detail + usage across projects
 profilesRouter.get('/:id', async (c) => {
   const profileId = c.req.param('id')

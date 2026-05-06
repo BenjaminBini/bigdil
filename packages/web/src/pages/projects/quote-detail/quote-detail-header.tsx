@@ -1,7 +1,13 @@
+import type { ReactNode } from 'react'
 import { CheckCircle, Copy, Download, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatDate } from '@/lib/format'
 import type { Quote } from '@/api/types'
+import { PageTitle } from '@/components/shared/page-title'
+import { FlexRow, FlexBetween } from '@/components/shared/layouts'
+import { VStack } from '@/components/shared/VStack'
+import { InlineStack } from '@/components/shared/inline-stack'
+import { TextCaption } from '@/components/shared/text-caption'
 import { QuoteStatusBadge } from './quote-status-badge'
 
 interface QuoteDetailHeaderProps {
@@ -13,6 +19,18 @@ interface QuoteDetailHeaderProps {
   onExport: () => void
 }
 
+function MetaText({ children }: { children: ReactNode }) {
+  return <span className="text-sm text-gray-500">{children}</span>
+}
+
+function MetaValue({ children }: { children: ReactNode }) {
+  return <span className="text-gray-700">{children}</span>
+}
+
+function ActionsRow({ children }: { children: ReactNode }) {
+  return <div className="flex shrink-0 items-center gap-2">{children}</div>
+}
+
 export function QuoteDetailHeader({
   quote,
   isDraft,
@@ -22,48 +40,48 @@ export function QuoteDetailHeader({
   onExport,
 }: QuoteDetailHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="space-y-1">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">{quote.title}</h1>
+    <FlexBetween align="start" gap="lg">
+      <VStack gap="xs">
+        <FlexRow wrap>
+          <PageTitle>{quote.title}</PageTitle>
           <QuoteStatusBadge status={quote.status} />
           {isValidated && (
-            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-              <Lock className="size-3" />
-              Read-only
-            </span>
+            <InlineStack gap="xs">
+              <Lock size={12} className="text-gray-400" />
+              <TextCaption>Read-only</TextCaption>
+            </InlineStack>
           )}
-        </div>
-        <div className="flex items-center gap-4 text-sm text-gray-500">
+        </FlexRow>
+        <FlexRow gap="lg">
           {quote.effectiveAt && (
-            <span>
-              Effective: <span className="text-gray-700">{formatDate(quote.effectiveAt)}</span>
-            </span>
+            <MetaText>
+              Effective: <MetaValue>{formatDate(quote.effectiveAt)}</MetaValue>
+            </MetaText>
           )}
           {quote.validatedAt && (
-            <span>
-              Validated: <span className="text-gray-700">{formatDate(quote.validatedAt)}</span>
-            </span>
+            <MetaText>
+              Validated: <MetaValue>{formatDate(quote.validatedAt)}</MetaValue>
+            </MetaText>
           )}
-        </div>
-      </div>
+        </FlexRow>
+      </VStack>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <ActionsRow>
         {isDraft && (
           <Button onClick={onValidate}>
-            <CheckCircle className="size-4" />
+            <CheckCircle size={16} />
             Validate Quote
           </Button>
         )}
         <Button variant="outline" size="sm" onClick={onDuplicate}>
-          <Copy className="size-3.5" />
+          <Copy size={14} />
           Duplicate
         </Button>
         <Button variant="outline" size="sm" onClick={onExport}>
-          <Download className="size-3.5" />
+          <Download size={14} />
           Export
         </Button>
-      </div>
-    </div>
+      </ActionsRow>
+    </FlexBetween>
   )
 }

@@ -1,70 +1,75 @@
-import { useState } from 'react'
-import type { ReactNode } from 'react'
-import { toast } from 'sonner'
-import type { Employee, UserRole } from '@/api/types'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { toast } from "sonner";
+import type { Employee, UserRole } from "@/api/types";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { ROLE_OPTIONS } from './data'
+} from "@/components/ui/select";
+import { FormField } from "@/components/shared/form-field";
+import { VStack } from "@/components/shared/VStack";
+import { TextCaption } from "@/components/shared/text-caption";
+import { ROLE_OPTIONS } from "./data";
 
 interface NewUserDialogProps {
-  open: boolean
-  onClose: () => void
-  employees: Employee[]
+  open: boolean;
+  onClose: () => void;
+  employees: Employee[];
 }
 
-export function NewUserDialog({ open, onClose, employees }: NewUserDialogProps) {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [role, setRole] = useState<UserRole>('CONSULTANT')
-  const [employeeLink, setEmployeeLink] = useState('none')
+export function NewUserDialog({
+  open,
+  onClose,
+  employees,
+}: NewUserDialogProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<UserRole>("CONSULTANT");
+  const [employeeLink, setEmployeeLink] = useState("none");
 
   function handleCreate() {
     if (!name.trim() || !email.trim()) {
-      toast.error('Name and email are required')
-      return
+      toast.error("Name and email are required");
+      return;
     }
 
-    toast.success(`User "${name}" created successfully`)
-    setName('')
-    setEmail('')
-    setRole('CONSULTANT')
-    setEmployeeLink('none')
-    onClose()
+    toast.success(`User "${name}" created successfully`);
+    setName("");
+    setEmail("");
+    setRole("CONSULTANT");
+    setEmployeeLink("none");
+    onClose();
   }
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>New User</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <Field label="Full Name" htmlFor="nu-name">
+        <VStack gap="xl">
+          <FormField label="Full Name" htmlFor="nu-name">
             <Input
               id="nu-name"
               placeholder="e.g. Marie Dupont"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-          </Field>
+          </FormField>
 
-          <Field label="Email" htmlFor="nu-email">
+          <FormField label="Email" htmlFor="nu-email">
             <Input
               id="nu-email"
               type="email"
@@ -72,10 +77,13 @@ export function NewUserDialog({ open, onClose, employees }: NewUserDialogProps) 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-          </Field>
+          </FormField>
 
-          <Field label="Role" htmlFor="nu-role">
-            <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+          <FormField label="Role" htmlFor="nu-role">
+            <Select
+              value={role}
+              onValueChange={(value) => setRole(value as UserRole)}
+            >
               <SelectTrigger id="nu-role">
                 <SelectValue />
               </SelectTrigger>
@@ -87,9 +95,9 @@ export function NewUserDialog({ open, onClose, employees }: NewUserDialogProps) 
                 ))}
               </SelectContent>
             </Select>
-          </Field>
+          </FormField>
 
-          <Field label="Linked Employee" htmlFor="nu-employee">
+          <FormField label="Linked Employee" htmlFor="nu-employee">
             <Select value={employeeLink} onValueChange={setEmployeeLink}>
               <SelectTrigger id="nu-employee">
                 <SelectValue placeholder="None (admin/PM/exec)" />
@@ -105,9 +113,11 @@ export function NewUserDialog({ open, onClose, employees }: NewUserDialogProps) 
                   ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500">Link to an employee record for timesheet access</p>
-          </Field>
-        </div>
+            <TextCaption>
+              Link to an employee record for timesheet access
+            </TextCaption>
+          </FormField>
+        </VStack>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
@@ -117,20 +127,5 @@ export function NewUserDialog({ open, onClose, employees }: NewUserDialogProps) 
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
-
-interface FieldProps {
-  label: string
-  htmlFor: string
-  children: ReactNode
-}
-
-function Field({ label, htmlFor, children }: FieldProps) {
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
-    </div>
-  )
+  );
 }

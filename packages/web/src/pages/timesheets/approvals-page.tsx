@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useApprovals, useReferenceData } from '@/api/hooks'
+import { useApprovals, useReferenceData, useApproveTimesheet, useRejectTimesheet } from '@/api/hooks'
 import type { Employee, TimesheetEntry } from '@/api/types'
 import { PageHeader } from '@/components/shared/page-header'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { FullHeightColumn } from '@/components/shared/layouts'
 import { formatCurrency } from '@/lib/format'
 import { ApprovalsTable } from './approvals/approvals-table'
 import { PastApprovals } from './approvals/past-approvals'
@@ -46,16 +48,17 @@ function buildPastPeriodSummaries(
 export default function ApprovalsPage() {
   const { data: approvals, isLoading: isLoadingApprovals } = useApprovals()
   const { data: refData, isLoading: isLoadingRef } = useReferenceData()
+  const approveTimesheet = useApproveTimesheet()
+  const rejectTimesheet = useRejectTimesheet()
 
-  const [rows, setRows] = useState<ApprovalRow[] | null>(null)
   const [pastOpen, setPastOpen] = useState(false)
 
   if (isLoadingApprovals || isLoadingRef) {
-    return <div className="p-6">Loading...</div>
+    return <LoadingState />
   }
 
   if (!approvals || !refData) {
-    return <div className="p-6 text-red-600">Failed to load approval data.</div>
+    return <ErrorState message="Failed to load approval data." />
   }
 
   const { profiles, employees } = refData
@@ -64,11 +67,10 @@ export default function ApprovalsPage() {
     (r) => r.status === 'SUBMITTED' || r.status === 'DRAFT' || r.status === 'REJECTED',
   )
   const approvedRows = initialRows.filter((r) => r.status === 'APPROVED')
-  const displayRows = rows ?? activeRows
 
   const pastPeriodSummaries = buildPastPeriodSummaries(approvedRows, employees)
-  const hasAnySubmitted = displayRows.some((r) => r.status === 'SUBMITTED')
-  const approveAllDisabled = !displayRows.every((r) => r.status === 'SUBMITTED')
+  const hasAnySubmitted = activeRows.some((r) => r.status === 'SUBMITTED')
+  const approveAllDisabled = !activeRows.every((r) => r.status === 'SUBMITTED')
 
   function getTaskName(taskId: string): string {
     return taskId
@@ -87,40 +89,41 @@ export default function ApprovalsPage() {
   }
 
   function handleApprove(id: string) {
-    const base = rows ?? activeRows
-    const row = base.find((r) => r.id === id)
+    const row = activeRows.find((r) => r.id === id)
     if (!row) return
     const costRate = getCostRate(row.employeeId)
-    setRows(base.map((r) => (r.id === id ? { ...r, status: 'APPROVED' } : r)))
-    toast.success(`Would approve timesheet - freezing cost rate at ${formatCurrency(costRate)}/d`)
+    approveTimesheet.mutate(id, {
+      onSuccess: () => toast.success(`Timesheet approved — cost rate frozen at ${formatCurrency(costRate)}/d`),
+      onError: () => toast.error('Failed to approve timesheet'),
+    })
   }
 
   function handleReject(id: string) {
-    const base = rows ?? activeRows
-    setRows(base.map((r) => (r.id === id ? { ...r, status: 'REJECTED' } : r)))
-    toast.error('Timesheet rejected')
+    rejectTimesheet.mutate(id, {
+      onSuccess: () => toast.error('Timesheet rejected'),
+      onError: () => toast.error('Failed to reject timesheet'),
+    })
   }
 
   function handleApproveAll() {
-    const base = rows ?? activeRows
-    base
-      .filter((r) => r.status === 'SUBMITTED')
-      .forEach((r) => {
-        const costRate = getCostRate(r.employeeId)
-        toast.success(
-          `Would approve timesheet for ${getEmployeeName(r.employeeId)} - freezing cost rate at ${formatCurrency(costRate)}/d`,
-        )
+    const submitted = activeRows.filter((r) => r.status === 'SUBMITTED')
+    submitted.forEach((r) => {
+      const costRate = getCostRate(r.employeeId)
+      approveTimesheet.mutate(r.id, {
+        onSuccess: () =>
+          toast.success(`Approved ${getEmployeeName(r.employeeId)} — ${formatCurrency(costRate)}/d frozen`),
+        onError: () => toast.error(`Failed to approve ${getEmployeeName(r.employeeId)}`),
       })
-    setRows(base.map((r) => (r.status === 'SUBMITTED' ? { ...r, status: 'APPROVED' } : r)))
+    })
   }
 
   return (
-    <div className="flex min-h-full flex-col">
+    <FullHeightColumn>
       <PageHeader title="Timesheet Approvals" subtitle="PM view - review and approve submitted timesheets" />
 
-      <div className="mx-auto w-full max-w-6xl space-y-6 p-6">
+      <PageContainer size="lg">
         <ApprovalsTable
-          rows={displayRows}
+          rows={activeRows}
           hasAnySubmitted={hasAnySubmitted}
           approveAllDisabled={approveAllDisabled}
           onApproveAll={handleApproveAll}
@@ -132,7 +135,7 @@ export default function ApprovalsPage() {
         />
 
         <PastApprovals open={pastOpen} onOpenChange={setPastOpen} rows={pastPeriodSummaries} />
-      </div>
-    </div>
+      </PageContainer>
+    </FullHeightColumn>
   )
 }

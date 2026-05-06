@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SearchInput } from '@/components/shared/search-input'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { PageHeader } from '@/components/shared/page-header'
 import { useProjects, useReferenceData } from '@/api/hooks'
 import type { Client, ProjectListItem } from '@/api/types'
 import { ClientsListTable } from './components/clients-list-table'
@@ -11,6 +13,7 @@ import {
   type ClientSortKey,
   type SortDir,
 } from './components/clients-list-model'
+import { NewClientDialog } from './components/new-client-dialog'
 
 function buildClientRows(clients: Client[], projects: ProjectListItem[]): ClientListRow[] {
   return clients.map((client) => {
@@ -71,13 +74,14 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<ClientSortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [showNewClient, setShowNewClient] = useState(false)
 
   const { data: refData, isLoading: refLoading, error: refError } = useReferenceData()
   const { data: projects, isLoading: projectsLoading, error: projectsError } = useProjects()
 
-  if (refLoading || projectsLoading) return <div className="p-6">Loading...</div>
+  if (refLoading || projectsLoading) return <LoadingState />
   if (refError || projectsError || !refData || !projects) {
-    return <div className="p-6">Error loading data</div>
+    return <ErrorState />
   }
 
   const rows = buildClientRows(refData.clients, projects)
@@ -93,25 +97,25 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Clients</h1>
-          <p className="mt-0.5 text-sm text-gray-500">Manage your client portfolio</p>
-        </div>
-        <Button>
-          <Plus />
-          New Client
-        </Button>
-      </div>
+    <PageContainer size="lg">
+      <PageHeader
+        variant="section"
+        title="Clients"
+        subtitle="Manage your client portfolio"
+        actions={
+          <Button onClick={() => setShowNewClient(true)}>
+            <Plus />
+            New Client
+          </Button>
+        }
+      />
 
-      <div className="max-w-sm">
-        <SearchInput
-          placeholder="Search clients..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </div>
+      <SearchInput
+        maxWidth="md"
+        placeholder="Search clients..."
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+      />
 
       <ClientsListTable
         rows={filteredRows}
@@ -120,6 +124,8 @@ export default function ClientsPage() {
         onSort={handleSort}
         onOpenClient={(clientId) => navigate(`/clients/${clientId}`)}
       />
-    </div>
+
+      <NewClientDialog open={showNewClient} onClose={() => setShowNewClient(false)} />
+    </PageContainer>
   )
 }

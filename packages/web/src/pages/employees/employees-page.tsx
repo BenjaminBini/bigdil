@@ -1,36 +1,33 @@
+import { useState } from 'react'
 import { useReferenceData } from '@/api/hooks'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { ThRight } from '@/components/shared/table-cells'
 import { EmployeesHeader } from './components/employees-header'
 import { EmployeeRow } from './components/employee-row'
-
-const assignedProjects: Record<string, number> = {
-  e1: 1,
-  e2: 1,
-  e3: 1,
-  e4: 1,
-  e5: 0,
-}
+import { NewEmployeeDialog } from './components/new-employee-dialog'
 
 export default function EmployeesPage() {
+  const [showNewEmployee, setShowNewEmployee] = useState(false)
   const { data: refData, isLoading, error } = useReferenceData()
 
-  if (isLoading) return <div className="p-6">Loading...</div>
-  if (error || !refData) return <div className="p-6">Error loading data</div>
+  if (isLoading) return <LoadingState />
+  if (error || !refData) return <ErrorState />
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <EmployeesHeader />
+    <PageContainer size="md">
+      <EmployeesHeader onNew={() => setShowNewEmployee(true)} />
 
       <Card variant="flush">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
+            <TableRow variant="header">
               <TableHead className="w-8 pr-0" />
               <TableHead>Name</TableHead>
               <TableHead>Active</TableHead>
-              <TableHead className="text-right">Current Cost Rate/Day</TableHead>
-              <TableHead className="text-right">Assigned Projects</TableHead>
+              <ThRight>Current Cost Rate/Day</ThRight>
+              <ThRight>Assigned Projects</ThRight>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -38,12 +35,13 @@ export default function EmployeesPage() {
               <EmployeeRow
                 key={employee.id}
                 employee={employee}
-                projectCount={assignedProjects[employee.id] ?? 0}
+                projectCount={employee.assignedProjectCount}
               />
             ))}
           </TableBody>
         </Table>
       </Card>
-    </div>
+      <NewEmployeeDialog open={showNewEmployee} onClose={() => setShowNewEmployee(false)} />
+    </PageContainer>
   )
 }

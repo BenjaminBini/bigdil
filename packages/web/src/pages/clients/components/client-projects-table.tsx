@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router'
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
+import { TdPrimary, TdNumericPrimary, TdNumeric } from '@/components/shared/table-cells'
 import { SortableHead } from '@/components/shared/sortable-head'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { TextCaption } from '@/components/shared/text-caption'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { ProjectListItem, ProjectStatus } from '@/api/types'
 import {
@@ -30,7 +32,7 @@ export function ClientProjectsTable({ rows, sortKey, sortDir, onSort }: ClientPr
     <Card variant="flush">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50">
+          <TableRow variant="header">
             <SortableHead label="Name" col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
             <SortableHead label="Status" col="status" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
             <SortableHead label="Contract Value" col="contractValue" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
@@ -39,23 +41,23 @@ export function ClientProjectsTable({ rows, sortKey, sortDir, onSort }: ClientPr
         </TableHeader>
         <TableBody>
           {rows.map(({ project, contractValue, marginForecast }) => (
-            <TableRow key={project.id} className="cursor-pointer hover:bg-gray-50" onClick={() => navigate(`/projects/${project.id}`)}>
-              <TableCell className="py-3.5 font-medium text-gray-900">
+            <TableRow key={project.id} variant="interactive" onClick={() => navigate(`/projects/${project.id}`)}>
+              <TdPrimary>
                 {project.name}
                 {(project.startDate || project.endDate) && (
-                  <span className="mt-0.5 block text-xs font-normal text-gray-400">
+                  <TextCaption>
                     {formatDate(project.startDate)}
                     {project.endDate && ` — ${formatDate(project.endDate)}`}
-                  </span>
+                  </TextCaption>
                 )}
-              </TableCell>
+              </TdPrimary>
               <TableCell>
                 <StatusBadge status={project.status as ProjectStatus} />
               </TableCell>
-              <TableCell className="text-right font-medium text-gray-900">{formatCurrency(contractValue)}</TableCell>
-              <TableCell className="text-right text-gray-700">
+              <TdNumericPrimary>{formatCurrency(contractValue)}</TdNumericPrimary>
+              <TdNumeric>
                 {marginForecast != null ? formatCurrency(marginForecast) : '—'}
-              </TableCell>
+              </TdNumeric>
             </TableRow>
           ))}
         </TableBody>

@@ -1,19 +1,63 @@
+import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { AlertTriangle, Eye } from 'lucide-react'
+import { useOpenPeriod, useStartConsolidation } from '@/api/hooks'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   TableCell,
   TableRow,
 } from '@/components/ui/table'
-import { SuccessButton, WarningButton } from '@/components/shared/button-adapters'
+import { TdPrimary, TdNumeric, TdDetail, TdRight, NullCell } from '@/components/shared/table-cells'
+import { WarningButton } from '@/components/shared/button-adapters'
 import { StatusBadge } from '@/components/shared/status-badge'
-import { periodStatusLabels } from '@/lib/constants'
 import { formatCurrency, formatDate } from '@/lib/format'
 import type { PeriodStatus } from '@/api/types'
 
+function AlertItem({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex items-start gap-1 text-amber-700 text-xs">
+      <AlertTriangle size={12} className="shrink-0 mt-0.5" />
+      <span>{children}</span>
+    </div>
+  )
+}
+
+function AlertsList({ alerts }: { alerts: string[] }) {
+  return (
+    <div className="flex flex-col gap-1">
+      {alerts.map((alert) => (
+        <AlertItem key={alert}>{alert}</AlertItem>
+      ))}
+    </div>
+  )
+}
+
+function AlertsCell({ alerts, fallback }: { alerts: string[]; fallback: ReactNode }) {
+  return (
+    <TableCell className="max-w-[200px]">
+      {alerts.length > 0 ? <AlertsList alerts={alerts} /> : fallback}
+    </TableCell>
+  )
+}
+
+function PeriodTableRow({ status, children }: { status: PeriodStatus; children: ReactNode }) {
+  return (
+    <TableRow
+      className={cn(
+        'hover:bg-gray-50',
+        (status === 'OPEN' || status === 'CONSOLIDATION') && 'bg-green-50/30',
+        status === 'FUTURE' && 'opacity-70',
+      )}
+    >
+      {children}
+    </TableRow>
+  )
+}
+
 interface PeriodRowProps {
+  periodId: string
   periodNumber: number
   startDate: string
   endDate: string
@@ -30,6 +74,7 @@ interface PeriodRowProps {
 }
 
 export function PeriodRow({
+  periodId,
   periodNumber,
   startDate,
   endDate,
@@ -45,65 +90,54 @@ export function PeriodRow({
   onFreezePeriod,
 }: PeriodRowProps) {
   const navigate = useNavigate()
-  const dash = <span className="text-gray-300">—</span>
+  const openPeriod = useOpenPeriod(projectId)
+  const startConsolidation = useStartConsolidation(projectId)
+  const dash = <NullCell />
 
   function handleOpen() {
-    toast.info(`Period ${periodNumber} opened`)
+    openPeriod.mutate(periodId, {
+      onSuccess: () => toast.success(`Period ${periodNumber} opened`),
+      onError: () => toast.error(`Failed to open Period ${periodNumber}`),
+    })
   }
 
   function handleStartConsolidation() {
-    toast.info(`Period ${periodNumber} moved to Consolidation`)
+    startConsolidation.mutate(periodId, {
+      onSuccess: () => toast.success(`Period ${periodNumber} moved to Consolidation`),
+      onError: () => toast.error(`Failed to start consolidation for Period ${periodNumber}`),
+    })
   }
 
   return (
-    <TableRow
-      className={cn(
-        'hover:bg-gray-50',
-        (status === 'OPEN' || status === 'CONSOLIDATION') && 'bg-green-50/30',
-        status === 'FUTURE' && 'opacity-70',
-      )}
-    >
-      <TableCell className="font-medium text-gray-900 py-3.5 tabular-nums">P{periodNumber}</TableCell>
-      <TableCell className="text-gray-600 text-sm tabular-nums whitespace-nowrap">
+    <PeriodTableRow status={status}>
+      <TdPrimary tabularNums>P{periodNumber}</TdPrimary>
+      <TdDetail tabularNums nowrap>
         {formatDate(startDate)} – {formatDate(endDate)}
-      </TableCell>
+      </TdDetail>
       <TableCell>
         <StatusBadge status={status} />
       </TableCell>
-      <TableCell className="text-gray-600 text-sm tabular-nums whitespace-nowrap">
+      <TdDetail tabularNums nowrap>
         {snapshotDate ? formatDate(snapshotDate) : dash}
-      </TableCell>
-      <TableCell className="text-right tabular-nums text-gray-700">
+      </TdDetail>
+      <TdNumeric>
         {contractValue != null ? formatCurrency(contractValue) : dash}
-      </TableCell>
-      <TableCell className="text-right tabular-nums text-gray-700">
+      </TdNumeric>
+      <TdNumeric>
         {marginForecast != null ? formatCurrency(marginForecast) : dash}
-      </TableCell>
-      <TableCell className="text-right tabular-nums text-gray-700">
+      </TdNumeric>
+      <TdNumeric>
         {producedValue != null ? formatCurrency(producedValue) : dash}
-      </TableCell>
-      <TableCell className="max-w-[200px]">
-        {alerts.length > 0 ? (
-          <div className="flex flex-col gap-1">
-            {alerts.map((alert) => (
-              <div key={alert} className="flex items-start gap-1 text-amber-700 text-xs">
-                <AlertTriangle className="size-3 shrink-0 mt-0.5" />
-                <span>{alert}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          dash
-        )}
-      </TableCell>
-      <TableCell className="text-right whitespace-nowrap">
+      </TdNumeric>
+      <AlertsCell alerts={alerts} fallback={dash} />
+      <TdRight nowrap>
         {status === 'FROZEN' && snapshotId && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate(`/projects/${projectId}/snapshots/${snapshotId}`)}
           >
-            <Eye className="size-3.5" />
+            <Eye size={14} />
             View Snapshot
           </Button>
         )}
@@ -122,7 +156,7 @@ export function PeriodRow({
             Open Period
           </Button>
         )}
-      </TableCell>
-    </TableRow>
+      </TdRight>
+    </PeriodTableRow>
   )
 }

@@ -1,7 +1,9 @@
-import { Link } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TdRight, ThRight } from '@/components/shared/table-cells'
+import { AppLink } from '@/components/shared/app-link'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { MutedText } from '@/components/shared/muted-text'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { ProfileDetail } from '@/api/types'
 
@@ -17,7 +19,7 @@ export function QuoteUsageCard({ usage }: QuoteUsageCardProps) {
       </CardHeader>
       <CardContent>
         {usage.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Not used in any quotes</p>
+          <MutedText>Not used in any quotes</MutedText>
         ) : (
           <Table>
             <TableHeader>
@@ -25,26 +27,26 @@ export function QuoteUsageCard({ usage }: QuoteUsageCardProps) {
                 <TableHead>Project</TableHead>
                 <TableHead>Quote</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Days</TableHead>
-                <TableHead className="text-right">Sell Rate</TableHead>
-                <TableHead className="text-right">Revenue</TableHead>
+                <ThRight>Days</ThRight>
+                <ThRight>Sell Rate</ThRight>
+                <ThRight>Revenue</ThRight>
               </TableRow>
             </TableHeader>
             <TableBody>
               {usage.map((entry, index) => (
                 <TableRow key={index}>
                   <TableCell>
-                    <Link to={`/projects/${entry.projectId}`} className="text-blue-600 hover:underline">
+                    <AppLink to={`/projects/${entry.projectId}`}>
                       {entry.projectName}
-                    </Link>
+                    </AppLink>
                   </TableCell>
                   <TableCell>{entry.quoteTitle}</TableCell>
                   <TableCell>
                     <StatusBadge status={entry.quoteStatus} />
                   </TableCell>
-                  <TableCell className="text-right">{formatDays(entry.days)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(entry.sellRatePerDay)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(entry.revenueAmount)}</TableCell>
+                  <TdRight>{formatDays(entry.days)}</TdRight>
+                  <TdRight>{formatCurrency(entry.sellRatePerDay)}</TdRight>
+                  <TdRight>{formatCurrency(entry.revenueAmount)}</TdRight>
                 </TableRow>
               ))}
             </TableBody>

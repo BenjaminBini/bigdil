@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { AlertTriangle, CheckCircle2, ChevronRight, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -7,8 +8,19 @@ import { WarningButton } from '@/components/shared/button-adapters'
 import { AlertBanner } from '@/components/shared/alert-banner'
 import { ColorValue } from '@/components/shared/color-value'
 import { StatusItem } from '@/components/shared/status-item'
+import { MutedText } from '@/components/shared/muted-text'
+import { FlexEnd } from '@/components/shared/layouts'
+import { VStack } from '@/components/shared/VStack'
 import type { Period, TimesheetEntry, WorkTableCell } from '@/api/types'
 import { Step1PlanActualTable } from './step1-plan-actual-table'
+
+function InlineNote({ children }: { children: ReactNode }) {
+  return <span style={{ marginLeft: '0.25rem', color: '#6b7280' }}>{children}</span>
+}
+
+function SuccessNote({ children }: { children: ReactNode }) {
+  return <p style={{ color: '#15803d' }}>{children}</p>
+}
 
 interface Step1Props {
   period: Period
@@ -56,35 +68,35 @@ export function Step1Checklist({
   }
 
   return (
-    <div className="space-y-5">
-      <p className="text-sm text-gray-500">
+    <VStack gap="xl">
+      <MutedText>
         Review the checklist before closing Period {period.periodNumber} ({period.startDate} – {period.endDate}).
-      </p>
+      </MutedText>
 
       <Card variant="muted">
         <StatusItem
           icon={allApproved
-            ? <CheckCircle2 className="size-5 text-green-600" />
-            : <XCircle className="size-5 text-red-500" />}
+            ? <CheckCircle2 size={20} color="#16a34a" />
+            : <XCircle size={20} color="#ef4444" />}
           title="All timesheets approved"
           description={
             <p>
               <ColorValue value={`${approved}/${total} approved`} sentiment={allApproved ? 'positive' : 'negative'} />
               {!allApproved && (
-                <span className="ml-1 text-gray-500">
+                <InlineNote>
                   ({periodTimesheets
                     .filter((t) => t.status !== 'APPROVED')
                     .map((t) => `${getEmployeeName(t.employeeId)} (${t.status})`)
                     .join(', ')})
-                </span>
+                </InlineNote>
               )}
             </p>
           }
         />
         <StatusItem
-          icon={<CheckCircle2 className="size-5 text-green-600" />}
+          icon={<CheckCircle2 size={20} color="#16a34a" />}
           title="Scope additions this period"
-          description={<p className="text-green-700">None</p>}
+          description={<SuccessNote>None</SuccessNote>}
         />
       </Card>
 
@@ -93,25 +105,25 @@ export function Step1Checklist({
       {!allApproved && (
         <AlertBanner
           variant="warning"
-          icon={<AlertTriangle className="size-5 text-amber-600" />}
+          icon={<AlertTriangle size={20} color="#d97706" />}
           title="Timesheets not fully approved"
           description="Normally you cannot close this period until all timesheets are approved. For this mockup, you can still proceed."
         />
       )}
 
-      <div className="flex justify-end">
+      <FlexEnd>
         {allApproved ? (
           <Button onClick={handleNext}>
             Next
-            <ChevronRight className="size-4" />
+            <ChevronRight size={16} />
           </Button>
         ) : (
           <WarningButton onClick={handleNext}>
             Next (bypass warning)
-            <ChevronRight className="size-4" />
+            <ChevronRight size={16} />
           </WarningButton>
         )}
-      </div>
-    </div>
+      </FlexEnd>
+    </VStack>
   )
 }

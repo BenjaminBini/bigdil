@@ -4,6 +4,13 @@ import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSnapshot, useProject, useProjectTimesheets, useReferenceData } from '@/api/hooks'
+import { LoadingState, ErrorState } from '@/components/shared/page-container'
+import { FlexRow, FlexBetween } from '@/components/shared/layouts'
+import { VStack } from '@/components/shared/VStack'
+import { TextCaption } from '@/components/shared/text-caption'
+import { HintText } from '@/components/shared/hint-text'
+import { PageTitle } from '@/components/shared/page-title'
+import { MutedText } from '@/components/shared/muted-text'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { formatCurrency, formatDate } from '@/lib/format'
 import { MetricsTab } from './snapshot-detail/metrics-tab'
@@ -22,13 +29,9 @@ export default function SnapshotDetailPage() {
   const isLoading = snapLoading || projectLoading || refLoading || tsLoading
   const hasError = snapError || projectError || refError || tsError
 
-  if (isLoading) return <div className="p-6">Loading...</div>
+  if (isLoading) return <LoadingState />
   if (hasError || !snapshot || !project || !refData || !allTimesheets) {
-    return (
-      <div className="p-6 text-center text-gray-400">
-        Snapshot not found.
-      </div>
-    )
+    return <ErrorState message="Snapshot not found." />
   }
 
   const getTaskName = (taskId: string) => project.flatTasks.find(t => t.id === taskId)?.name ?? taskId
@@ -46,33 +49,31 @@ export default function SnapshotDetailPage() {
       : 0
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-              Snapshot — Period {snapshot.periodNumber}
-            </h1>
+    <VStack gap="xl">
+      <FlexBetween align="start" gap="lg" wrap>
+        <VStack gap="xs">
+          <FlexRow>
+            <PageTitle>Snapshot — Period {snapshot.periodNumber}</PageTitle>
             <StatusBadge status="CLOSED" />
-          </div>
-          <p className="text-sm text-gray-500">
+          </FlexRow>
+          <MutedText>
             Snapshot recorded: {formatDate(snapshot.snapshotAt)}
             {snapshot.notes && (
-              <span className="ml-2 text-gray-400 italic">"{snapshot.notes}"</span>
+              <HintText> "{snapshot.notes}"</HintText>
             )}
-          </p>
+          </MutedText>
           {snapshot.metrics && (
-            <p className="text-xs text-gray-400">
+            <TextCaption>
               Margin: {formatCurrency(snapshot.metrics.marginForecast)} ({marginPct.toFixed(1)}%)
-            </p>
+            </TextCaption>
           )}
-        </div>
+        </VStack>
 
         <Button variant="outline" onClick={handleExport}>
-          <Download className="size-4" />
+          <Download size={16} />
           Export CSV Bundle
         </Button>
-      </div>
+      </FlexBetween>
 
       <Tabs defaultValue="metrics">
         <TabsList>
@@ -86,7 +87,7 @@ export default function SnapshotDetailPage() {
           {snapshot.metrics ? (
             <MetricsTab metrics={snapshot.metrics} />
           ) : (
-            <div className="pt-4 text-sm text-gray-400">No metrics available for this snapshot.</div>
+            <ErrorState message="No metrics available for this snapshot." variant="muted" />
           )}
         </TabsContent>
 
@@ -117,6 +118,6 @@ export default function SnapshotDetailPage() {
           />
         </TabsContent>
       </Tabs>
-    </div>
+    </VStack>
   )
 }

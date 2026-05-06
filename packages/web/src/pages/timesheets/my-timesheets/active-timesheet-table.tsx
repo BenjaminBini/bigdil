@@ -9,10 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { TdPrimary, TdNumeric, TdDetail, TdRight, TdNumericPrimary } from '@/components/shared/table-cells'
 import { HeadCell } from '@/components/shared/head-cell'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDays, formatDaysWithUnit } from '@/lib/format'
+import { CardTitleBar, CardFooterBar } from '@/components/shared/card-title-bar'
 import type { EntryRowState } from './types'
 
 interface ActiveTimesheetTableProps {
@@ -40,22 +42,20 @@ export function ActiveTimesheetTable({
 }: ActiveTimesheetTableProps) {
   return (
     <Card variant="flush">
-      <div className="flex items-center justify-between border-b bg-gray-50 px-5 py-4">
-        <div>
-          <h2 className="font-semibold text-gray-900">{projectName}</h2>
-          <p className="mt-0.5 text-xs text-gray-500">Active period</p>
-        </div>
-        <StatusBadge status="OPEN" />
-      </div>
+      <CardTitleBar
+        title={projectName}
+        subtitle="Active period"
+        actions={<StatusBadge status="OPEN" />}
+      />
 
-      <Table>
+      <Table variant="compact">
         <TableHeader>
-          <TableRow className="bg-gray-50">
+          <TableRow variant="header">
             <HeadCell label="Task" />
             <HeadCell label="Profile" />
-            <HeadCell label="Planned Days" className="w-28 text-right" />
-            <HeadCell label="Actual Days" className="w-32 text-right" />
-            <HeadCell label="Status" className="w-24" />
+            <HeadCell label="Planned Days" align="right" width="112px" />
+            <HeadCell label="Actual Days" align="right" width="128px" />
+            <HeadCell label="Status" width="96px" />
             <HeadCell label="Notes" />
           </TableRow>
         </TableHeader>
@@ -63,10 +63,10 @@ export function ActiveTimesheetTable({
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.id} className="align-top">
-              <TableCell className="py-3 font-medium text-gray-900">{getTaskName(row.taskId)}</TableCell>
-              <TableCell className="py-3 text-sm text-gray-600">{getProfileName(row.profileId)}</TableCell>
-              <TableCell className="py-3 text-right text-gray-700">{formatDays(row.plannedDays)}</TableCell>
-              <TableCell className="py-2 text-right">
+              <TdPrimary>{getTaskName(row.taskId)}</TdPrimary>
+              <TdDetail>{getProfileName(row.profileId)}</TdDetail>
+              <TdNumeric>{formatDays(row.plannedDays)}</TdNumeric>
+              <TdRight>
                 <Input
                   type="number"
                   min={0}
@@ -77,11 +77,11 @@ export function ActiveTimesheetTable({
                   size="sm"
                   className="ml-auto w-24 text-right"
                 />
-              </TableCell>
-              <TableCell className="py-3">
+              </TdRight>
+              <TableCell>
                 <StatusBadge status={row.status} />
               </TableCell>
-              <TableCell className="py-2">
+              <TableCell>
                 <Textarea
                   value={row.notes}
                   onChange={(e) => onUpdateRow(row.id, 'notes', e.target.value)}
@@ -93,28 +93,28 @@ export function ActiveTimesheetTable({
             </TableRow>
           ))}
 
-          <TableRow className="border-t-2 border-gray-200 bg-gray-50 font-semibold">
-            <TableCell className="py-3 text-gray-900" colSpan={2}>
+          <TableRow variant="total">
+            <TdPrimary colSpan={2}>
               Total
-            </TableCell>
-            <TableCell className="py-3 text-right text-gray-900">{formatDaysWithUnit(totalPlanned)}</TableCell>
-            <TableCell className="py-3 pr-4 text-right text-gray-900">{formatDaysWithUnit(totalActual)}</TableCell>
+            </TdPrimary>
+            <TdNumericPrimary>{formatDaysWithUnit(totalPlanned)}</TdNumericPrimary>
+            <TdNumericPrimary className="pr-4">{formatDaysWithUnit(totalActual)}</TdNumericPrimary>
             <TableCell />
             <TableCell />
           </TableRow>
         </TableBody>
       </Table>
 
-      <div className="flex items-center justify-end gap-2 border-t bg-gray-50 px-5 py-3">
+      <CardFooterBar align="end">
         <Button variant="outline" size="sm" onClick={onSaveDraft}>
-          <Save className="size-3.5" />
+          <Save size={14} />
           Save Draft
         </Button>
         <Button size="sm" onClick={onSubmit}>
-          <Send className="size-3.5" />
+          <Send size={14} />
           Submit
         </Button>
-      </div>
+      </CardFooterBar>
     </Card>
   )
 }

@@ -1,8 +1,11 @@
-import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDays } from '@/lib/format'
 import { ColorValue } from '@/components/shared/color-value'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { TdPrimary, TdNumeric, TdRight, TdDetail } from '@/components/shared/table-cells'
+import { SectionTitle } from '@/components/shared/page-title'
+import { HeadCell } from '@/components/shared/head-cell'
 import type { TimesheetStatus } from '@/api/types'
 
 interface PlanActualRow {
@@ -22,51 +25,44 @@ interface Step1PlanActualTableProps {
 export function Step1PlanActualTable({ periodNumber, rows }: Step1PlanActualTableProps) {
   return (
     <div>
-      <h3 className="mb-2 text-sm font-semibold text-gray-700">Plan vs. Actual - Period {periodNumber}</h3>
+      <SectionTitle spacing="sm">Plan vs. Actual - Period {periodNumber}</SectionTitle>
       <Card variant="flush">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-gray-50">
-              <Head label="Employee" align="left" />
-              <Head label="Task" align="left" />
-              <Head label="Planned Days" align="right" />
-              <Head label="Actual Days" align="right" />
-              <Head label="Delta" align="right" />
-              <Head label="Status" align="left" />
-            </tr>
-          </thead>
-          <tbody>
+        <Table variant="compact">
+          <TableHeader>
+            <TableRow variant="header">
+              <HeadCell variant="compact" label="Employee" />
+              <HeadCell variant="compact" label="Task" />
+              <HeadCell variant="compact" label="Planned Days" align="right" />
+              <HeadCell variant="compact" label="Actual Days" align="right" />
+              <HeadCell variant="compact" label="Delta" align="right" />
+              <HeadCell variant="compact" label="Status" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((row) => {
               const delta = row.actualDays - row.plannedDays
               return (
-                <tr key={row.id} className="border-b hover:bg-gray-50 last:border-0">
-                  <td className="px-4 py-2.5 font-medium text-gray-900">{row.employee}</td>
-                  <td className="px-4 py-2.5 text-gray-600">{row.task}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">{formatDays(row.plannedDays)}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-gray-700">{formatDays(row.actualDays)}</td>
-                  <td className="px-4 py-2.5 text-right">
+                <TableRow key={row.id}>
+                  <TdPrimary>{row.employee}</TdPrimary>
+                  <TdDetail>{row.task}</TdDetail>
+                  <TdNumeric>{formatDays(row.plannedDays)}</TdNumeric>
+                  <TdNumeric>{formatDays(row.actualDays)}</TdNumeric>
+                  <TdRight>
                     <ColorValue
                       value={delta === 0 ? '—' : delta > 0 ? `+${formatDays(delta)}` : formatDays(delta)}
                       sentiment={delta > 0 ? 'warning' : delta < 0 ? 'positive' : 'neutral'}
                     />
-                  </td>
-                  <td className="px-4 py-2.5">
+                  </TdRight>
+                  <TableCell>
                     <StatusBadge status={row.status} />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </Card>
     </div>
   )
 }
 
-function Head({ label, align }: { label: string; align: 'left' | 'right' }) {
-  return (
-    <th className={cn('px-4 py-2.5 font-medium text-gray-600', align === 'right' ? 'text-right' : 'text-left')}>
-      {label}
-    </th>
-  )
-}

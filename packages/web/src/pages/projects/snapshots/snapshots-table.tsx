@@ -1,5 +1,6 @@
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
+import { Table, TableBody, TableHeader, TableRow } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
+import { EmptyRow } from '@/components/shared/empty-row'
 import { Card } from '@/components/ui/card'
 import type { Period, Snapshot } from '@/api/types'
 import { PeriodRow } from './period-row'
@@ -26,25 +27,21 @@ export function SnapshotsTable({ periods, snapshots, contractValue, projectId, o
     <Card variant="flush">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50">
+          <TableRow variant="header">
             <HeadCell label="Period #" />
             <HeadCell label="Dates" />
             <HeadCell label="Status" />
             <HeadCell label="Snapshot Date" />
-            <HeadCell label="Contract Value" className="text-right" />
-            <HeadCell label="Margin Forecast" className="text-right" />
-            <HeadCell label="Produced Value (period)" className="text-right" />
+            <HeadCell label="Contract Value" align="right" />
+            <HeadCell label="Margin Forecast" align="right" />
+            <HeadCell label="Produced Value (period)" align="right" />
             <HeadCell label="Alerts" />
-            <HeadCell label="Actions" className="text-right" />
+            <HeadCell label="Actions" align="right" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {periods.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={9} className="py-10 text-center text-gray-400">
-                No periods found for this project
-              </TableCell>
-            </TableRow>
+            <EmptyRow colSpan={9} message="No periods found for this project" />
           ) : (
             periods.map((period) => {
               const snapshot = snapshotByPeriodId.get(period.id)
@@ -71,6 +68,7 @@ export function SnapshotsTable({ periods, snapshots, contractValue, projectId, o
               return (
                 <PeriodRow
                   key={period.id}
+                  periodId={period.id}
                   periodNumber={period.periodNumber}
                   startDate={period.startDate}
                   endDate={period.endDate}

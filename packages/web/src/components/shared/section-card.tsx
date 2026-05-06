@@ -1,31 +1,43 @@
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import { Label } from '@/components/ui/label'
 
 interface ToggleProps {
   checked: boolean
   onChange: (next: boolean) => void
-  id: string
+  label: string
+  children?: ReactNode
 }
 
-export function Toggle({ checked, onChange, id }: ToggleProps) {
+export function Toggle({ checked, onChange, label, children }: ToggleProps) {
+  const id = useId()
   return (
-    <button
-      id={id}
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={[
-        'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
-        checked ? 'bg-blue-600' : 'bg-gray-200',
-      ].join(' ')}
-    >
-      <span
+    <div className="flex items-start gap-3">
+      <button
+        type="button"
+        id={id}
+        role="switch"
+        aria-checked={checked ? 'true' : 'false'}
+        aria-label={label}
+        onClick={() => onChange(!checked)}
         className={[
-          'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition',
-          checked ? 'translate-x-4' : 'translate-x-0',
+          'relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
+          checked ? 'bg-blue-600' : 'bg-gray-200',
         ].join(' ')}
-      />
-    </button>
+      >
+        <span
+          className={[
+            'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition',
+            checked ? 'translate-x-4' : 'translate-x-0',
+          ].join(' ')}
+        />
+      </button>
+      <div className="space-y-0.5">
+        <Label htmlFor={id} className="cursor-pointer text-sm font-medium text-gray-700">
+          {label}
+        </Label>
+        {children && <p className="text-xs text-gray-500">{children}</p>}
+      </div>
+    </div>
   )
 }
 

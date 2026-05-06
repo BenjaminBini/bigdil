@@ -3,7 +3,7 @@ import { apiFetch } from '../client'
 import type {
   ProjectListItem, ProjectDetail, WorkTableData, Snapshot,
   TimesheetEntry, ReferenceData, DashboardData,
-  EmployeeDetail, ProfileDetail,
+  EmployeeDetail, ProfileDetail, Profile, Task, Client, Employee,
   FinancialReportRow, UtilizationReportRow,
 } from '../types'
 
@@ -134,6 +134,142 @@ export function useUtilizationReport() {
 }
 
 // ── Mutations (Phase C) ────────────────────────
+
+export function useCreateProject() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { clientId: string; name: string; currency: string; startDate?: string | null; endDate?: string | null }) =>
+      apiFetch<ProjectListItem>('/api/projects', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.projects }) },
+  })
+}
+
+export function useUpdateProject(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { name?: string; currency?: string; startDate?: string | null; endDate?: string | null }) =>
+      apiFetch(`/api/projects/${projectId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.projects })
+    },
+  })
+}
+
+export function useAddEmployeeRate(employeeId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { validFrom: string; costRatePerDay: number }) =>
+      apiFetch(`/api/employees/${employeeId}/rates`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+  })
+}
+
+export function useCreateProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { name: string; defaultSellRatePerDay: number; defaultCostRatePerDay: number }) =>
+      apiFetch<Profile>('/api/profiles', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+  })
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string; name?: string; defaultSellRatePerDay?: number; defaultCostRatePerDay?: number }) =>
+      apiFetch<Profile>(`/api/profiles/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+  })
+}
+
+export function useCreateTask(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { name: string; status?: string; parentTaskId?: string | null }) =>
+      apiFetch<Task>(`/api/projects/${projectId}/tasks`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useUpdateTask(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ taskId, ...data }: { taskId: string; name?: string; status?: string }) =>
+      apiFetch<Task>(`/api/projects/${projectId}/tasks/${taskId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useValidateQuote(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (quoteId: string) =>
+      apiFetch(`/api/projects/${projectId}/quotes/${quoteId}/validate`, { method: 'POST' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useUpdateProjectStatus(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (status: string) =>
+      apiFetch(`/api/projects/${projectId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.projects })
+    },
+  })
+}
+
+export function useCreateClient() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { name: string; contactName: string; contactEmail: string; address: string }) =>
+      apiFetch<Client>('/api/clients', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+  })
+}
+
+export function useUpdateClient() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string; name?: string; contactName?: string; contactEmail?: string; address?: string }) =>
+      apiFetch<Client>(`/api/clients/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+  })
+}
+
+export function useCreateQuote(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: {
+      title: string
+      effectiveAt?: string | null
+      lines: Array<{ taskId: string; profileId: string; days: number; sellRatePerDay: number; costRateAssumptionPerDay: number }>
+    }) =>
+      apiFetch<Quote>(`/api/projects/${projectId}/quotes`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useDuplicateQuote(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (quoteId: string) =>
+      apiFetch<Quote>(`/api/projects/${projectId}/quotes/${quoteId}/duplicate`, { method: 'POST' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useCreateEmployee() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { name: string; currentCostRatePerDay: number }) =>
+      apiFetch<Employee>('/api/employees', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+  })
+}
 
 export function useUpdateCell(projectId: string) {
   const queryClient = useQueryClient()

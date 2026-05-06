@@ -1,6 +1,7 @@
 import { CheckCircle2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TimelineItem } from '@/components/shared/timeline-item'
+import { ErrorState } from '@/components/shared/page-container'
 import { formatDate } from '@/lib/format'
 import type { Period } from '@/api/types'
 
@@ -25,13 +26,13 @@ export function ProjectActivityTimeline({ periods }: ProjectActivityTimelineProp
       </CardHeader>
       <CardContent>
         {timeline.length === 0 ? (
-          <p className="py-4 text-sm text-gray-400">No closed periods yet.</p>
+          <ErrorState variant="empty" message="No closed periods yet." />
         ) : (
           <div>
             {timeline.map((event) => (
               <TimelineItem
                 key={event.id}
-                icon={<CheckCircle2 className="size-4 text-gray-500" />}
+                icon={<CheckCircle2 size={16} color="#6b7280" />}
                 label={event.label}
                 sub={event.date}
               />

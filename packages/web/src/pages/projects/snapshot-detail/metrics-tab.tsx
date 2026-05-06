@@ -1,4 +1,5 @@
 import { KpiCard } from '@/components/shared/kpi-card'
+import { KpiGrid } from '@/components/shared/layouts'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { SnapshotMetrics } from '@/api/types'
 import type { KpiCardProps } from '@/components/shared/kpi-card'
@@ -37,10 +38,10 @@ function buildKpis(m: SnapshotMetrics): KpiCardProps[] {
 export function MetricsTab({ metrics }: { metrics: SnapshotMetrics }) {
   const kpis = buildKpis(metrics)
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-4">
+    <KpiGrid className="pt-4">
       {kpis.map((kpi) => (
         <KpiCard key={kpi.label} {...kpi} />
       ))}
-    </div>
+    </KpiGrid>
   )
 }

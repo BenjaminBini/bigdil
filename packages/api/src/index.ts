@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { projectsRouter } from './routes/projects.js'
+import { clientsRouter } from './routes/clients.js'
 import { referenceDataRouter } from './routes/reference-data.js'
 import { timesheetsRouter } from './routes/timesheets.js'
 import { dashboardRouter } from './routes/dashboard.js'
@@ -18,7 +19,7 @@ const app = new Hono()
 // ── Middleware ──
 app.use('*', logger())
 app.use('*', cors({
-  origin: ['http://localhost:5173', 'http://localhost:4173'],
+  origin: (origin) => origin?.startsWith('http://localhost:') ? origin : null,
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowHeaders: ['Content-Type'],
 }))
@@ -29,6 +30,7 @@ app.get('/health', (c) => c.json({ status: 'ok' }))
 // ── Routes ──
 app.route('/api/dashboard', dashboardRouter)
 app.route('/api/projects', projectsRouter)
+app.route('/api/clients', clientsRouter)
 app.route('/api/timesheets', timesheetsRouter)
 app.route('/api/reference-data', referenceDataRouter)
 app.route('/api/employees', employeesRouter)

@@ -1,5 +1,10 @@
+import type { ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { NumberedList } from '@/components/shared/numbered-list'
+
+function BodyText({ children }: { children: ReactNode }) {
+  return <p className="text-sm leading-relaxed text-gray-700">{children}</p>
+}
 
 const nextSteps = [
   'Set start and end dates for the project',
@@ -15,10 +20,10 @@ export function ProjectNextStepsCard() {
         <CardTitle>Next Steps</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm leading-relaxed text-gray-700">
+        <BodyText>
           Set start and end dates to generate the period grid, then distribute quoted days across
           periods.
-        </p>
+        </BodyText>
         <NumberedList items={nextSteps} />
       </CardContent>
     </Card>

@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/button'
+import { FlexRow } from '@/components/shared/layouts'
+import { FilterWrapper } from '@/components/shared/filter-wrapper'
 import {
   Select,
   SelectContent,
@@ -51,8 +53,8 @@ export function FiltersBar({
     statusFilter !== ALL_VALUE
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <div className="w-56">
+    <FlexRow wrap>
+      <FilterWrapper>
         <Select value={periodFilter} onValueChange={setPeriodFilter}>
           <SelectTrigger>
             <SelectValue placeholder="All periods" />
@@ -65,9 +67,9 @@ export function FiltersBar({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </FilterWrapper>
 
-      <div className="w-44">
+      <FilterWrapper size="md">
         <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
           <SelectTrigger>
             <SelectValue placeholder="All employees" />
@@ -80,9 +82,9 @@ export function FiltersBar({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </FilterWrapper>
 
-      <div className="w-56">
+      <FilterWrapper>
         <Select value={taskFilter} onValueChange={setTaskFilter}>
           <SelectTrigger>
             <SelectValue placeholder="All tasks" />
@@ -95,9 +97,9 @@ export function FiltersBar({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </FilterWrapper>
 
-      <div className="w-40">
+      <FilterWrapper size="sm">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger>
             <SelectValue placeholder="All statuses" />
@@ -110,7 +112,7 @@ export function FiltersBar({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </FilterWrapper>
 
       {hasFilters && (
         <Button
@@ -126,6 +128,6 @@ export function FiltersBar({
           Clear filters
         </Button>
       )}
-    </div>
+    </FlexRow>
   )
 }

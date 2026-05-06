@@ -2,9 +2,46 @@
 
 import * as React from "react"
 
+import { cva, type VariantProps } from "class-variance-authority"
+
 import { cn } from "@/lib/utils"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+const tableRowVariants = cva(
+  "border-b transition-colors",
+  {
+    variants: {
+      variant: {
+        default: "hover:bg-muted/50 data-[state=selected]:bg-muted",
+        header: "bg-gray-50",
+        interactive: "cursor-pointer hover:bg-gray-50",
+        subtotal: "bg-gray-50/50 font-medium",
+        total: "bg-gray-50 border-t-2 border-gray-200 font-semibold",
+        muted: "text-gray-400",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+const tableVariants = cva("w-full caption-bottom text-sm", {
+  variants: {
+    variant: {
+      default: "",
+      compact: "[&_th]:py-2 [&_th]:px-3 [&_td]:py-2 [&_td]:px-3",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+})
+
+function Table({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"table"> & VariantProps<typeof tableVariants>) {
   return (
     <div
       data-slot="table-container"
@@ -12,7 +49,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     >
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
+        className={cn(tableVariants({ variant }), className)}
         {...props}
       />
     </div>
@@ -52,14 +89,15 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   )
 }
 
-function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
+function TableRow({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"tr"> & VariantProps<typeof tableRowVariants>) {
   return (
     <tr
       data-slot="table-row"
-      className={cn(
-        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
-        className
-      )}
+      className={cn(tableRowVariants({ variant }), className)}
       {...props}
     />
   )
@@ -78,12 +116,18 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+function TableCell({
+  className,
+  align,
+  ...props
+}: React.ComponentProps<"td"> & { align?: "left" | "right" | "center" }) {
   return (
     <td
       data-slot="table-cell"
       className={cn(
         "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        align === "right" && "text-right",
+        align === "center" && "text-center",
         className
       )}
       {...props}

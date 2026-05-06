@@ -1,15 +1,18 @@
-import { Link } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ColorValue } from '@/components/shared/color-value'
+import { AppLink } from '@/components/shared/app-link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ThRight, TdRight } from '@/components/shared/table-cells'
+import { MutedText } from '@/components/shared/muted-text'
 import { useFinancialReport } from '@/api/hooks'
 import { formatCurrency } from '@/lib/format'
+import { LoadingState, ErrorState } from '@/components/shared/page-container'
 
 export function FinancialTab() {
   const { data, isLoading, error } = useFinancialReport()
 
-  if (isLoading) return <div className="py-4">Loading financial data...</div>
-  if (error || !data) return <div className="py-4">Error loading financial data</div>
+  if (isLoading) return <LoadingState />
+  if (error || !data) return <ErrorState message="Error loading financial data" />
 
   return (
     <Card>
@@ -18,42 +21,42 @@ export function FinancialTab() {
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No financial data available yet</p>
+          <MutedText>No financial data available yet</MutedText>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Project</TableHead>
                 <TableHead>Client</TableHead>
-                <TableHead className="text-right">Contract Value</TableHead>
-                <TableHead className="text-right">EAC Cost</TableHead>
-                <TableHead className="text-right">Margin Forecast</TableHead>
-                <TableHead className="text-right">Margin %</TableHead>
-                <TableHead className="text-right">Actual Cost</TableHead>
-                <TableHead className="text-right">Produced Value</TableHead>
+                <ThRight>Contract Value</ThRight>
+                <ThRight>EAC Cost</ThRight>
+                <ThRight>Margin Forecast</ThRight>
+                <ThRight>Margin %</ThRight>
+                <ThRight>Actual Cost</ThRight>
+                <ThRight>Produced Value</ThRight>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.map((row) => (
                 <TableRow key={row.projectId}>
                   <TableCell>
-                    <Link to={`/projects/${row.projectId}`} className="font-medium text-blue-600 hover:underline">
+                    <AppLink to={`/projects/${row.projectId}`} bold>
                       {row.projectName}
-                    </Link>
+                    </AppLink>
                   </TableCell>
                   <TableCell>{row.clientName}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(row.contractValue)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(row.eacCost)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(row.marginForecast)}</TableCell>
-                  <TableCell className="text-right">
+                  <TdRight>{formatCurrency(row.contractValue)}</TdRight>
+                  <TdRight>{formatCurrency(row.eacCost)}</TdRight>
+                  <TdRight bold>{formatCurrency(row.marginForecast)}</TdRight>
+                  <TdRight>
                     <ColorValue
                       value={row.marginPercent}
                       format="percent"
                       sentiment={row.marginPercent >= 40 ? 'positive' : row.marginPercent >= 20 ? 'warning' : 'negative'}
                     />
-                  </TableCell>
-                  <TableCell className="text-right">{formatCurrency(row.actualCostToDate)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(row.producedValueToDate)}</TableCell>
+                  </TdRight>
+                  <TdRight>{formatCurrency(row.actualCostToDate)}</TdRight>
+                  <TdRight>{formatCurrency(row.producedValueToDate)}</TdRight>
                 </TableRow>
               ))}
               <TotalsRow data={data} />
@@ -68,14 +71,14 @@ export function FinancialTab() {
 function TotalsRow({ data }: { data: Awaited<ReturnType<typeof useFinancialReport>>['data'] }) {
   if (!data) return null
   return (
-    <TableRow className="border-t-2 font-bold">
+    <TableRow variant="total">
       <TableCell colSpan={2}>Total</TableCell>
-      <TableCell className="text-right">{formatCurrency(data.reduce((s, r) => s + r.contractValue, 0))}</TableCell>
-      <TableCell className="text-right">{formatCurrency(data.reduce((s, r) => s + r.eacCost, 0))}</TableCell>
-      <TableCell className="text-right">{formatCurrency(data.reduce((s, r) => s + r.marginForecast, 0))}</TableCell>
-      <TableCell className="text-right">—</TableCell>
-      <TableCell className="text-right">{formatCurrency(data.reduce((s, r) => s + r.actualCostToDate, 0))}</TableCell>
-      <TableCell className="text-right">{formatCurrency(data.reduce((s, r) => s + r.producedValueToDate, 0))}</TableCell>
+      <TdRight>{formatCurrency(data.reduce((s, r) => s + r.contractValue, 0))}</TdRight>
+      <TdRight>{formatCurrency(data.reduce((s, r) => s + r.eacCost, 0))}</TdRight>
+      <TdRight>{formatCurrency(data.reduce((s, r) => s + r.marginForecast, 0))}</TdRight>
+      <TdRight>—</TdRight>
+      <TdRight>{formatCurrency(data.reduce((s, r) => s + r.actualCostToDate, 0))}</TdRight>
+      <TdRight>{formatCurrency(data.reduce((s, r) => s + r.producedValueToDate, 0))}</TdRight>
     </TableRow>
   )
 }

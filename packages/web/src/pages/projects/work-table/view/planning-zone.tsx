@@ -1,5 +1,6 @@
-import { MetricLine, PLANNING_DETAIL_CLASSES } from '@/components/shared/metric-display'
+import { MetricLine, ZoneTitle } from '@/components/shared/metric-display'
 import { ProgressBar } from '@/components/shared/progress-bar'
+import { VStack } from '@/components/shared/VStack'
 
 interface PlanningZoneProps {
   soldDays: number
@@ -11,14 +12,14 @@ interface PlanningZoneProps {
 
 export function PlanningZone({ soldDays, spentDays, remainingDays, spentPct, formatDays }: PlanningZoneProps) {
   return (
-    <div className="min-w-[180px] flex-1">
-      <div className={PLANNING_DETAIL_CLASSES.zoneTitle}>Planning</div>
-      <div className="space-y-1">
+    <div className="flex-1 min-w-[180px]">
+      <ZoneTitle>Planning</ZoneTitle>
+      <VStack gap="xs">
         <MetricLine label="Sold" value={formatDays(soldDays)} />
         <MetricLine label="Spent" value={formatDays(spentDays)} />
         <MetricLine label="Remaining" value={formatDays(remainingDays)} />
-      </div>
-      <ProgressBar percent={spentPct} color="bg-blue-500" className="mt-2 h-1" />
+      </VStack>
+      <ProgressBar percent={spentPct} color="bg-blue-500" size="sm" className="mt-2" />
     </div>
   )
 }

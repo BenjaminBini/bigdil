@@ -8,9 +8,35 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { FormField } from '@/components/shared/form-field'
 import { formatCurrency } from '@/lib/format'
 import { computeMarginPct } from './profile-math'
+
+function MarginPreview({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-md bg-gray-50 px-3 py-2 text-sm">{children}</div>
+  )
+}
+
+function DialogBody({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col gap-4 py-2">{children}</div>
+}
+
+function MarginLabel({ children }: { children: ReactNode }) {
+  return <span className="text-gray-500">{children}</span>
+}
+
+function MarginAmount({ children }: { children: ReactNode }) {
+  return <span className="font-semibold text-gray-900">{children}</span>
+}
+
+function MarginUnit({ children }: { children: ReactNode }) {
+  return <span className="mx-1 text-gray-400">{children}</span>
+}
+
+function MarginPctDisplay({ children }: { children: ReactNode }) {
+  return <span className="font-semibold text-gray-900">{children}</span>
+}
 
 export interface ProfileFormState {
   name: string
@@ -26,6 +52,7 @@ interface ProfileFormDialogProps {
   onClose: () => void
   onSave: () => void
   saveLabel: string
+  isPending?: boolean
 }
 
 export function ProfileFormDialog({
@@ -36,27 +63,28 @@ export function ProfileFormDialog({
   onClose,
   onSave,
   saveLabel,
+  isPending,
 }: ProfileFormDialogProps) {
   const hasPreview = Boolean(form.sellRate) && Boolean(form.costRate)
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-2">
-          <Field label="Profile Name" htmlFor="profile-name">
+        <DialogBody>
+          <FormField label="Profile Name" htmlFor="profile-name">
             <Input
               id="profile-name"
               placeholder="e.g. Senior Consultant"
               value={form.name}
               onChange={(event) => onChange({ ...form, name: event.target.value })}
             />
-          </Field>
+          </FormField>
 
-          <Field label="Default Sell Rate / Day (EUR)" htmlFor="sell-rate">
+          <FormField label="Default Sell Rate / Day (EUR)" htmlFor="sell-rate">
             <Input
               id="sell-rate"
               type="number"
@@ -65,9 +93,9 @@ export function ProfileFormDialog({
               value={form.sellRate}
               onChange={(event) => onChange({ ...form, sellRate: event.target.value })}
             />
-          </Field>
+          </FormField>
 
-          <Field label="Default Cost Rate / Day (EUR)" htmlFor="cost-rate">
+          <FormField label="Default Cost Rate / Day (EUR)" htmlFor="cost-rate">
             <Input
               id="cost-rate"
               type="number"
@@ -76,42 +104,29 @@ export function ProfileFormDialog({
               value={form.costRate}
               onChange={(event) => onChange({ ...form, costRate: event.target.value })}
             />
-          </Field>
+          </FormField>
 
           {hasPreview && (
-            <div className="rounded-md bg-gray-50 px-3 py-2 text-sm">
-              <span className="text-gray-500">Computed margin: </span>
-              <span className="font-semibold text-gray-900">
+            <MarginPreview>
+              <MarginLabel>Computed margin: </MarginLabel>
+              <MarginAmount>
                 {formatCurrency(Number(form.sellRate) - Number(form.costRate))}
-              </span>
-              <span className="mx-1 text-gray-400">/day</span>
-              <span className="font-semibold text-gray-900">
+              </MarginAmount>
+              <MarginUnit>/day</MarginUnit>
+              <MarginPctDisplay>
                 ({computeMarginPct(Number(form.sellRate), Number(form.costRate)).toFixed(1)}%)
-              </span>
-            </div>
+              </MarginPctDisplay>
+            </MarginPreview>
           )}
-        </div>
+        </DialogBody>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={onSave} disabled={!form.name.trim()}>{saveLabel}</Button>
+          <Button onClick={onSave} disabled={!form.name.trim() || isPending}>
+            {isPending ? 'Saving…' : saveLabel}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
-
-interface FieldProps {
-  label: string
-  htmlFor: string
-  children: ReactNode
-}
-
-function Field({ label, htmlFor, children }: FieldProps) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
-    </div>
   )
 }

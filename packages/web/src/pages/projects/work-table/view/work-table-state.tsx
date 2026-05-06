@@ -1,13 +1,14 @@
 import { Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/shared/empty-state'
+import { LoadingState, ErrorState } from '@/components/shared/page-container'
 
 export function WorkTableLoadingState() {
-  return <div className="p-6">Loading...</div>
+  return <LoadingState />
 }
 
 export function WorkTableProjectNotFound() {
-  return <div className="p-6 text-sm text-slate-500">Project not found.</div>
+  return <ErrorState message="Project not found." variant="muted" />
 }
 
 export function WorkTableUnavailableState() {
@@ -18,7 +19,7 @@ export function WorkTableUnavailableState() {
       description='Set project dates and plan to see the work table. This project is currently in "To Plan" status - define your timeline to unlock the planning grid.'
       action={
         <Button>
-          <Calendar className="size-4" />
+          <Calendar size={16} />
           Set Dates &amp; Plan
         </Button>
       }
@@ -27,5 +28,5 @@ export function WorkTableUnavailableState() {
 }
 
 export function WorkTableDataUnavailableState() {
-  return <div className="p-6 text-sm text-slate-500">Work table data not available for this project.</div>
+  return <ErrorState message="Work table data not available for this project." variant="muted" />
 }

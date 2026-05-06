@@ -1,5 +1,6 @@
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { TreeRowLabel } from '@/components/shared/tree-row-label'
+import { MarginPctSuffix } from '@/components/shared/metric-display'
 import { cn } from '@/lib/utils'
 import { FROZEN_COLS, formatFrozenValue, getFrozenMarginPct, getFrozenValue } from '@/lib/work-table/frozen'
 import { getRowBackground } from '@/lib/work-table/display'
@@ -72,7 +73,7 @@ export function ConsolidationGridRow({
             style={{ width: col.w, minWidth: col.w }}
           >
             {formatFrozenValue(value, col.format)}
-            {isMarginCol && pct != null && !isEmpty && <span className="ml-0.5 text-[9px] opacity-70">{pct.toFixed(1)}%</span>}
+            {isMarginCol && pct != null && !isEmpty && <MarginPctSuffix>{pct.toFixed(1)}%</MarginPctSuffix>}
           </td>
         )
       })}

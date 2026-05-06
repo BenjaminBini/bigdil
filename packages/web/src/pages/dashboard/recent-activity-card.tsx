@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TimelineItem } from '@/components/shared/timeline-item'
+import { MutedText } from '@/components/shared/muted-text'
+import { TextStrong } from '@/components/shared/text-strong'
 import { formatDate } from '@/lib/format'
 import type { DashboardData, ProjectListItem } from '@/api/types'
 
@@ -23,7 +25,7 @@ export function RecentActivityCard({ recentActivity, projects }: RecentActivityC
                 key={activity.id}
                 label={
                   <>
-                    <span className="font-medium">{projectName}</span>
+                    <TextStrong>{projectName}</TextStrong>
                     <span className="text-muted-foreground"> - Period {activity.periodNumber} closed</span>
                   </>
                 }
@@ -31,7 +33,7 @@ export function RecentActivityCard({ recentActivity, projects }: RecentActivityC
               />
             )
           })}
-          {recentActivity.length === 0 && <p className="text-sm text-muted-foreground">No recent activity</p>}
+          {recentActivity.length === 0 && <MutedText>No recent activity</MutedText>}
         </div>
       </CardContent>
     </Card>

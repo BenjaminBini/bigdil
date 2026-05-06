@@ -1,5 +1,6 @@
 import { useParams } from 'react-router'
-import { useProject, useReferenceData, useWorkTable } from '@/api/hooks'
+import { toast } from 'sonner'
+import { useProject, useReferenceData, useWorkTable, useUpdateCell } from '@/api/hooks'
 import { ProjectWorkTable } from './work-table/project-work-table'
 import {
   WorkTableDataUnavailableState,
@@ -14,6 +15,13 @@ export default function WorkTablePage() {
   const { data: workTableData, isLoading: isLoadingWorkTable } = useWorkTable(projectId!)
   const { data: refData, isLoading: isLoadingRef } = useReferenceData()
   const { data: project, isLoading: isLoadingProject } = useProject(projectId!)
+  const updateCell = useUpdateCell(projectId!)
+
+  function handleSaveCell(params: { taskId: string; profileId: string; employeeId?: string; periodId: string; days: number }) {
+    updateCell.mutate(params, {
+      onError: () => toast.error('Failed to save planned days'),
+    })
+  }
 
   if (isLoadingWorkTable || isLoadingRef || isLoadingProject) {
     return <WorkTableLoadingState />
@@ -41,6 +49,7 @@ export default function WorkTablePage() {
       periodStartData={workTableData.periodStarts}
       profiles={refData.profiles}
       employees={refData.employees}
+      onSaveCell={handleSaveCell}
     />
   )
 }

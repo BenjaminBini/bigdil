@@ -2,9 +2,15 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
+import { HeadCell } from '@/components/shared/head-cell'
+import { TdDetail } from '@/components/shared/table-cells'
 import { MetricStrip } from '@/components/shared/metric-strip'
 import { CompactInput } from '@/components/shared/compact-input'
 import { ColorValue } from '@/components/shared/color-value'
+import { MutedText } from '@/components/shared/muted-text'
+import { FlexBetween } from '@/components/shared/layouts'
+import { VStack } from '@/components/shared/VStack'
 import type { Period } from '@/api/types'
 import type { ForecastRow } from './types'
 
@@ -48,51 +54,47 @@ export function Step2Reforecast({
   )
 
   return (
-    <div className="space-y-5">
-      <p className="text-sm text-gray-500">
+    <VStack gap="xl">
+      <MutedText>
         Review and adjust the forecast for future periods. Showing up to 5 future periods.
-      </p>
+      </MutedText>
 
-      <div className="overflow-x-auto">
       <Card variant="flush">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b">
-              <th className="px-3 py-2.5 text-left font-medium text-gray-600 min-w-[140px]">Task</th>
-              <th className="px-3 py-2.5 text-left font-medium text-gray-600 min-w-[130px]">Profile</th>
-              <th className="px-3 py-2.5 text-left font-medium text-gray-600 min-w-[130px]">Employee</th>
+        <Table variant="compact">
+          <TableHeader>
+            <TableRow variant="header">
+              <HeadCell variant="compact" label="Task" width="140px" />
+              <HeadCell variant="compact" label="Profile" width="130px" />
+              <HeadCell variant="compact" label="Employee" width="130px" />
               {displayPeriods.map((p) => (
-                <th key={p.id} className="px-2 py-2.5 text-center font-medium text-gray-600 min-w-[72px]">
-                  P{p.periodNumber}
-                </th>
+                <HeadCell key={p.id} variant="compact" label={`P${p.periodNumber}`} align="center" width="72px" />
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {visibleRows.map((row) => (
-              <tr key={row.key} className="border-b last:border-0 hover:bg-gray-50">
-                <td className="px-3 py-2 text-gray-700 text-xs">{row.taskId}</td>
-                <td className="px-3 py-2 text-gray-600 text-xs">{row.profileId}</td>
-                <td className="px-3 py-2 text-gray-600 text-xs">{row.employeeId ?? '—'}</td>
+              <TableRow key={row.key}>
+                <TdDetail>{row.taskId}</TdDetail>
+                <TdDetail>{row.profileId}</TdDetail>
+                <TdDetail>{row.employeeId ?? '—'}</TdDetail>
                 {displayPeriodIds.map((pid) => {
                   const cellKey = `${row.key}|${pid}`
                   return (
-                    <td key={pid} className="px-1 py-1 text-center">
+                    <TableCell key={pid} align="center" className="px-1 py-1">
                       <CompactInput
                         value={cells[cellKey] ?? ''}
                         onChange={(e) =>
                           setCells((prev) => ({ ...prev, [cellKey]: e.target.value }))
                         }
                       />
-                    </td>
+                    </TableCell>
                   )
                 })}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </Card>
-      </div>
 
       <Card variant="muted">
         <MetricStrip
@@ -118,16 +120,16 @@ export function Step2Reforecast({
         />
       </Card>
 
-      <div className="flex justify-between">
+      <FlexBetween>
         <Button variant="outline" onClick={onBack}>
-          <ChevronLeft className="size-4" />
+          <ChevronLeft size={16} />
           Back
         </Button>
         <Button onClick={onNext}>
           Next
-          <ChevronRight className="size-4" />
+          <ChevronRight size={16} />
         </Button>
-      </div>
-    </div>
+      </FlexBetween>
+    </VStack>
   )
 }

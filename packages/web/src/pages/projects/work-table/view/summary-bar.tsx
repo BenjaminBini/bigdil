@@ -1,6 +1,9 @@
 import { MetricStrip } from '@/components/shared/metric-strip'
 import { ColorValue } from '@/components/shared/color-value'
-import { formatCurrency, formatDays } from '@/lib/format'
+import { NullCell } from '@/components/shared/table-cells'
+import { BottomBar } from '@/components/shared/layouts'
+import { MarginPctSuffix } from '@/components/shared/metric-display'
+import { formatDays } from '@/lib/format'
 import type { FrozenData } from '@/lib/work-table/types'
 
 interface SummaryBarProps {
@@ -10,7 +13,7 @@ interface SummaryBarProps {
 
 export function SummaryBar({ totalToPlan, grandTotalFrozen }: SummaryBarProps) {
   return (
-    <div className="shrink-0 border-t bg-white px-4 py-2">
+    <BottomBar size="sm">
       <MetricStrip
         items={[
           {
@@ -19,7 +22,7 @@ export function SummaryBar({ totalToPlan, grandTotalFrozen }: SummaryBarProps) {
               <ColorValue
                 value={`${totalToPlan > 0 ? '+' : ''}${formatDays(totalToPlan)}d`}
                 sentiment={totalToPlan === 0 ? 'positive' : totalToPlan > 0 ? 'warning' : 'negative'}
-                className="font-mono"
+                mono
               />
             ),
           },
@@ -27,30 +30,30 @@ export function SummaryBar({ totalToPlan, grandTotalFrozen }: SummaryBarProps) {
             label: 'Project margin',
             value: grandTotalFrozen ? (
               <>
-                <ColorValue value={grandTotalFrozen.trMargin} format="currency" className="font-mono" />
+                <ColorValue value={grandTotalFrozen.trMargin} format="currency" mono />
                 {grandTotalFrozen.trMarginPct != null && (
-                  <span className="ml-1 text-xs opacity-70">({grandTotalFrozen.trMarginPct.toFixed(1)}%)</span>
+                  <MarginPctSuffix>({grandTotalFrozen.trMarginPct.toFixed(1)}%)</MarginPctSuffix>
                 )}
               </>
             ) : (
-              <span className="text-slate-400">—</span>
+              <NullCell />
             ),
           },
           {
             label: 'Period margin',
             value: grandTotalFrozen ? (
               <>
-                <ColorValue value={grandTotalFrozen.prMargin} format="currency" className="font-mono" />
+                <ColorValue value={grandTotalFrozen.prMargin} format="currency" mono />
                 {grandTotalFrozen.prMarginPct != null && (
-                  <span className="ml-1 text-xs opacity-70">({grandTotalFrozen.prMarginPct.toFixed(1)}%)</span>
+                  <MarginPctSuffix>({grandTotalFrozen.prMarginPct.toFixed(1)}%)</MarginPctSuffix>
                 )}
               </>
             ) : (
-              <span className="text-slate-400">—</span>
+              <NullCell />
             ),
           },
         ]}
       />
-    </div>
+    </BottomBar>
   )
 }

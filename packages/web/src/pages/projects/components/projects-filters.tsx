@@ -1,4 +1,6 @@
 import { SearchInput } from '@/components/shared/search-input'
+import { FlexRow } from '@/components/shared/layouts'
+import { FilterWrapper } from '@/components/shared/filter-wrapper'
 import type { ProjectStatus } from '@/api/types'
 import {
   Select,
@@ -31,16 +33,16 @@ export function ProjectsFilters({
   onStatusFilterChange,
 }: ProjectsFiltersProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <div className="w-56">
+    <FlexRow wrap>
+      <FilterWrapper>
         <SearchInput
           placeholder="Search projects..."
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
-      </div>
+      </FilterWrapper>
 
-      <div className="w-44">
+      <FilterWrapper size="md">
         <Select value={clientFilter} onValueChange={onClientFilterChange}>
           <SelectTrigger><SelectValue placeholder="All clients" /></SelectTrigger>
           <SelectContent>
@@ -50,9 +52,9 @@ export function ProjectsFilters({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </FilterWrapper>
 
-      <div className="w-44">
+      <FilterWrapper size="md">
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
           <SelectTrigger><SelectValue placeholder="All statuses" /></SelectTrigger>
           <SelectContent>
@@ -62,7 +64,7 @@ export function ProjectsFilters({
             ))}
           </SelectContent>
         </Select>
-      </div>
-    </div>
+      </FilterWrapper>
+    </FlexRow>
   )
 }

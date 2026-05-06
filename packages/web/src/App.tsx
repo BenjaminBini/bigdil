@@ -4,7 +4,9 @@ import { Toaster } from '@/components/ui/sonner'
 import { AppLayout } from '@/components/layout/app-layout'
 import LoginPage from '@/pages/auth/login-page'
 import ClientsPage from '@/pages/clients/clients-page'
-import ClientDetailPage from '@/pages/clients/client-detail-page'
+import ClientLayout from '@/pages/clients/client-layout'
+import ClientOverviewPage from '@/pages/clients/client-overview-page'
+import ClientProjectsPage from '@/pages/clients/client-projects-page'
 import ProfilesPage from '@/pages/profiles/profiles-page'
 import EmployeesPage from '@/pages/employees/employees-page'
 import WorkTablePage from '@/pages/projects/work-table-page'
@@ -49,7 +51,12 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/clients" element={<ClientsPage />} />
-            <Route path="/clients/:id" element={<ClientDetailPage />} />
+            {/* Client nested routes (layout with tab nav) */}
+            <Route path="/clients/:id" element={<ClientLayout />}>
+              <Route index element={<Navigate to="overview" replace />} />
+              <Route path="overview" element={<ClientOverviewPage />} />
+              <Route path="projects" element={<ClientProjectsPage />} />
+            </Route>
             <Route path="/profiles" element={<ProfilesPage />} />
             <Route path="/profiles/:id" element={<ProfileDetailPage />} />
             <Route path="/employees" element={<EmployeesPage />} />

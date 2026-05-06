@@ -3,6 +3,8 @@ import { toast } from 'sonner'
 import { useMyTimesheets, useProjects, useReferenceData } from '@/api/hooks'
 import type { TimesheetEntry, TimesheetStatus } from '@/api/types'
 import { PageHeader } from '@/components/shared/page-header'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { FullHeightColumn } from '@/components/shared/layouts'
 import { ActiveTimesheetTable } from './my-timesheets/active-timesheet-table'
 import { ActiveBanner } from './my-timesheets/active-banner'
 import { PastPeriods } from './my-timesheets/past-periods'
@@ -48,11 +50,11 @@ export default function TimesheetsPage() {
   const [pastOpen, setPastOpen] = useState(false)
 
   if (isLoadingTimesheets || isLoadingRef || isLoadingProjects) {
-    return <div className="p-6">Loading...</div>
+    return <LoadingState />
   }
 
   if (!timesheets || !refData || !projects) {
-    return <div className="p-6 text-red-600">Failed to load timesheet data.</div>
+    return <ErrorState message="Failed to load timesheet data." />
   }
 
   const { profiles } = refData
@@ -104,10 +106,10 @@ export default function TimesheetsPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-col">
+    <FullHeightColumn>
       <PageHeader title="My Timesheets" subtitle="Jean Martin - Senior Consultant" />
 
-      <div className="mx-auto w-full max-w-6xl space-y-6 p-6">
+      <PageContainer size="lg">
         <ActiveBanner projectName={activeProjectName} />
 
         <ActiveTimesheetTable
@@ -123,7 +125,7 @@ export default function TimesheetsPage() {
         />
 
         <PastPeriods open={pastOpen} onOpenChange={setPastOpen} rows={closedPeriodRows} />
-      </div>
-    </div>
+      </PageContainer>
+    </FullHeightColumn>
   )
 }

@@ -73,7 +73,7 @@ export function KpiCard({
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {label}
         </p>
-        {icon}
+        {icon && <span className="text-muted-foreground">{icon}</span>}
       </div>
 
       <div className="mt-1.5 flex items-end gap-2">

@@ -318,29 +318,3 @@ export function buildGridRows(
 
   return orderedRows
 }
-
-export function computeColumnTotals(
-  rows: GridRow[],
-  periods: Period[],
-): {
-  byCellPeriod: Record<string, number>
-  totalActual: number
-  totalRemaining: number
-  total: number
-} {
-  const byCellPeriod: Record<string, number> = {}
-  for (const row of rows) {
-    if (row.kind !== 'employee') continue
-    for (const [periodId, days] of Object.entries(row.cells)) {
-      byCellPeriod[periodId] = (byCellPeriod[periodId] ?? 0) + days
-    }
-  }
-
-  const closedPeriodIds = getClosedPeriodIds(periods)
-  const { actual: totalActual, remaining: totalRemaining } = splitActualRemaining(
-    byCellPeriod,
-    closedPeriodIds,
-  )
-
-  return { byCellPeriod, totalActual, totalRemaining, total: totalActual + totalRemaining }
-}

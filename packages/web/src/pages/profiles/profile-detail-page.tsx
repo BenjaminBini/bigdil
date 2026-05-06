@@ -3,6 +3,8 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/page-header'
 import { KpiCard } from '@/components/shared/kpi-card'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { FlexRow } from '@/components/shared/layouts'
 import { useProfile } from '@/api/hooks'
 import { formatCurrency } from '@/lib/format'
 import { AppliedRatesCard } from './profile-detail/applied-rates-card'
@@ -13,22 +15,22 @@ export default function ProfileDetailPage() {
   const { id } = useParams()
   const { data, isLoading, error } = useProfile(id!)
 
-  if (isLoading) return <div className="p-6">Loading profile...</div>
-  if (error || !data) return <div className="p-6">Error loading profile</div>
+  if (isLoading) return <LoadingState />
+  if (error || !data) return <ErrorState message="Error loading profile" />
 
   const defaultMargin = data.defaultSellRatePerDay - data.defaultCostRatePerDay
   const defaultMarginPct = data.defaultSellRatePerDay > 0 ? ((defaultMargin / data.defaultSellRatePerDay) * 100).toFixed(1) : '0'
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center gap-3">
+    <PageContainer size="full">
+      <FlexRow>
         <Link to="/profiles">
           <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft size={16} />
           </Button>
         </Link>
         <PageHeader title={data.name} subtitle={`Profile ID: ${data.id}`} />
-      </div>
+      </FlexRow>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <KpiCard label="Default Sell Rate" value={`${formatCurrency(data.defaultSellRatePerDay)}/day`} />
@@ -39,6 +41,6 @@ export default function ProfileDetailPage() {
       <QuoteUsageCard usage={data.usage} />
       <ProfileAssignmentsCard assignments={data.activeAssignments} />
       <AppliedRatesCard rates={data.appliedRates} />
-    </div>
+    </PageContainer>
   )
 }

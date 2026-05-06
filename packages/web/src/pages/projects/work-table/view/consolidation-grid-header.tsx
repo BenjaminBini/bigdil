@@ -1,11 +1,24 @@
+import type { ReactNode } from 'react'
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { cn } from '@/lib/utils'
 import { FROZEN_COLS, FROZEN_GROUPS, FROZEN_SUBGROUPS } from '@/lib/work-table/frozen'
 
+function GroupHeaderRow({ children }: { children: ReactNode }) {
+  return <tr className="bg-slate-100 text-slate-600">{children}</tr>
+}
+
+function SubgroupHeaderRow({ children }: { children: ReactNode }) {
+  return <tr className="bg-slate-100 text-slate-500">{children}</tr>
+}
+
+function ColumnHeaderRow({ children }: { children: ReactNode }) {
+  return <tr className="bg-slate-50 text-slate-500">{children}</tr>
+}
+
 export function ConsolidationGridHeader() {
   return (
     <thead>
-      <tr className="bg-slate-100 text-slate-600">
+      <GroupHeaderRow>
         <StickyColumnCell as="th" zIndex={30} shadowColor="#94a3b8" className="border-b border-slate-300 bg-slate-100 text-left font-semibold" rowSpan={3}>
           Task / Phase
         </StickyColumnCell>
@@ -21,9 +34,9 @@ export function ConsolidationGridHeader() {
             {group.label}
           </th>
         ))}
-      </tr>
+      </GroupHeaderRow>
 
-      <tr className="bg-slate-100 text-slate-500">
+      <SubgroupHeaderRow>
         {FROZEN_SUBGROUPS.map((subgroup, index) => (
           <th
             key={`${subgroup.label}-${index}`}
@@ -36,9 +49,9 @@ export function ConsolidationGridHeader() {
             {subgroup.label}
           </th>
         ))}
-      </tr>
+      </SubgroupHeaderRow>
 
-      <tr className="bg-slate-50 text-slate-500">
+      <ColumnHeaderRow>
         {FROZEN_COLS.map((col, index) => (
           <th
             key={col.key}
@@ -55,7 +68,7 @@ export function ConsolidationGridHeader() {
             {col.label}
           </th>
         ))}
-      </tr>
+      </ColumnHeaderRow>
     </thead>
   )
 }

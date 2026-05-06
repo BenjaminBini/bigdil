@@ -1,6 +1,9 @@
 import type { Employee } from '@/api/types'
 import { Card } from '@/components/ui/card'
+import { Table, TableBody, TableHeader, TableRow } from '@/components/ui/table'
+import { HeadCell } from '@/components/shared/head-cell'
 import { ColorValue } from '@/components/shared/color-value'
+import { TdSecondary, TdDetail, TdNumericPrimary } from '@/components/shared/table-cells'
 import { formatCurrency, formatDate } from '@/lib/format'
 
 interface EmployeeRateHistoryTableProps {
@@ -10,28 +13,26 @@ interface EmployeeRateHistoryTableProps {
 export function EmployeeRateHistoryTable({ employee }: EmployeeRateHistoryTableProps) {
   return (
     <Card variant="flush">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b bg-gray-50">
-            <th className="h-9 px-3 text-left font-medium text-gray-600">Valid From</th>
-            <th className="h-9 px-3 text-left font-medium text-gray-600">Valid To</th>
-            <th className="h-9 px-3 text-right font-medium text-gray-600">Cost Rate / Day</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table variant="compact">
+        <TableHeader>
+          <TableRow variant="header">
+            <HeadCell label="Valid From" variant="compact" />
+            <HeadCell label="Valid To" variant="compact" />
+            <HeadCell label="Cost Rate / Day" variant="compact" align="right" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {employee.costRateHistory.map((entry, index) => (
-            <tr key={index} className="border-b transition-colors hover:bg-gray-50 last:border-0">
-              <td className="px-3 py-2.5 text-gray-700">{formatDate(entry.validFrom)}</td>
-              <td className="px-3 py-2.5 text-gray-500">
+            <TableRow key={index}>
+              <TdSecondary>{formatDate(entry.validFrom)}</TdSecondary>
+              <TdDetail>
                 {entry.validTo ? formatDate(entry.validTo) : <ColorValue value="Present" sentiment="positive" />}
-              </td>
-              <td className="px-3 py-2.5 text-right font-medium tabular-nums text-gray-900">
-                {formatCurrency(entry.costRatePerDay)}
-              </td>
-            </tr>
+              </TdDetail>
+              <TdNumericPrimary>{formatCurrency(entry.costRatePerDay)}</TdNumericPrimary>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </Card>
   )
 }

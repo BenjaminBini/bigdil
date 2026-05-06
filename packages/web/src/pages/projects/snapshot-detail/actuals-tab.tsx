@@ -1,13 +1,17 @@
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
-import { MetricStrip } from '@/components/shared/metric-strip'
+import { TdPrimary, TdNumeric, TdDetail, TdNumericLight, TdNumericPrimary, ThRight } from '@/components/shared/table-cells'
+import { EmptyRow } from '@/components/shared/empty-row'
+import { MetricStrip, MetricValue } from '@/components/shared/metric-strip'
+import { FlexBetween } from '@/components/shared/layouts'
+import { VStack } from '@/components/shared/VStack'
+import { SectionTitle } from '@/components/shared/page-title'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { Snapshot, TimesheetEntry } from '@/api/types'
 
@@ -45,33 +49,29 @@ export function ActualsTab({
   function renderRows(entries: TimesheetEntry[]) {
     if (entries.length === 0) {
       return (
-        <TableRow>
-          <TableCell colSpan={8} className="text-center text-gray-400 py-8">
-            No approved timesheets
-          </TableCell>
-        </TableRow>
+        <EmptyRow colSpan={8} message="No approved timesheets" />
       )
     }
     return entries.map((entry) => (
-      <TableRow key={entry.id} className="hover:bg-gray-50">
-        <TableCell className="font-medium text-gray-900 text-sm">
+      <TableRow key={entry.id} variant="interactive">
+        <TdPrimary size="sm">
           {getEmployeeName(entry.employeeId)}
-        </TableCell>
-        <TableCell className="text-gray-600 text-sm">{getTaskName(entry.taskId)}</TableCell>
-        <TableCell className="text-gray-600 text-sm">{getProfileName(entry.profileId)}</TableCell>
-        <TableCell className="text-right tabular-nums text-gray-700">{formatDays(entry.days)}</TableCell>
-        <TableCell className="text-right tabular-nums text-gray-600">
+        </TdPrimary>
+        <TdDetail>{getTaskName(entry.taskId)}</TdDetail>
+        <TdDetail>{getProfileName(entry.profileId)}</TdDetail>
+        <TdNumeric>{formatDays(entry.days)}</TdNumeric>
+        <TdNumericLight>
           {entry.appliedCostRatePerDay != null ? formatCurrency(entry.appliedCostRatePerDay) : '—'}
-        </TableCell>
-        <TableCell className="text-right tabular-nums text-gray-700 font-medium">
+        </TdNumericLight>
+        <TdNumericPrimary>
           {entry.appliedCostAmount != null ? formatCurrency(entry.appliedCostAmount) : '—'}
-        </TableCell>
-        <TableCell className="text-right tabular-nums text-gray-600">
+        </TdNumericPrimary>
+        <TdNumericLight>
           {entry.appliedSellRatePerDay != null ? formatCurrency(entry.appliedSellRatePerDay) : '—'}
-        </TableCell>
-        <TableCell className="text-right tabular-nums text-gray-700 font-medium">
+        </TdNumericLight>
+        <TdNumericPrimary>
           {entry.appliedSellAmount != null ? formatCurrency(entry.appliedSellAmount) : '—'}
-        </TableCell>
+        </TdNumericPrimary>
       </TableRow>
     ))
   }
@@ -82,55 +82,51 @@ export function ActualsTab({
   const cumSell = cumulativeActuals.reduce((s, t) => s + (t.appliedSellAmount ?? 0), 0)
 
   const colHeaders = (
-    <TableRow className="bg-gray-50">
+    <TableRow variant="header">
       <TableHead>Employee</TableHead>
       <TableHead>Task</TableHead>
       <TableHead>Profile</TableHead>
-      <TableHead className="text-right">Days</TableHead>
-      <TableHead className="text-right">Cost Rate/day</TableHead>
-      <TableHead className="text-right">Cost Amount</TableHead>
-      <TableHead className="text-right">Sell Rate/day</TableHead>
-      <TableHead className="text-right">Sell Amount</TableHead>
+      <ThRight>Days</ThRight>
+      <ThRight>Cost Rate/day</ThRight>
+      <ThRight>Cost Amount</ThRight>
+      <ThRight>Sell Rate/day</ThRight>
+      <ThRight>Sell Amount</ThRight>
     </TableRow>
   )
 
   return (
-    <div className="pt-4 space-y-6">
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-700">
-            Period {snapshot.periodNumber} — Approved Timesheets
-          </h3>
+    <VStack gap="xl" pt="md">
+      <VStack>
+        <FlexBetween>
+          <SectionTitle>Period {snapshot.periodNumber} — Approved Timesheets</SectionTitle>
           <MetricStrip items={[
-            { label: 'Cost', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(periodCost)}</span> },
-            { label: 'Sell', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(periodSell)}</span> },
+            { label: 'Cost', value: <MetricValue>{formatCurrency(periodCost)}</MetricValue> },
+            { label: 'Sell', value: <MetricValue>{formatCurrency(periodSell)}</MetricValue> },
           ]} />
-        </div>
+        </FlexBetween>
         <Card variant="flush">
           <Table>
             <TableHeader>{colHeaders}</TableHeader>
             <TableBody>{renderRows(periodActuals)}</TableBody>
           </Table>
         </Card>
-      </div>
+      </VStack>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-700">
-            Cumulative — Periods 1–{snapshot.periodNumber}
-          </h3>
+      <VStack>
+        <FlexBetween>
+          <SectionTitle>Cumulative — Periods 1–{snapshot.periodNumber}</SectionTitle>
           <MetricStrip items={[
-            { label: 'Cost', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(cumCost)}</span> },
-            { label: 'Sell', value: <span className="font-medium text-gray-900 tabular-nums">{formatCurrency(cumSell)}</span> },
+            { label: 'Cost', value: <MetricValue>{formatCurrency(cumCost)}</MetricValue> },
+            { label: 'Sell', value: <MetricValue>{formatCurrency(cumSell)}</MetricValue> },
           ]} />
-        </div>
+        </FlexBetween>
         <Card variant="flush">
           <Table>
             <TableHeader>{colHeaders}</TableHeader>
             <TableBody>{renderRows(cumulativeActuals)}</TableBody>
           </Table>
         </Card>
-      </div>
-    </div>
+      </VStack>
+    </VStack>
   )
 }

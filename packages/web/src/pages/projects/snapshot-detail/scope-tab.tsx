@@ -1,13 +1,16 @@
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
+import { TdNumeric, TdDetail, TdNumericLight, TdNumericPrimary, TdRight, ThRight } from '@/components/shared/table-cells'
+import { MutedText } from '@/components/shared/muted-text'
 import { KpiCard } from '@/components/shared/kpi-card'
+import { FlexRow } from '@/components/shared/layouts'
+import { VStack } from '@/components/shared/VStack'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { SnapshotScopeLine } from '@/api/types'
 
@@ -23,55 +26,55 @@ export function ScopeTab({ rows, getTaskName, getProfileName }: ScopeTabProps) {
   const totalDays = rows.reduce((s, r) => s + r.baselineDaysTotalAsofSnapshot, 0)
 
   return (
-    <div className="pt-4 space-y-4">
-      <p className="text-sm text-gray-500">
+    <VStack gap="xl" pt="md">
+      <MutedText>
         Scope lines as of this snapshot — all validated quotes effective at this date.
-      </p>
+      </MutedText>
       <Card variant="flush">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
+            <TableRow variant="header">
               <TableHead>Task</TableHead>
               <TableHead>Profile</TableHead>
-              <TableHead className="text-right">Baseline Days</TableHead>
-              <TableHead className="text-right">Sell Rate/day</TableHead>
-              <TableHead className="text-right">Cost Rate Assumption/day</TableHead>
-              <TableHead className="text-right">Revenue</TableHead>
-              <TableHead className="text-right">Budget Cost</TableHead>
+              <ThRight>Baseline Days</ThRight>
+              <ThRight>Sell Rate/day</ThRight>
+              <ThRight>Cost Rate Assumption/day</ThRight>
+              <ThRight>Revenue</ThRight>
+              <ThRight>Budget Cost</ThRight>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={`${row.taskId}|${row.profileId}`} className="hover:bg-gray-50">
-                <TableCell className="text-gray-700 text-sm">{getTaskName(row.taskId)}</TableCell>
-                <TableCell className="text-gray-600 text-sm">{getProfileName(row.profileId)}</TableCell>
-                <TableCell className="text-right tabular-nums text-gray-700">
+              <TableRow key={`${row.taskId}|${row.profileId}`} variant="interactive">
+                <TdDetail>{getTaskName(row.taskId)}</TdDetail>
+                <TdDetail>{getProfileName(row.profileId)}</TdDetail>
+                <TdNumeric>
                   {formatDays(row.baselineDaysTotalAsofSnapshot)}
-                </TableCell>
-                <TableCell className="text-right tabular-nums text-gray-600">
+                </TdNumeric>
+                <TdNumericLight>
                   {formatCurrency(row.sellRatePerDay)}
-                </TableCell>
-                <TableCell className="text-right tabular-nums text-gray-500">
+                </TdNumericLight>
+                <TdRight tabularNums muted>
                   {formatCurrency(row.costRateAssumptionPerDay)}
-                </TableCell>
-                <TableCell className="text-right tabular-nums font-medium text-gray-900">
+                </TdRight>
+                <TdNumericPrimary>
                   {formatCurrency(row.baselineRevenueTotal)}
-                </TableCell>
-                <TableCell className="text-right tabular-nums text-gray-600">
+                </TdNumericPrimary>
+                <TdNumericLight>
                   {formatCurrency(row.baselineBudgetCostTotal)}
-                </TableCell>
+                </TdNumericLight>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </Card>
 
-      <div className="flex flex-wrap gap-4">
+      <FlexRow wrap gap="lg">
         <KpiCard label="Total Days" value={formatDays(totalDays)} />
         <KpiCard label="Total Revenue" value={formatCurrency(totalRevenue)} />
         <KpiCard label="Total Budget Cost" value={formatCurrency(totalBudgetCost)} />
         <KpiCard label="Total Margin" value={formatCurrency(totalRevenue - totalBudgetCost)} variant="highlight" />
-      </div>
-    </div>
+      </FlexRow>
+    </VStack>
   )
 }

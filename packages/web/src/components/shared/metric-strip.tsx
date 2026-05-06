@@ -6,6 +6,11 @@ export interface MetricStripItem {
   value: ReactNode
 }
 
+/** Numeric value displayed inside a MetricStrip item. */
+export function MetricValue({ children }: { children: ReactNode }) {
+  return <span className="font-medium text-gray-900 tabular-nums">{children}</span>
+}
+
 export interface MetricStripProps {
   items: MetricStripItem[]
   className?: string

@@ -14,9 +14,17 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
+import { TdNumeric, TdSecondary } from '@/components/shared/table-cells'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { InlineStack } from '@/components/shared/inline-stack'
 import { formatCurrency, formatDays } from '@/lib/format'
+import { CardTitleBar } from '@/components/shared/card-title-bar'
+import type { ReactNode } from 'react'
 import type { ClosedPeriodRow } from './types'
+
+function CollapsibleBody({ children }: { children: ReactNode }) {
+  return <div className="mt-3">{children}</div>
+}
 
 interface PastPeriodsProps {
   open: boolean
@@ -29,49 +37,47 @@ export function PastPeriods({ open, onOpenChange, rows }: PastPeriodsProps) {
     <Collapsible open={open} onOpenChange={onOpenChange}>
       <CollapsibleTrigger asChild>
         <Button variant="ghost" size="sm">
-          {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+          {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           Past Periods ({rows.length})
         </Button>
       </CollapsibleTrigger>
 
       <CollapsibleContent>
-        <div className="mt-3">
+        <CollapsibleBody>
         <Card variant="flush">
-          <div className="border-b bg-gray-50 px-5 py-3">
-            <h3 className="text-sm font-semibold text-gray-700">Frozen Periods - Read Only</h3>
-          </div>
+          <CardTitleBar title="Frozen Periods - Read Only" />
 
-          <Table>
+          <Table variant="compact">
             <TableHeader>
-              <TableRow className="bg-gray-50">
+              <TableRow variant="header">
                 <HeadCell label="Period" />
-                <HeadCell label="Days Submitted" className="text-right" />
+                <HeadCell label="Days Submitted" align="right" />
                 <HeadCell label="Status" />
-                <HeadCell label="Cost Amount" className="text-right" />
+                <HeadCell label="Cost Amount" align="right" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((row) => (
-                <TableRow key={row.periodId} className="text-sm">
-                  <TableCell className="py-2.5 font-medium text-gray-700">{row.label}</TableCell>
-                  <TableCell className="py-2.5 text-right text-gray-700">
+                <TableRow key={row.periodId}>
+                  <TdSecondary bold>{row.label}</TdSecondary>
+                  <TdNumeric>
                     {row.daysSubmitted > 0 ? `${formatDays(row.daysSubmitted)}d` : '—'}
-                  </TableCell>
-                  <TableCell className="py-2.5">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Lock className="size-3 text-gray-400" />
+                  </TdNumeric>
+                  <TableCell>
+                    <InlineStack>
+                      <Lock size={12} color="#9ca3af" />
                       <StatusBadge status={row.status} />
-                    </span>
+                    </InlineStack>
                   </TableCell>
-                  <TableCell className="py-2.5 text-right text-gray-700">
+                  <TdNumeric>
                     {row.costAmount > 0 ? formatCurrency(row.costAmount) : '—'}
-                  </TableCell>
+                  </TdNumeric>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Card>
-        </div>
+        </CollapsibleBody>
       </CollapsibleContent>
     </Collapsible>
   )

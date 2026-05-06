@@ -3,7 +3,12 @@ import { useParams } from 'react-router'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { useProject } from '@/api/hooks'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { FlexBetween } from '@/components/shared/layouts'
+import { VStack } from '@/components/shared/VStack'
+import { PageTitle } from '@/components/shared/page-title'
+import { MutedText } from '@/components/shared/muted-text'
+import { useProject, useCreateTask, useUpdateTask } from '@/api/hooks'
 import type { Task } from '@/api/types'
 import { WbsTaskTree } from './wbs/task-tree'
 import { TaskDialog, type TaskFormState } from './wbs/task-dialog'
@@ -23,12 +28,14 @@ const emptyForm: TaskFormState = {
 export default function WbsPage() {
   const { id: projectId } = useParams()
   const { data, isLoading, error } = useProject(projectId!)
+  const createTask = useCreateTask(projectId!)
+  const updateTask = useUpdateTask(projectId!)
 
   const [dialogMode, setDialogMode] = useState<DialogMode>(null)
   const [form, setForm] = useState<TaskFormState>(emptyForm)
 
-  if (isLoading) return <div className="p-6">Loading...</div>
-  if (error || !data) return <div className="p-6">Error loading data</div>
+  if (isLoading) return <LoadingState />
+  if (error || !data) return <ErrorState />
 
   function openAddPhase() {
     setForm(emptyForm)
@@ -51,10 +58,29 @@ export default function WbsPage() {
   }
 
   function handleSave() {
-    toast.success('Would save task', {
-      description: `"${form.name.trim()}" — status: ${form.status}`,
-    })
-    handleClose()
+    if (!form.name.trim()) {
+      toast.error('Task name is required')
+      return
+    }
+
+    if (dialogMode?.type === 'edit') {
+      updateTask.mutate(
+        { taskId: dialogMode.task.id, name: form.name, status: form.status },
+        {
+          onSuccess: () => { toast.success(`Task "${form.name}" updated`); handleClose() },
+          onError: () => toast.error('Failed to update task'),
+        },
+      )
+    } else {
+      const parentTaskId = dialogMode?.type === 'add-sub-task' ? dialogMode.parentTask.id : null
+      createTask.mutate(
+        { name: form.name, status: form.status, parentTaskId },
+        {
+          onSuccess: () => { toast.success(`Task "${form.name}" created`); handleClose() },
+          onError: () => toast.error('Failed to create task'),
+        },
+      )
+    }
   }
 
   function getDialogTitle(): string {
@@ -65,17 +91,15 @@ export default function WbsPage() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <PageContainer size="md">
+      <FlexBetween>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Work Breakdown Structure
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <PageTitle>Work Breakdown Structure</PageTitle>
+          <MutedText spacing="tight">
             Manage the phases and tasks for this project
-          </p>
+          </MutedText>
         </div>
-      </div>
+      </FlexBetween>
 
       <WbsTaskTree
         tasks={data.tasks}
@@ -83,12 +107,12 @@ export default function WbsPage() {
         onEdit={openEdit}
       />
 
-      <div className="pt-2">
+      <VStack gap="xl" pt="sm">
         <Button variant="outline" onClick={openAddPhase}>
           <Plus />
           Add Phase
         </Button>
-      </div>
+      </VStack>
 
       <TaskDialog
         open={dialogMode !== null}
@@ -97,7 +121,8 @@ export default function WbsPage() {
         onChange={setForm}
         onSave={handleSave}
         onClose={handleClose}
+        isPending={createTask.isPending || updateTask.isPending}
       />
-    </div>
+    </PageContainer>
   )
 }

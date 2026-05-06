@@ -1,19 +1,26 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { Plus } from 'lucide-react'
-import { useProject } from '@/api/hooks'
+import { useProject, useReferenceData } from '@/api/hooks'
 import type { Quote } from '@/api/types'
 import { formatCurrency, formatDate } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { FlexBetween } from '@/components/shared/layouts'
+import { PageTitle } from '@/components/shared/page-title'
+import { MutedText } from '@/components/shared/muted-text'
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { TdPrimary, TdNumeric, TdNumericLight, TdNumericPrimary, TdDetail, TdRight, ThRight } from '@/components/shared/table-cells'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { EmptyRow } from '@/components/shared/empty-row'
+import { NewQuoteDialog } from './quotes/new-quote-dialog'
 
 // ---- Helpers ----
 
@@ -31,52 +38,50 @@ function computeQuoteTotals(quote: Quote) {
 export default function QuotesPage() {
   const { id: projectId } = useParams()
   const navigate = useNavigate()
+  const [showNewQuote, setShowNewQuote] = useState(false)
   const { data, isLoading, error } = useProject(projectId!)
+  const { data: refData, isLoading: refLoading } = useReferenceData()
 
-  if (isLoading) return <div className="p-6">Loading...</div>
-  if (error || !data) return <div className="p-6">Error loading data</div>
+  if (isLoading || refLoading) return <LoadingState />
+  if (error || !data || !refData) return <ErrorState />
 
   const quotes = data.quotes
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <PageContainer size="lg">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <FlexBetween>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Quotes</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <PageTitle>Quotes</PageTitle>
+          <MutedText spacing="tight">
             All quotes and change orders for this project
-          </p>
+          </MutedText>
         </div>
-        <Button>
+        <Button onClick={() => setShowNewQuote(true)}>
           <Plus />
           New Quote
         </Button>
-      </div>
+      </FlexBetween>
 
       {/* Table */}
       <Card variant="flush">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
+            <TableRow variant="header">
               <TableHead>Title</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Effective Date</TableHead>
               <TableHead>Validated Date</TableHead>
-              <TableHead className="text-right">Total Days</TableHead>
-              <TableHead className="text-right">Revenue (ex-VAT)</TableHead>
-              <TableHead className="text-right">Budget Cost</TableHead>
-              <TableHead className="text-right">Margin</TableHead>
-              <TableHead className="text-right">Margin %</TableHead>
+              <ThRight>Total Days</ThRight>
+              <ThRight>Revenue (ex-VAT)</ThRight>
+              <ThRight>Budget Cost</ThRight>
+              <ThRight>Margin</ThRight>
+              <ThRight>Margin %</ThRight>
             </TableRow>
           </TableHeader>
           <TableBody>
             {quotes.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center text-gray-400 py-10">
-                  No quotes yet
-                </TableCell>
-              </TableRow>
+              <EmptyRow colSpan={9} message="No quotes yet" />
             ) : (
               quotes.map((quote) => {
                 const { totalDays, totalRevenue, totalBudgetCost, totalMargin, marginPct } =
@@ -84,36 +89,36 @@ export default function QuotesPage() {
                 return (
                   <TableRow
                     key={quote.id}
-                    className="cursor-pointer hover:bg-gray-50"
+                    variant="interactive"
                     onClick={() => navigate(`/projects/${projectId}/quotes/${quote.id}`)}
                   >
-                    <TableCell className="font-medium text-gray-900 py-3.5">
+                    <TdPrimary>
                       {quote.title}
-                    </TableCell>
-                    <TableCell>
+                    </TdPrimary>
+                    <TdDetail>
                       <StatusBadge status={quote.status} />
-                    </TableCell>
-                    <TableCell className="text-gray-600 tabular-nums">
+                    </TdDetail>
+                    <TdDetail tabularNums>
                       {formatDate(quote.effectiveAt)}
-                    </TableCell>
-                    <TableCell className="text-gray-600 tabular-nums">
+                    </TdDetail>
+                    <TdDetail tabularNums>
                       {formatDate(quote.validatedAt)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-gray-700">
+                    </TdDetail>
+                    <TdNumeric>
                       {totalDays}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums font-medium text-gray-900">
+                    </TdNumeric>
+                    <TdNumericPrimary>
                       {formatCurrency(totalRevenue)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-gray-600">
+                    </TdNumericPrimary>
+                    <TdNumericLight>
                       {formatCurrency(totalBudgetCost)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums font-medium text-gray-800">
+                    </TdNumericLight>
+                    <TdRight bold>
                       {formatCurrency(totalMargin)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-gray-700">
+                    </TdRight>
+                    <TdNumeric>
                       {marginPct.toFixed(1)}%
-                    </TableCell>
+                    </TdNumeric>
                   </TableRow>
                 )
               })
@@ -121,6 +126,14 @@ export default function QuotesPage() {
           </TableBody>
         </Table>
       </Card>
-    </div>
+
+      <NewQuoteDialog
+        open={showNewQuote}
+        onClose={() => setShowNewQuote(false)}
+        projectId={projectId!}
+        tasks={data.flatTasks}
+        profiles={refData.profiles}
+      />
+    </PageContainer>
   )
 }

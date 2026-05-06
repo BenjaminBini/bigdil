@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,7 @@ import { useProject, useProjectTimesheets, useWorkTable, useReferenceData } from
 import type { WorkTableCell, Quote } from '@/api/types'
 import type { ForecastRow } from './period-close/types'
 import { StepIndicator } from '@/components/shared/step-indicator'
+import { ErrorState } from '@/components/shared/page-container'
 import { Step1Checklist } from './period-close/step1-checklist'
 import { Step2Reforecast } from './period-close/step2-reforecast'
 import { Step3Preview } from './period-close/step3-preview'
@@ -30,6 +32,14 @@ function buildForecastRows(workRows: WorkTableCell[]): ForecastRow[] {
     map.get(key)!.periodDays[r.periodId] = r.days
   })
   return Array.from(map.values())
+}
+
+function StepIndicatorRow({ children }: { children: ReactNode }) {
+  return <div className="flex justify-center py-2">{children}</div>
+}
+
+function StepBody({ children }: { children: ReactNode }) {
+  return <div className="mt-2">{children}</div>
 }
 
 export default function PeriodCloseWizard({ open, onClose, projectId }: PeriodCloseWizardProps) {
@@ -82,18 +92,18 @@ export default function PeriodCloseWizard({ open, onClose, projectId }: PeriodCl
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent size="xl" scrollable>
         <DialogHeader>
           <DialogTitle>{stepTitles[step]}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex justify-center py-2">
+        <StepIndicatorRow>
           <StepIndicator labels={['Checklist', 'Re-forecast', 'Preview', 'Confirm']} current={step} />
-        </div>
+        </StepIndicatorRow>
 
-        <div className="mt-2">
+        <StepBody>
           {!isReady ? (
-            <div className="py-8 text-center text-gray-400 text-sm">Loading period data…</div>
+            <ErrorState variant="muted" message="Loading period data…" />
           ) : (
             <>
               {step === 1 && (
@@ -119,6 +129,7 @@ export default function PeriodCloseWizard({ open, onClose, projectId }: PeriodCl
               {step === 4 && (
                 <Step4Confirm
                   period={consolidationPeriod}
+                  projectId={projectId}
                   onBack={() => setStep(3)}
                   onClose={() => {
                     reset()
@@ -128,7 +139,7 @@ export default function PeriodCloseWizard({ open, onClose, projectId }: PeriodCl
               )}
             </>
           )}
-        </div>
+        </StepBody>
       </DialogContent>
     </Dialog>
   )

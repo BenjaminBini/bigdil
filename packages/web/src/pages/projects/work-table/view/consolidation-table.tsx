@@ -1,8 +1,31 @@
+import type { ReactNode } from 'react'
 import type { Period } from '@/api/types'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { FlexRow } from '@/components/shared/layouts'
+import { GridTable } from '@/components/shared/grid-table'
 import { ConsolidationGridHeader } from './consolidation-grid-header'
 import { ConsolidationGridRow } from './consolidation-grid-row'
 import type { FrozenData, GridRow } from '@/lib/work-table/types'
+
+function ConsolidationShell({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col">{children}</div>
+}
+
+function ConsolidationTitleBar({ children }: { children: ReactNode }) {
+  return (
+    <FlexRow gap="md" className="border-b bg-white px-4 py-2">
+      {children}
+    </FlexRow>
+  )
+}
+
+function ConsolidationTitle({ children }: { children: ReactNode }) {
+  return <h2 className="text-sm font-semibold text-slate-800">{children}</h2>
+}
+
+function ConsolidationScrollArea({ children }: { children: ReactNode }) {
+  return <div className="relative overflow-auto">{children}</div>
+}
 
 const endDateFormatter = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' })
 
@@ -31,16 +54,16 @@ export function ConsolidationTable({
     : '—'
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center gap-2 border-b bg-white px-4 py-2">
-        <h2 className="text-sm font-semibold text-slate-800">Consolidation on the {endDateLabel}</h2>
+    <ConsolidationShell>
+      <ConsolidationTitleBar>
+        <ConsolidationTitle>Consolidation on the {endDateLabel}</ConsolidationTitle>
         {consolidationPeriod && (
           <StatusBadge status="CONSOLIDATION" label={`W${consolidationPeriod.periodNumber}`} />
         )}
-      </div>
+      </ConsolidationTitleBar>
 
-      <div className="relative overflow-auto">
-        <table className="border-collapse text-xs" style={{ minWidth: 'max-content' }}>
+      <ConsolidationScrollArea>
+        <GridTable>
           <ConsolidationGridHeader />
           <tbody>
             {visibleRows.map((row) => (
@@ -55,8 +78,8 @@ export function ConsolidationTable({
               />
             ))}
           </tbody>
-        </table>
-      </div>
-    </div>
+        </GridTable>
+      </ConsolidationScrollArea>
+    </ConsolidationShell>
   )
 }

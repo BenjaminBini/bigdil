@@ -1,7 +1,19 @@
+import type { ReactNode } from 'react'
 import type { Period } from '@/api/types'
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { formatDays } from '@/lib/format'
 import { cn } from '@/lib/utils'
+
+function TotalRow({ children }: { children: ReactNode }) {
+  return (
+    <tr className="border-t-2 border-slate-300 bg-slate-100 font-bold text-slate-800">
+      <StickyColumnCell shadowColor="#94a3b8" className="bg-slate-100 text-xs font-bold">
+        Column Totals
+      </StickyColumnCell>
+      {children}
+    </tr>
+  )
+}
 
 interface ColumnTotalsRowProps {
   periods: Period[]
@@ -10,10 +22,7 @@ interface ColumnTotalsRowProps {
 
 export function ColumnTotalsRow({ periods, byCellPeriod }: ColumnTotalsRowProps) {
   return (
-    <tr className="border-t-2 border-slate-300 bg-slate-100 font-bold text-slate-800">
-      <StickyColumnCell shadowColor="#94a3b8" className="bg-slate-100 text-xs font-bold">
-        Column Totals
-      </StickyColumnCell>
+    <TotalRow>
       {periods.map((period) => {
         const total = byCellPeriod[period.id] ?? 0
         return (
@@ -32,6 +41,6 @@ export function ColumnTotalsRow({ periods, byCellPeriod }: ColumnTotalsRowProps)
           </td>
         )
       })}
-    </tr>
+    </TotalRow>
   )
 }

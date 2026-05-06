@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { formatCurrency, formatDays } from '@/lib/format'
+import { formatCurrency } from '@/lib/format'
 
 type Sentiment = 'auto' | 'positive' | 'negative' | 'neutral' | 'warning'
 type Format = 'currency' | 'percent' | 'days' | 'number' | 'raw'
@@ -9,6 +9,8 @@ export interface ColorValueProps {
   sentiment?: Sentiment
   format?: Format
   className?: string
+  /** Use monospace font for aligned numeric columns */
+  mono?: boolean
 }
 
 const SENTIMENT_COLORS: Record<Exclude<Sentiment, 'auto'>, string> = {
@@ -42,10 +44,11 @@ export function ColorValue({
   sentiment = 'auto',
   format = 'raw',
   className,
+  mono,
 }: ColorValueProps) {
   const resolved = resolveSentiment(sentiment, value)
   return (
-    <span className={cn('font-semibold tabular-nums', SENTIMENT_COLORS[resolved], className)}>
+    <span className={cn('font-semibold tabular-nums', mono && 'font-mono', SENTIMENT_COLORS[resolved], className)}>
       {formatValue(value, format)}
     </span>
   )

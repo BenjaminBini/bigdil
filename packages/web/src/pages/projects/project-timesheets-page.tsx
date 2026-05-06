@@ -4,6 +4,8 @@ import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/page-header'
 import { Legend } from '@/components/shared/legend'
+import { PageContainer, LoadingState, ErrorState } from '@/components/shared/page-container'
+import { FullHeightColumn } from '@/components/shared/layouts'
 import { useProject, useProjectTimesheets, useReferenceData, useWorkTable } from '@/api/hooks'
 import { formatShortDate } from '@/lib/format'
 import { FiltersBar } from './project-timesheets/filters-bar'
@@ -68,8 +70,8 @@ export default function ProjectTimesheetsPage() {
     return { allRows, periodOptions, employeeOptions, taskOptions, getTaskName, getProfileName }
   }, [isReady, project, timesheets, workTableData, refData])
 
-  if (isLoading) return <div className="p-6">Loading...</div>
-  if (!isReady) return <div className="p-6">Error loading data</div>
+  if (isLoading) return <LoadingState />
+  if (!isReady) return <ErrorState />
 
   const filtered = allRows.filter((row) => {
     if (periodFilter !== ALL_VALUE && row.periodId !== periodFilter) return false
@@ -84,19 +86,19 @@ export default function ProjectTimesheetsPage() {
   const totalCost = filtered.reduce((s, r) => s + (r.costAmount ?? 0), 0)
 
   return (
-    <div className="flex flex-col min-h-full">
+    <FullHeightColumn>
       <PageHeader
         title="Project Timesheets"
         subtitle={`${project.name} — Timesheet browser`}
         actions={
           <Button variant="outline" size="sm" onClick={() => exportCsv(filtered, project.name, getTaskName, getProfileName)}>
-            <Download className="size-3.5" />
+            <Download size={14} />
             Export CSV
           </Button>
         }
       />
 
-      <div className="p-6 max-w-7xl mx-auto w-full space-y-5">
+      <PageContainer>
         <FiltersBar
           periodFilter={periodFilter}
           employeeFilter={employeeFilter}
@@ -124,7 +126,7 @@ export default function ProjectTimesheetsPage() {
           { swatch: 'bg-white', swatchBorder: 'border-gray-200', label: 'Frozen period — frozen cost rates' },
           { swatch: 'bg-amber-50', swatchBorder: 'border-amber-200', label: 'Open period — cost rates pending approval' },
         ]} />
-      </div>
-    </div>
+      </PageContainer>
+    </FullHeightColumn>
   )
 }

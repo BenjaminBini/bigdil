@@ -1,51 +1,83 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router'
-import { toast } from 'sonner'
-import { BriefcaseBusiness } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { IconBox } from '@/components/shared/icon-box'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from "react";
+import type { FormEvent, ReactNode } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import { BriefcaseBusiness } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { IconBox } from "@/components/shared/icon-box";
+import { PageTitle } from "@/components/shared/page-title";
+import { MutedText } from "@/components/shared/muted-text";
+import { TextCaption } from "@/components/shared/text-caption";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { VStack } from "@/components/shared/VStack";
+import { LoginLayout } from "@/components/layout/login-layout";
+
+function BrandBlock() {
+  return (
+    <VStack gap="md" align="center">
+      <IconBox icon={BriefcaseBusiness} size="md" variant="primary" />
+      <PageTitle>BigDil</PageTitle>
+      <MutedText spacing="tight">Professional Services Automation</MutedText>
+    </VStack>
+  );
+}
+
+function FormField({
+  htmlFor,
+  label,
+  children,
+}: {
+  htmlFor: string;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <VStack gap="sm">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+    </VStack>
+  );
+}
 
 export default function LoginPage() {
-  const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setIsLoading(true)
-    toast.success('Login successful — redirecting...')
+    e.preventDefault();
+    setIsLoading(true);
+    toast.success("Login successful — redirecting...");
     setTimeout(() => {
-      navigate('/projects')
-    }, 800)
+      navigate("/projects");
+    }, 800);
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm space-y-6">
-        {/* Brand */}
-        <div className="flex flex-col items-center gap-3">
-          <IconBox icon={BriefcaseBusiness} size="md" variant="primary" />
-          <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">BigDil</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Professional Services Automation</p>
-          </div>
-        </div>
+    <LoginLayout>
+      <BrandBlock />
 
-        {/* Form card */}
-        <Card variant="compact">
-          <CardHeader>
-            <CardTitle>Sign in to your account</CardTitle>
-            <CardDescription>Enter your credentials to access your workspace</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
+      {/* Form card */}
+      <Card variant="compact">
+        <CardHeader>
+          <CardTitle>Sign in to your account</CardTitle>
+          <CardDescription>
+            Enter your credentials to access your workspace
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <VStack gap="xl">
+              <FormField htmlFor="email" label="Email">
                 <Input
                   id="email"
                   type="email"
@@ -55,9 +87,8 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Password</Label>
+              </FormField>
+              <FormField htmlFor="password" label="Password">
                 <Input
                   id="password"
                   type="password"
@@ -67,18 +98,18 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-              </div>
+              </FormField>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
-            </form>
-          </CardContent>
-        </Card>
+            </VStack>
+          </form>
+        </CardContent>
+      </Card>
 
-        <p className="text-center text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} BigDil. All rights reserved.
-        </p>
-      </div>
-    </div>
-  )
+      <TextCaption center>
+        &copy; {new Date().getFullYear()} BigDil. All rights reserved.
+      </TextCaption>
+    </LoginLayout>
+  );
 }

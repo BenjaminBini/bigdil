@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -7,7 +8,6 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -16,7 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { FormField } from '@/components/shared/form-field'
 import type { TaskStatus } from '@/api/types'
+
+function DialogBody({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col gap-4 py-2">{children}</div>
+}
 
 export interface TaskFormState {
   name: string
@@ -31,29 +36,28 @@ interface TaskDialogProps {
   onChange: (form: TaskFormState) => void
   onSave: () => void
   onClose: () => void
+  isPending?: boolean
 }
 
-export function TaskDialog({ open, title, form, onChange, onSave, onClose }: TaskDialogProps) {
+export function TaskDialog({ open, title, form, onChange, onSave, onClose, isPending }: TaskDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="sm">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-2">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="task-name">Name</Label>
+        <DialogBody>
+          <FormField label="Name" htmlFor="task-name">
             <Input
               id="task-name"
               placeholder="e.g. Requirements Gathering"
               value={form.name}
               onChange={(e) => onChange({ ...form, name: e.target.value })}
             />
-          </div>
+          </FormField>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="task-description">Description</Label>
+          <FormField label="Description" htmlFor="task-description">
             <Textarea
               id="task-description"
               placeholder="Optional description..."
@@ -61,10 +65,9 @@ export function TaskDialog({ open, title, form, onChange, onSave, onClose }: Tas
               value={form.description}
               onChange={(e) => onChange({ ...form, description: e.target.value })}
             />
-          </div>
+          </FormField>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="task-status">Status</Label>
+          <FormField label="Status" htmlFor="task-status">
             <Select
               value={form.status}
               onValueChange={(v) => onChange({ ...form, status: v as TaskStatus })}
@@ -78,15 +81,15 @@ export function TaskDialog({ open, title, form, onChange, onSave, onClose }: Tas
                 <SelectItem value="done">Done</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
+          </FormField>
+        </DialogBody>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={onSave} disabled={!form.name.trim()}>
-            Save
+          <Button onClick={onSave} disabled={!form.name.trim() || isPending}>
+            {isPending ? 'Saving…' : 'Save'}
           </Button>
         </DialogFooter>
       </DialogContent>

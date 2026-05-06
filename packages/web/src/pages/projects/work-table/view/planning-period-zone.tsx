@@ -1,5 +1,6 @@
-import { FormulaBlock, PLANNING_DETAIL_CLASSES } from '@/components/shared/metric-display'
+import { FormulaBlock, ZoneTitle, MarginRow, MarginPctSuffix } from '@/components/shared/metric-display'
 import { ColorValue } from '@/components/shared/color-value'
+import { VStack } from '@/components/shared/VStack'
 
 interface PlanningPeriodZoneProps {
   remainingDays: number
@@ -33,9 +34,9 @@ export function PlanningPeriodZone({
   formatCurrency,
 }: PlanningPeriodZoneProps) {
   return (
-    <div className="min-w-[240px] flex-1">
-      <div className={PLANNING_DETAIL_CLASSES.zoneTitle}>Period</div>
-      <div className="space-y-2">
+    <div className="flex-1 min-w-[240px]">
+      <ZoneTitle>Period</ZoneTitle>
+      <VStack gap="md">
         <FormulaBlock
           label="Cost"
           value={formatCurrency(periodCost)}
@@ -64,19 +65,14 @@ export function PlanningPeriodZone({
           formula={`= ${formatDays(daysProduced)}d (produced) × ${formatCurrency(sellRate)}/d`}
         />
 
-        <div>
-          <div className={PLANNING_DETAIL_CLASSES.row}>
-            <span className={PLANNING_DETAIL_CLASSES.label}>Margin</span>
-            <span className={PLANNING_DETAIL_CLASSES.marginValue}>
-              <ColorValue value={periodMargin} format="currency" />
-              {production !== 0 && <span className="ml-0.5 text-[9px] opacity-70">{((periodMargin / production) * 100).toFixed(1)}%</span>}
-            </span>
-          </div>
-          <div className={PLANNING_DETAIL_CLASSES.formula}>
-            = {formatCurrency(production)} (prod.) - {formatCurrency(periodCost)} (cost)
-          </div>
-        </div>
-      </div>
+        <MarginRow
+          value={<>
+            <ColorValue value={periodMargin} format="currency" />
+            {production !== 0 && <MarginPctSuffix>{((periodMargin / production) * 100).toFixed(1)}%</MarginPctSuffix>}
+          </>}
+          formula={`= ${formatCurrency(production)} (prod.) - ${formatCurrency(periodCost)} (cost)`}
+        />
+      </VStack>
     </div>
   )
 }

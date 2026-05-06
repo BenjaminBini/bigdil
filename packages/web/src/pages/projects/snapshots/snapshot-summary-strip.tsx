@@ -1,6 +1,7 @@
 import type { Snapshot } from '@/api/types'
 import { AlertBanner } from '@/components/shared/alert-banner'
 import { KpiCard } from '@/components/shared/kpi-card'
+import { FlexRow } from '@/components/shared/layouts'
 import { formatCurrency, formatDate } from '@/lib/format'
 
 interface SnapshotSummaryStripProps {
@@ -12,7 +13,7 @@ export function SnapshotSummaryStrip({ snapshots }: SnapshotSummaryStripProps) {
 
   return (
     <AlertBanner variant="info" title="Snapshot Summary">
-      <div className="mt-2 flex flex-wrap gap-4">
+      <FlexRow wrap gap="lg" className="mt-2">
         {snapshots.map((snapshot) => (
           <KpiCard
             key={snapshot.id}
@@ -22,7 +23,7 @@ export function SnapshotSummaryStrip({ snapshots }: SnapshotSummaryStripProps) {
             variant="inline"
           />
         ))}
-      </div>
+      </FlexRow>
     </AlertBanner>
   )
 }

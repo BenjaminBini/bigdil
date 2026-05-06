@@ -2,8 +2,17 @@ import { Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { ProgressBar } from '@/components/shared/progress-bar'
+import { MutedText } from '@/components/shared/muted-text'
+import { TextCaption } from '@/components/shared/text-caption'
+import { TextStrong } from '@/components/shared/text-strong'
+import { FlexRow } from '@/components/shared/layouts'
 import { formatDate } from '@/lib/format'
+import type { ReactNode } from 'react'
 import type { Period } from '@/api/types'
+
+function PeriodLabel({ children }: { children: ReactNode }) {
+  return <p className="text-sm text-gray-900">{children}</p>
+}
 
 interface PeriodProgressCardProps {
   periods: Period[]
@@ -20,23 +29,23 @@ export function PeriodProgressCard({ periods }: PeriodProgressCardProps) {
         <CardTitle>Period Progress</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-2">
-          <Clock className="size-4 shrink-0 text-green-600" />
-          <p className="text-sm font-medium text-gray-900">
-            Period {activePeriod?.periodNumber ?? '—'} of {totalPeriods}
+        <FlexRow gap="md">
+          <Clock size={16} color="#16a34a" className="shrink-0" />
+          <PeriodLabel>
+            <TextStrong>Period {activePeriod?.periodNumber ?? '—'} of {totalPeriods}</TextStrong>
             {activePeriod && (
               <StatusBadge status={activePeriod.status} />
             )}
-          </p>
-        </div>
+          </PeriodLabel>
+        </FlexRow>
 
-        <p className="text-sm text-gray-500">{frozenPeriods} period{frozenPeriods !== 1 ? 's' : ''} frozen</p>
+        <MutedText>{frozenPeriods} period{frozenPeriods !== 1 ? 's' : ''} frozen</MutedText>
 
         <ProgressBar percent={totalPeriods > 0 ? (frozenPeriods / totalPeriods) * 100 : 0} />
 
-        <p className="text-xs text-gray-400">
+        <TextCaption>
           {activePeriod ? `${formatDate(activePeriod.startDate)} - ${formatDate(activePeriod.endDate)}` : '—'}
-        </p>
+        </TextCaption>
       </CardContent>
     </Card>
   )

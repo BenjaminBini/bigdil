@@ -9,9 +9,14 @@ import {
 import { Card } from '@/components/ui/card'
 import { formatDaysWithUnit } from '@/lib/format'
 import { HeadCell } from '@/components/shared/head-cell'
+import { TdPrimary, TdNumeric, TdDetail, TdRight } from '@/components/shared/table-cells'
 import { SuccessButton, ApproveButton, RejectButton } from '@/components/shared/button-adapters'
 import { ColorValue } from '@/components/shared/color-value'
 import { StatusBadge } from '@/components/shared/status-badge'
+import { CardTitleBar, CardFooterBar } from '@/components/shared/card-title-bar'
+import { FlexRow } from '@/components/shared/layouts'
+import { HintText } from '@/components/shared/hint-text'
+import { Separator } from '@/components/shared/separator'
 import type { ApprovalRow } from './types'
 
 interface ApprovalsTableProps {
@@ -49,31 +54,31 @@ export function ApprovalsTable({
 
   return (
     <Card variant="flush">
-      <div className="flex items-center justify-between border-b bg-gray-50 px-5 py-4">
-        <div>
-          <h2 className="font-semibold text-gray-900">Active period approvals</h2>
-          <p className="mt-0.5 text-xs text-gray-500">Review submitted timesheets and freeze costs</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {!hasAnySubmitted && <span className="text-xs italic text-gray-400">No submissions yet</span>}
-          <SuccessButton size="sm" disabled={approveAllDisabled} onClick={onApproveAll}>
-            <CheckCheck className="size-3.5" />
-            Approve All
-          </SuccessButton>
-        </div>
-      </div>
+      <CardTitleBar
+        title="Active period approvals"
+        subtitle="Review submitted timesheets and freeze costs"
+        actions={
+          <>
+            {!hasAnySubmitted && <HintText>No submissions yet</HintText>}
+            <SuccessButton size="sm" disabled={approveAllDisabled} onClick={onApproveAll}>
+              <CheckCheck size={14} />
+              Approve All
+            </SuccessButton>
+          </>
+        }
+      />
 
-      <Table>
+      <Table variant="compact">
         <TableHeader>
-          <TableRow className="bg-gray-50">
+          <TableRow variant="header">
             <HeadCell label="Employee" />
             <HeadCell label="Task" />
             <HeadCell label="Profile" />
-            <HeadCell label="Planned Days" className="w-28 text-right" />
-            <HeadCell label="Submitted Days" className="w-28 text-right" />
-            <HeadCell label="Delta" className="w-24 text-right" />
-            <HeadCell label="Status" className="w-28" />
-            <HeadCell label="Actions" className="w-36" />
+            <HeadCell label="Planned Days" align="right" width="112px" />
+            <HeadCell label="Submitted Days" align="right" width="112px" />
+            <HeadCell label="Delta" align="right" width="96px" />
+            <HeadCell label="Status" width="112px" />
+            <HeadCell label="Actions" width="144px" />
           </TableRow>
         </TableHeader>
 
@@ -82,40 +87,40 @@ export function ApprovalsTable({
             const delta = row.submittedDays - row.plannedDays
             return (
               <TableRow key={row.id}>
-                <TableCell className="py-3 font-medium text-gray-900">{getEmployeeName(row.employeeId)}</TableCell>
-                <TableCell className="py-3 text-sm text-gray-700">{getTaskName(row.taskId)}</TableCell>
-                <TableCell className="py-3 text-sm text-gray-600">{getProfileName(row.profileId)}</TableCell>
-                <TableCell className="py-3 text-right text-gray-700">{formatDaysWithUnit(row.plannedDays)}</TableCell>
-                <TableCell className="py-3 text-right text-gray-700">{formatDaysWithUnit(row.submittedDays)}</TableCell>
-                <TableCell className="py-3 text-right">
+                <TdPrimary>{getEmployeeName(row.employeeId)}</TdPrimary>
+                <TdDetail>{getTaskName(row.taskId)}</TdDetail>
+                <TdDetail>{getProfileName(row.profileId)}</TdDetail>
+                <TdNumeric>{formatDaysWithUnit(row.plannedDays)}</TdNumeric>
+                <TdNumeric>{formatDaysWithUnit(row.submittedDays)}</TdNumeric>
+                <TdRight>
                   <ColorValue
                     value={formatDelta(delta)}
                     sentiment={Math.abs(delta) === 0 ? 'neutral' : Math.abs(delta) < 1 ? 'warning' : 'negative'}
                   />
-                </TableCell>
-                <TableCell className="py-3">
+                </TdRight>
+                <TableCell>
                   <StatusBadge status={row.status} />
                 </TableCell>
-                <TableCell className="py-2">
+                <TableCell>
                   {row.status === 'SUBMITTED' ? (
-                    <div className="flex items-center gap-1.5">
+                    <FlexRow gap="sm">
                       <ApproveButton onClick={() => onApprove(row.id)}>
-                        <Check className="size-3.5" />
+                        <Check size={14} />
                         Approve
                       </ApproveButton>
                       <RejectButton onClick={() => onReject(row.id)}>
-                        <X className="size-3.5" />
+                        <X size={14} />
                         Reject
                       </RejectButton>
-                    </div>
+                    </FlexRow>
                   ) : (
-                    <span className="text-xs italic text-gray-400">
+                    <HintText>
                       {row.status === 'APPROVED'
                         ? 'Approved'
                         : row.status === 'REJECTED'
                           ? 'Rejected'
                           : 'Awaiting submission'}
-                    </span>
+                    </HintText>
                   )}
                 </TableCell>
               </TableRow>
@@ -124,15 +129,15 @@ export function ApprovalsTable({
         </TableBody>
       </Table>
 
-      <div className="flex items-center gap-4 border-t bg-gray-50 px-5 py-3 text-xs text-gray-500">
+      <CardFooterBar>
         <span>
           {approvedCount} of {rows.length} approved
         </span>
-        <span className="text-gray-300">|</span>
+        <Separator />
         <span>{submittedCount} pending review</span>
-        <span className="text-gray-300">|</span>
+        <Separator />
         <span>{draftCount} not yet submitted</span>
-      </div>
+      </CardFooterBar>
     </Card>
   )
 }

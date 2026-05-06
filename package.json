@@ -1,8 +1,19 @@
 {
   "name": "bigdil",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "docker compose up -d db && concurrently -k -p [{name}] -c blue,green,yellow -n db,api,web \"docker compose logs -f db\" \"pnpm --filter @bigdil/api dev\" \"pnpm --filter web dev\""
+  },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "@esbuild/darwin-arm64"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@esbuild/darwin-arm64"
+    ]
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }

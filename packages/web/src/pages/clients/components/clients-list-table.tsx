@@ -1,14 +1,20 @@
 import {
   Table,
   TableBody,
-  TableCell,
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
 import { SortableHead } from '@/components/shared/sortable-head'
 import { Card } from '@/components/ui/card'
+import { TdPrimary, TdNumeric, TdNumericPrimary, TdDetail, NullCell } from '@/components/shared/table-cells'
+import { EmptyRow } from '@/components/shared/empty-row'
 import { formatCurrency, formatDate } from '@/lib/format'
+import type { ReactNode } from 'react'
 import type { ClientListRow, ClientSortKey, SortDir } from './clients-list-model'
+
+function AnnotationText({ children }: { children: ReactNode }) {
+  return <span className="ml-2 text-xs font-normal text-gray-400">{children}</span>
+}
 
 interface ClientsListTableProps {
   rows: ClientListRow[]
@@ -23,7 +29,7 @@ export function ClientsListTable({ rows, sortKey, sortDir, onSort, onOpenClient 
     <Card variant="flush">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50">
+          <TableRow variant="header">
             <SortableHead label="Name" col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
             <SortableHead label="Active Projects" col="activeProjects" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
             <SortableHead label="Total Contract Value" col="contractValue" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
@@ -33,28 +39,26 @@ export function ClientsListTable({ rows, sortKey, sortDir, onSort, onOpenClient 
         </TableHeader>
         <TableBody>
           {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="py-10 text-center text-gray-400">No clients found</TableCell>
-            </TableRow>
+            <EmptyRow colSpan={5} message="No clients found" />
           ) : (
             rows.map(({ client, activeProjects, totalProjects, contractValue, marginForecast, lastActivity }) => (
               <TableRow
                 key={client.id}
-                className="cursor-pointer hover:bg-gray-50"
+                variant="interactive"
                 onClick={() => onOpenClient(client.id)}
               >
-                <TableCell className="py-3.5 font-medium text-gray-900">
+                <TdPrimary>
                   {client.name}
-                  <span className="ml-2 text-xs font-normal text-gray-400">
+                  <AnnotationText>
                     {totalProjects} project{totalProjects !== 1 ? 's' : ''}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right text-gray-700">{activeProjects}</TableCell>
-                <TableCell className="text-right font-medium text-gray-900">{formatCurrency(contractValue)}</TableCell>
-                <TableCell className="text-right text-gray-700">
-                  {marginForecast != null ? formatCurrency(marginForecast) : '—'}
-                </TableCell>
-                <TableCell className="text-gray-500">{formatDate(lastActivity)}</TableCell>
+                  </AnnotationText>
+                </TdPrimary>
+                <TdNumeric>{activeProjects}</TdNumeric>
+                <TdNumericPrimary>{formatCurrency(contractValue)}</TdNumericPrimary>
+                <TdNumeric>
+                  {marginForecast != null ? formatCurrency(marginForecast) : <NullCell />}
+                </TdNumeric>
+                <TdDetail>{formatDate(lastActivity)}</TdDetail>
               </TableRow>
             ))
           )}

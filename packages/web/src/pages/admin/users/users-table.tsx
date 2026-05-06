@@ -10,6 +10,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { HeadCell } from '@/components/shared/head-cell'
+import { TdPrimary, TdDetail, TdRight, NullCell } from '@/components/shared/table-cells'
+import { FlexEnd } from '@/components/shared/layouts'
 import { ActiveBadge } from '@/pages/employees/components/active-badge'
 import { LAST_LOGIN_DATES } from './data'
 import { RoleBadge } from './role-badge'
@@ -27,14 +29,14 @@ export function UsersTable({ users, employees, onEdit, onResetPassword, onDeacti
     <Card variant="flush">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50">
+          <TableRow variant="header">
             <HeadCell label="Name" />
             <HeadCell label="Email" />
             <HeadCell label="Role" />
             <HeadCell label="Linked Employee" />
             <HeadCell label="Active" />
             <HeadCell label="Last Login" />
-            <HeadCell label="Actions" className="text-right" />
+            <HeadCell label="Actions" align="right" />
           </TableRow>
         </TableHeader>
 
@@ -45,25 +47,25 @@ export function UsersTable({ users, employees, onEdit, onResetPassword, onDeacti
             const isActive = linkedEmployee === null || linkedEmployee === undefined || linkedEmployee.active
 
             return (
-              <TableRow key={user.id} className="hover:bg-gray-50">
-                <TableCell className="py-3.5 font-medium text-gray-900">{user.name}</TableCell>
-                <TableCell className="text-sm text-gray-600">{user.email}</TableCell>
+              <TableRow key={user.id} variant="interactive">
+                <TdPrimary>{user.name}</TdPrimary>
+                <TdDetail>{user.email}</TdDetail>
                 <TableCell>
                   <RoleBadge role={user.role} />
                 </TableCell>
-                <TableCell className="text-sm text-gray-600">
-                  {linkedEmployee ? linkedEmployee.name : <span className="text-gray-400">—</span>}
-                </TableCell>
+                <TdDetail>
+                  {linkedEmployee ? linkedEmployee.name : <NullCell />}
+                </TdDetail>
                 <TableCell>
                   <ActiveBadge active={isActive} />
                 </TableCell>
-                <TableCell className="text-sm tabular-nums text-gray-500">
-                  {loginDate ? formatLastLogin(loginDate) : <span className="text-gray-400">—</span>}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-1">
+                <TdDetail tabularNums>
+                  {loginDate ? formatLastLogin(loginDate) : <NullCell />}
+                </TdDetail>
+                <TdRight>
+                  <FlexEnd gap="xs">
                     <Button variant="ghost" size="sm" onClick={() => onEdit(user)} title="Edit user">
-                      <Pencil className="size-3.5" />
+                      <Pencil size={14} />
                       Edit
                     </Button>
                     <Button
@@ -72,7 +74,7 @@ export function UsersTable({ users, employees, onEdit, onResetPassword, onDeacti
                       onClick={() => onResetPassword(user)}
                       title="Reset password"
                     >
-                      <KeyRound className="size-3.5" />
+                      <KeyRound size={14} />
                       Reset Password
                     </Button>
                     <Button
@@ -81,11 +83,11 @@ export function UsersTable({ users, employees, onEdit, onResetPassword, onDeacti
                       onClick={() => onDeactivate(user)}
                       title="Deactivate user"
                     >
-                      <UserX className="size-3.5" />
+                      <UserX size={14} />
                       Deactivate
                     </Button>
-                  </div>
-                </TableCell>
+                  </FlexEnd>
+                </TdRight>
               </TableRow>
             )
           })}
