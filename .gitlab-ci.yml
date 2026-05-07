@@ -4,6 +4,7 @@ default:
     - corepack enable
     - corepack prepare pnpm@10.33.2 --activate
     - pnpm install --frozen-lockfile
+    - pnpm --filter @bigdil/db build
 
 stages:
   - check
