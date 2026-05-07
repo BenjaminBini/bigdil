@@ -9,8 +9,12 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@esbuild/darwin-arm64",
+      "@esbuild/linux-x64",
+      "@prisma/engines",
       "esbuild",
-      "@esbuild/darwin-arm64"
+      "msw",
+      "prisma"
     ]
   },
   "devDependencies": {
