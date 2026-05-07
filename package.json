@@ -7,16 +7,6 @@
   "scripts": {
     "dev": "docker compose up -d db && concurrently -k -p [{name}] -c blue,green,yellow -n db,api,web \"docker compose logs -f db\" \"pnpm --filter @bigdil/api dev\" \"pnpm --filter web dev\""
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@esbuild/darwin-arm64",
-      "@esbuild/linux-x64",
-      "@prisma/engines",
-      "esbuild",
-      "msw",
-      "prisma"
-    ]
-  },
   "devDependencies": {
     "concurrently": "^9.2.1"
   }
