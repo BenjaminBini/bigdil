@@ -30,16 +30,16 @@ export function ClientsListTable({ rows, sortKey, sortDir, onSort, onOpenClient 
       <Table>
         <TableHeader>
           <TableRow variant="header">
-            <SortableHead label="Name" col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
-            <SortableHead label="Active Projects" col="activeProjects" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
-            <SortableHead label="Total Contract Value" col="contractValue" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
-            <SortableHead label="Margin Forecast" col="marginForecast" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
-            <SortableHead label="Last Activity" col="lastActivity" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+            <SortableHead label="Nom" col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+            <SortableHead label="Projets en cours" col="activeProjects" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableHead label="Valeur contractuelle" col="contractValue" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableHead label="Marge prévisionnelle" col="marginForecast" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableHead label="Dernière activité" col="lastActivity" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.length === 0 ? (
-            <EmptyRow colSpan={5} message="No clients found" />
+            <EmptyRow colSpan={5} message="Aucun client trouvé" />
           ) : (
             rows.map(({ client, activeProjects, totalProjects, contractValue, marginForecast, lastActivity }) => (
               <TableRow
@@ -50,7 +50,7 @@ export function ClientsListTable({ rows, sortKey, sortDir, onSort, onOpenClient 
                 <TdPrimary>
                   {client.name}
                   <AnnotationText>
-                    {totalProjects} project{totalProjects !== 1 ? 's' : ''}
+                    {totalProjects} projet{totalProjects !== 1 ? 's' : ''}
                   </AnnotationText>
                 </TdPrimary>
                 <TdNumeric>{activeProjects}</TdNumeric>

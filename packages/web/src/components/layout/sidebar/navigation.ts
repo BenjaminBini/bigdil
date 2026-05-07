@@ -28,37 +28,37 @@ export function buildNavGroups(role: UserRole): NavGroup[] {
 
   const groups: NavGroup[] = [
     {
-      title: 'Main',
+      title: 'Principal',
       items: [
-        { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-        { label: 'Projects', to: '/projects', icon: FolderKanban },
+        { label: 'Tableau de bord', to: '/dashboard', icon: LayoutDashboard },
+        { label: 'Projets', to: '/projects', icon: FolderKanban },
         { label: 'Clients', to: '/clients', icon: Building2 },
       ],
     },
     {
-      title: 'Reference',
+      title: 'Référentiel',
       items: [
-        { label: 'Profiles', to: '/profiles', icon: Briefcase },
-        { label: 'Employees', to: '/employees', icon: Users },
+        { label: 'Profils', to: '/profiles', icon: Briefcase },
+        { label: 'Collaborateurs', to: '/employees', icon: Users },
       ],
     },
   ]
 
-  const myWorkItems: NavItem[] = [{ label: 'Timesheets', to: '/timesheets', icon: Clock }]
+  const myWorkItems: NavItem[] = [{ label: 'Feuilles de temps', to: '/timesheets', icon: Clock }]
   if (role === 'PM' || role === 'ADMIN') {
-    myWorkItems.push({ label: 'Approvals', to: '/timesheets/approvals', icon: CheckSquare })
+    myWorkItems.push({ label: 'Approbations', to: '/timesheets/approvals', icon: CheckSquare })
   }
   if (role === 'PM' || role === 'FINANCE' || role === 'EXEC' || role === 'ADMIN') {
-    myWorkItems.push({ label: 'Reports', to: '/reports', icon: BarChart3 })
+    myWorkItems.push({ label: 'Rapports', to: '/reports', icon: BarChart3 })
   }
-  groups.push({ title: 'My Work', items: myWorkItems })
+  groups.push({ title: 'Mon travail', items: myWorkItems })
 
   if (role === 'ADMIN' || role === 'PM') {
     groups.push({
-      title: 'Admin',
+      title: 'Administration',
       items: [
-        { label: 'Users', to: '/admin/users', icon: UserCog },
-        { label: 'Settings', to: '/admin/settings', icon: Settings },
+        { label: 'Utilisateurs', to: '/admin/users', icon: UserCog },
+        { label: 'Paramètres', to: '/admin/settings', icon: Settings },
       ],
     })
   }

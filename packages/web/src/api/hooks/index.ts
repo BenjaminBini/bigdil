@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '../client'
 import type {
-  ProjectListItem, ProjectDetail, WorkTableData, Snapshot,
+  ProjectListItem, ProjectDetail, WorkTableData, Snapshot, Quote,
   TimesheetEntry, ReferenceData, DashboardData,
   EmployeeDetail, ProfileDetail, Profile, Task, Client, Employee,
   FinancialReportRow, UtilizationReportRow,
@@ -197,6 +197,24 @@ export function useUpdateTask(projectId: string) {
   return useMutation({
     mutationFn: ({ taskId, ...data }: { taskId: string; name?: string; status?: string }) =>
       apiFetch<Task>(`/api/projects/${projectId}/tasks/${taskId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useAssignEmployee(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { taskId: string; profileId: string; employeeId: string }) =>
+      apiFetch(`/api/projects/${projectId}/work-table/assign`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.workTable(projectId) }) },
+  })
+}
+
+export function useDeleteTask(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (taskId: string) =>
+      apiFetch(`/api/projects/${projectId}/tasks/${taskId}`, { method: 'DELETE' }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
   })
 }

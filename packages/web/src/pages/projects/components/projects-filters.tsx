@@ -36,7 +36,7 @@ export function ProjectsFilters({
     <FlexRow wrap>
       <FilterWrapper>
         <SearchInput
-          placeholder="Search projects..."
+          placeholder="Rechercher un projet..."
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
@@ -44,9 +44,9 @@ export function ProjectsFilters({
 
       <FilterWrapper size="md">
         <Select value={clientFilter} onValueChange={onClientFilterChange}>
-          <SelectTrigger><SelectValue placeholder="All clients" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder="Tous les clients" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all-clients">All clients</SelectItem>
+            <SelectItem value="all-clients">Tous les clients</SelectItem>
             {clients.map((name) => (
               <SelectItem key={name} value={name}>{name}</SelectItem>
             ))}
@@ -56,9 +56,9 @@ export function ProjectsFilters({
 
       <FilterWrapper size="md">
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger><SelectValue placeholder="All statuses" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all-statuses">All statuses</SelectItem>
+            <SelectItem value="all-statuses">Tous les statuts</SelectItem>
             {statuses.map((status) => (
               <SelectItem key={status} value={status}>{projectStatusLabels[status]}</SelectItem>
             ))}

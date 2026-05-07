@@ -24,7 +24,7 @@ export default function ProjectOverviewPage() {
   const { data, isLoading, error } = useProject(projectId ?? '')
 
   if (isLoading) return <LoadingState />
-  if (error || !data) return <ErrorState message="Error loading project" />
+  if (error || !data) return <ErrorState message="Erreur lors du chargement du projet" />
 
   const detailsCard = <ProjectDetailsCard project={data} onEdit={() => setShowEdit(true)} />
 

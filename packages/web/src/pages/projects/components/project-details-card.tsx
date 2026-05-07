@@ -17,9 +17,9 @@ export function ProjectDetailsCard({ project, onEdit }: ProjectDetailsCardProps)
   return (
     <Card variant="compact">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Project Details</CardTitle>
+        <CardTitle>Détails du projet</CardTitle>
         {onEdit && (
-          <Button variant="ghost" size="icon-sm" onClick={onEdit} title="Edit project">
+          <Button variant="ghost" size="icon-sm" onClick={onEdit} title="Modifier le projet">
             <Pencil size={14} />
           </Button>
         )}
@@ -28,12 +28,12 @@ export function ProjectDetailsCard({ project, onEdit }: ProjectDetailsCardProps)
         <DivideStack>
           <DetailRow label="Client" value={project.clientName ?? <NullCell />} />
           <DetailRow
-            label="Status"
+            label="Statut"
             value={<StatusBadge status={project.status} />}
           />
-          <DetailRow label="Start Date" value={project.startDate ? formatDate(project.startDate) : <NullText />} />
-          <DetailRow label="End Date" value={project.endDate ? formatDate(project.endDate) : <NullText />} />
-          <DetailRow label="Currency" value={project.currency} />
+          <DetailRow label="Date de début" value={project.startDate ? formatDate(project.startDate) : <NullText />} />
+          <DetailRow label="Date de fin" value={project.endDate ? formatDate(project.endDate) : <NullText />} />
+          <DetailRow label="Devise" value={project.currency} />
         </DivideStack>
       </CardContent>
     </Card>

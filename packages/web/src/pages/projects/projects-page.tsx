@@ -19,7 +19,7 @@ export default function ProjectsPage() {
   const { data: projects, isLoading, error } = useProjects()
 
   if (isLoading) return <LoadingState />
-  if (error || !projects) return <ErrorState message="Error loading projects" />
+  if (error || !projects) return <ErrorState message="Erreur lors du chargement des projets" />
 
   const uniqueClients = [...new Set(projects.map((project) => project.clientName).filter(Boolean) as string[])]
   const uniqueStatuses = [...new Set(projects.map((project) => project.status))]
@@ -39,12 +39,12 @@ export default function ProjectsPage() {
     <PageContainer>
       <PageHeader
         variant="section"
-        title="Projects"
-        subtitle={`${projects.length} project${projects.length !== 1 ? 's' : ''}`}
+        title="Projets"
+        subtitle={`${projects.length} projet${projects.length !== 1 ? 's' : ''}`}
         actions={
           <Button onClick={() => setShowNewProject(true)}>
             <Plus />
-            New Project
+            Nouveau projet
           </Button>
         }
       />

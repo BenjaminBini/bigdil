@@ -32,16 +32,16 @@ export function AlertsCard({ alerts }: AlertsCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Alerts</CardTitle>
+        <CardTitle>Alertes</CardTitle>
       </CardHeader>
       <CardContent>
         {alerts.periodsNeedingClosure.length > 0 && (
           <div>
-            <SectionHeading><TextStrong>Periods in Consolidation (ready to close)</TextStrong></SectionHeading>
+            <SectionHeading><TextStrong>Périodes en consolidation (prêtes à clôturer)</TextStrong></SectionHeading>
             {alerts.periodsNeedingClosure.map((period) => (
               <CardLink key={period.periodId} to={`/projects/${period.projectId}/snapshots`}>
                 <span>
-                  {period.projectName} - Period {period.periodNumber}
+                  {period.projectName} - Période {period.periodNumber}
                 </span>
                 <StatusBadge status="CONSOLIDATION" />
               </CardLink>
@@ -51,17 +51,17 @@ export function AlertsCard({ alerts }: AlertsCardProps) {
 
         {alerts.overdueApprovals > 0 && (
           <div>
-            <SectionHeading><TextStrong>Pending Approvals</TextStrong></SectionHeading>
+            <SectionHeading><TextStrong>Approbations en attente</TextStrong></SectionHeading>
             <CardLink to="/timesheets/approvals">
-              <span>{alerts.overdueApprovals} timesheet(s) awaiting approval</span>
+              <span>{alerts.overdueApprovals} feuille{alerts.overdueApprovals > 1 ? 's' : ''} de temps en attente d'approbation</span>
               <Badge variant="outline">
-                Review
+                Réviser
               </Badge>
             </CardLink>
           </div>
         )}
 
-        {hasNoAlerts && <MutedText>No alerts - everything is on track.</MutedText>}
+        {hasNoAlerts && <MutedText>Aucune alerte — tout est en ordre.</MutedText>}
       </CardContent>
     </Card>
   )

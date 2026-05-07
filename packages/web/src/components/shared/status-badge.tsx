@@ -20,33 +20,34 @@ type KnownStatus =
 
 const STATUS_LABEL: Record<string, string> = {
   // ProjectStatus
-  DRAFT: 'Draft',
-  WAITING_APPROVAL: 'Waiting Approval',
-  TO_PLAN: 'To Plan',
-  IN_PROGRESS: 'In Progress',
-  COMPLETED: 'Completed',
+  DRAFT: 'Brouillon',
+  WAITING_APPROVAL: 'En attente',
+  TO_PLAN: 'À planifier',
+  PLANNING: 'Planification',
+  IN_PROGRESS: 'En cours',
+  COMPLETED: 'Terminé',
   // PeriodStatus
   FUTURE: 'Future',
-  OPEN: 'Open',
+  OPEN: 'Ouverte',
   CONSOLIDATION: 'Consolidation',
-  FROZEN: 'Frozen',
+  FROZEN: 'Clôturée',
   // QuoteStatus
-  SENT: 'Sent',
-  VALIDATED: 'Validated',
-  REJECTED: 'Rejected',
+  SENT: 'Envoyé',
+  VALIDATED: 'Validé',
+  REJECTED: 'Rejeté',
   // TimesheetStatus
-  SUBMITTED: 'Submitted',
-  APPROVED: 'Approved',
+  SUBMITTED: 'Soumise',
+  APPROVED: 'Approuvée',
   // TaskStatus (lowercase)
-  planned: 'Planned',
-  active: 'Active',
-  done: 'Done',
+  planned: 'Prévu',
+  active: 'Actif',
+  done: 'Terminé',
   // Misc
-  ACTIVE: 'Active',
-  INACTIVE: 'Inactive',
-  ACTUAL: 'Actual',
-  PLANNED: 'Planned',
-  CLOSED: 'Closed',
+  ACTIVE: 'Actif',
+  INACTIVE: 'Inactif',
+  ACTUAL: 'Réel',
+  PLANNED: 'Prévu',
+  CLOSED: 'Fermé',
 }
 
 /**
@@ -66,7 +67,7 @@ function resolveColors(status: string): string {
   for (const map of allMaps) {
     if (status in map) return map[status]
   }
-  return 'bg-gray-100 text-gray-600'
+  return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
 }
 
 export interface StatusBadgeProps {

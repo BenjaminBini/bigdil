@@ -58,24 +58,24 @@ export default function ProfilesPage() {
   function handleSave() {
     const sellRate = parseFloat(form.sellRate)
     const costRate = parseFloat(form.costRate)
-    if (!form.name.trim()) { toast.error('Name is required'); return }
-    if (isNaN(sellRate) || sellRate < 0) { toast.error('Invalid sell rate'); return }
-    if (isNaN(costRate) || costRate < 0) { toast.error('Invalid cost rate'); return }
+    if (!form.name.trim()) { toast.error('Le nom est requis'); return }
+    if (isNaN(sellRate) || sellRate < 0) { toast.error('Taux de vente invalide'); return }
+    if (isNaN(costRate) || costRate < 0) { toast.error('Taux de coût invalide'); return }
 
     if (editingProfile) {
       updateProfile.mutate(
         { id: editingProfile.id, name: form.name, defaultSellRatePerDay: sellRate, defaultCostRatePerDay: costRate },
         {
-          onSuccess: () => { toast.success(`Profile "${form.name}" updated`); closeDialog() },
-          onError: () => toast.error('Failed to update profile'),
+          onSuccess: () => { toast.success(`Profil "${form.name}" mis à jour`); closeDialog() },
+          onError: () => toast.error('Échec de la mise à jour du profil'),
         },
       )
     } else {
       createProfile.mutate(
         { name: form.name, defaultSellRatePerDay: sellRate, defaultCostRatePerDay: costRate },
         {
-          onSuccess: () => { toast.success(`Profile "${form.name}" created`); closeDialog() },
-          onError: () => toast.error('Failed to create profile'),
+          onSuccess: () => { toast.success(`Profil "${form.name}" créé`); closeDialog() },
+          onError: () => toast.error('Échec de la création du profil'),
         },
       )
     }
@@ -85,30 +85,29 @@ export default function ProfilesPage() {
     <PageContainer size="md">
       <FlexBetween>
         <div>
-          <PageTitle>Profiles</PageTitle>
-          <MutedText spacing="tight">Billing profiles with default day rates for quote creation.</MutedText>
+          <PageTitle>Profils</PageTitle>
+          <MutedText spacing="tight">Profils de facturation avec taux journaliers par défaut pour la création des devis.</MutedText>
         </div>
         <Button onClick={openNew}>
           <Plus />
-          New Profile
+          Nouveau profil
         </Button>
       </FlexBetween>
 
       <ProfilesTable profiles={refData.profiles} onEdit={openEdit} />
 
       <TextCaption>
-        These are default rates for quote creation convenience. They do not affect validated
-        quotes or project rates.
+        Ces taux sont des valeurs par défaut pour faciliter la création de devis. Ils ne modifient pas les devis validés ni les taux appliqués aux projets.
       </TextCaption>
 
       <ProfileFormDialog
         open={dialogOpen}
-        title={editingProfile ? 'Edit Profile' : 'New Profile'}
+        title={editingProfile ? 'Modifier le profil' : 'Nouveau profil'}
         form={form}
         onChange={setForm}
         onClose={closeDialog}
         onSave={handleSave}
-        saveLabel={editingProfile ? 'Save Changes' : 'Create Profile'}
+        saveLabel={editingProfile ? 'Enregistrer' : 'Créer le profil'}
         isPending={createProfile.isPending || updateProfile.isPending}
       />
     </PageContainer>

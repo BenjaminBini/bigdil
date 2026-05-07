@@ -5,6 +5,7 @@ import { buildBreadcrumbs } from './topbar/breadcrumbs'
 import { ProjectSelector } from './topbar/project-selector'
 import { ActivePeriodBadge } from './topbar/active-period-badge'
 import { UserMenu } from './topbar/user-menu'
+import { ThemeToggle } from './topbar/theme-toggle'
 
 export interface TopbarProps {
   projectId?: string | null
@@ -56,8 +57,9 @@ export function Topbar({ projectId: projectIdProp, onProjectChange }: TopbarProp
         </div>
       )}
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2">
         {projectId && <ActivePeriodBadge projectId={projectId} />}
+        <ThemeToggle />
         <UserMenu />
       </div>
     </header>

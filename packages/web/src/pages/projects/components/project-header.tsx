@@ -12,11 +12,10 @@ import { ProjectKpiCard, type ProjectKpiCardProps } from './project-kpi-card'
 import { ProjectActions } from './project-actions'
 
 const tabs = [
-  { label: 'Overview', path: 'overview' },
-  { label: 'WBS', path: 'wbs' },
-  { label: 'Quotes', path: 'quotes' },
-  { label: 'Work Table', path: 'work-table' },
-  { label: 'Timesheets', path: 'timesheets' },
+  { label: 'Vue générale', path: 'overview' },
+  { label: 'Devis', path: 'quotes' },
+  { label: 'Tableau de planification', path: 'work-table' },
+  { label: 'Feuilles de temps', path: 'timesheets' },
   { label: 'Snapshots', path: 'snapshots' },
 ]
 
@@ -27,6 +26,8 @@ interface ProjectHeaderProps {
   clientId: string
   clientName: string | null
   kpis: ProjectKpiCardProps[]
+  startDate?: string | null
+  endDate?: string | null
 }
 
 function ProjectActionsRow({ children }: { children: ReactNode }) {
@@ -37,7 +38,7 @@ function KpiScrollRow({ children }: { children: ReactNode }) {
   return <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-4">{children}</div>
 }
 
-export function ProjectHeader({ projectId, name, status, clientId, clientName, kpis }: ProjectHeaderProps) {
+export function ProjectHeader({ projectId, name, status, clientId, clientName, kpis, startDate, endDate }: ProjectHeaderProps) {
   return (
     <DetailHeaderShell>
       <TitleActionsRow>
@@ -47,7 +48,7 @@ export function ProjectHeader({ projectId, name, status, clientId, clientName, k
             <StatusBadge status={status} />
           </FlexRow>
           <MutedText>
-            Client:{' '}
+            Client :{' '}
             {clientName ? (
               <AppLink to={`/clients/${clientId}`} bold onClick={(event) => event.stopPropagation()}>
                 {clientName}
@@ -59,7 +60,7 @@ export function ProjectHeader({ projectId, name, status, clientId, clientName, k
         </VStack>
 
         <ProjectActionsRow>
-          <ProjectActions projectId={projectId} status={status} />
+          <ProjectActions projectId={projectId} status={status} startDate={startDate} endDate={endDate} />
         </ProjectActionsRow>
       </TitleActionsRow>
 

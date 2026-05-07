@@ -49,11 +49,11 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
 
   function handleCreate() {
     if (!name.trim()) {
-      toast.error('Project name is required')
+      toast.error('Le nom du projet est requis')
       return
     }
     if (!clientId) {
-      toast.error('Client is required')
+      toast.error('Le client est requis')
       return
     }
 
@@ -67,11 +67,11 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
       },
       {
         onSuccess: (project) => {
-          toast.success(`Project "${project.name}" created`)
+          toast.success(`Projet « ${project.name} » créé`)
           handleClose()
         },
         onError: () => {
-          toast.error('Failed to create project')
+          toast.error('Échec de la création du projet')
         },
       }
     )
@@ -81,14 +81,14 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
     <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
       <DialogContent size="sm">
         <DialogHeader>
-          <DialogTitle>New Project</DialogTitle>
+          <DialogTitle>Nouveau projet</DialogTitle>
         </DialogHeader>
 
         <VStack gap="xl">
-          <FormField label="Project Name" htmlFor="np-name">
+          <FormField label="Nom du projet" htmlFor="np-name">
             <Input
               id="np-name"
-              placeholder="e.g. Digital Transformation"
+              placeholder="ex. Transformation Digitale"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -97,7 +97,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
           <FormField label="Client" htmlFor="np-client">
             <Select value={clientId} onValueChange={setClientId}>
               <SelectTrigger id="np-client">
-                <SelectValue placeholder="Select a client" />
+                <SelectValue placeholder="Sélectionner un client" />
               </SelectTrigger>
               <SelectContent>
                 {(refData?.clients ?? []).map((client) => (
@@ -109,7 +109,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
             </Select>
           </FormField>
 
-          <FormField label="Currency" htmlFor="np-currency">
+          <FormField label="Devise" htmlFor="np-currency">
             <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger id="np-currency">
                 <SelectValue />
@@ -124,7 +124,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
             </Select>
           </FormField>
 
-          <FormField label="Start Date" htmlFor="np-start">
+          <FormField label="Date de début" htmlFor="np-start">
             <Input
               id="np-start"
               type="date"
@@ -133,7 +133,7 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
             />
           </FormField>
 
-          <FormField label="End Date" htmlFor="np-end">
+          <FormField label="Date de fin" htmlFor="np-end">
             <Input
               id="np-end"
               type="date"
@@ -145,10 +145,10 @@ export function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
-            Cancel
+            Annuler
           </Button>
           <Button onClick={handleCreate} disabled={createProject.isPending}>
-            {createProject.isPending ? 'Creating…' : 'Create Project'}
+            {createProject.isPending ? 'Création…' : 'Créer le projet'}
           </Button>
         </DialogFooter>
       </DialogContent>

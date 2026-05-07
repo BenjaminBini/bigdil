@@ -8,6 +8,12 @@ export const workTablePatchSchema = z.object({
   days: z.number().min(0),
 })
 
+export const workTableAssignSchema = z.object({
+  taskId: z.string(),
+  profileId: z.string(),
+  employeeId: z.string(),
+})
+
 export const timesheetCreateSchema = z.object({
   employeeId: z.string(),
   projectId: z.string(),

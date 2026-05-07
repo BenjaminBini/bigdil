@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
-import type { Period, ProfileTaskPeriodStart } from '@/api/types'
+import type { Employee, Period, ProfileTaskPeriodStart } from '@/api/types'
+import { AssignEmployeePopover } from './assign-employee-popover'
+import { TaskRowControls } from './task-row-controls'
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { TreeRowLabel } from '@/components/shared/tree-row-label'
 import { cn } from '@/lib/utils'
@@ -69,6 +71,7 @@ function WorkGridLabelCell({ row, rowBg, children }: { row: GridRow; rowBg: stri
 }
 
 interface WorkGridRowProps {
+  projectId: string
   row: GridRow
   periods: Period[]
   collapsedPhases: Set<string>
@@ -79,10 +82,13 @@ interface WorkGridRowProps {
   setExpandedProfileId: (id: string | null) => void
   frozenData: Map<string, FrozenData>
   periodStartMap: Map<string, ProfileTaskPeriodStart>
+  employees: Employee[]
   onSaveCell?: (params: { taskId: string; profileId: string; employeeId?: string; periodId: string; days: number }) => void
+  onAssignEmployee?: (params: { taskId: string; profileId: string; employeeId: string }) => void
 }
 
 export function WorkGridRow({
+  projectId,
   row,
   periods,
   collapsedPhases,
@@ -93,7 +99,9 @@ export function WorkGridRow({
   setExpandedProfileId,
   frozenData,
   periodStartMap,
+  employees,
   onSaveCell,
+  onAssignEmployee,
 }: WorkGridRowProps) {
   const isProfile = row.kind === 'profile'
   const rowBg = getRowBackground(row)
@@ -120,6 +128,15 @@ export function WorkGridRow({
                   : undefined
             }
           />
+          {(row.kind === 'phase' || row.kind === 'task') && (
+            <TaskRowControls projectId={projectId} row={row} />
+          )}
+          {row.kind === 'employee' && row.employeeId === null && row.taskId && row.profileId && onAssignEmployee && (
+            <AssignEmployeePopover
+              employees={employees}
+              onAssign={(employeeId) => onAssignEmployee({ taskId: row.taskId!, profileId: row.profileId!, employeeId })}
+            />
+          )}
         </WorkGridLabelCell>
 
         {periods.map((period) => (

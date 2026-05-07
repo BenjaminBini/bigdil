@@ -26,7 +26,7 @@ export function ActiveProjectsCard({ projects }: ActiveProjectsCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Active Projects</CardTitle>
+        <CardTitle>Projets en cours</CardTitle>
       </CardHeader>
       <CardContent>
         <VStack>
@@ -39,7 +39,7 @@ export function ActiveProjectsCard({ projects }: ActiveProjectsCardProps) {
               <StatusBadge status={project.status} />
             </CardLink>
           ))}
-          {projects.length === 0 && <MutedText>No active projects</MutedText>}
+          {projects.length === 0 && <MutedText>Aucun projet en cours</MutedText>}
         </VStack>
       </CardContent>
     </Card>

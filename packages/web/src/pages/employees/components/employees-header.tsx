@@ -9,17 +9,17 @@ interface EmployeesHeaderProps {
 export function EmployeesHeader({ onNew }: EmployeesHeaderProps) {
   return (
     <PageHeader
-      title="Employees"
-      subtitle="Manage employees and their cost rate history."
+      title="Collaborateurs"
+      subtitle="Gérez vos collaborateurs et leur historique de taux de coût."
       actions={
         <>
-          <Button variant="outline" disabled title="Export not yet implemented">
+          <Button variant="outline" disabled title="Export non disponible">
             <Download />
-            Export CSV
+            Exporter CSV
           </Button>
           <Button onClick={onNew}>
             <Plus />
-            New Employee
+            Nouveau collaborateur
           </Button>
         </>
       }

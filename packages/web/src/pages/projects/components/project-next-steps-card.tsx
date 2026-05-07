@@ -7,22 +7,23 @@ function BodyText({ children }: { children: ReactNode }) {
 }
 
 const nextSteps = [
-  'Set start and end dates for the project',
-  'Review and confirm the period grid',
-  'Assign planned days to each period in the Work Table',
-  'Start the project when planning is complete',
+  'Créer et valider un devis (onglet Devis) avec les profils et jours vendus',
+  'Définir les dates de début et de fin du projet',
+  'Cliquer « Activer le projet » pour passer le projet en mode actif',
+  'Cliquer « Planifier » pour générer les périodes et accéder au tableau de planification',
+  'Assigner les collaborateurs et répartir les jours par période',
+  'Cliquer « Démarrer le projet » pour ouvrir la première semaine',
 ]
 
 export function ProjectNextStepsCard() {
   return (
     <Card variant="compact">
       <CardHeader>
-        <CardTitle>Next Steps</CardTitle>
+        <CardTitle>Prochaines étapes</CardTitle>
       </CardHeader>
       <CardContent>
         <BodyText>
-          Set start and end dates to generate the period grid, then distribute quoted days across
-          periods.
+          Un devis validé est requis avant de pouvoir planifier. Les phases et tâches se créent directement dans le tableau de planification.
         </BodyText>
         <NumberedList items={nextSteps} />
       </CardContent>

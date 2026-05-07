@@ -14,7 +14,7 @@ export function RecentActivityCard({ recentActivity, projects }: RecentActivityC
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
+        <CardTitle>Activité récente</CardTitle>
       </CardHeader>
       <CardContent>
         <div>
@@ -26,14 +26,14 @@ export function RecentActivityCard({ recentActivity, projects }: RecentActivityC
                 label={
                   <>
                     <TextStrong>{projectName}</TextStrong>
-                    <span className="text-muted-foreground"> - Period {activity.periodNumber} closed</span>
+                    <span className="text-muted-foreground"> — Période {activity.periodNumber} clôturée</span>
                   </>
                 }
                 sub={formatDate(activity.snapshotAt)}
               />
             )
           })}
-          {recentActivity.length === 0 && <MutedText>No recent activity</MutedText>}
+          {recentActivity.length === 0 && <MutedText>Aucune activité récente</MutedText>}
         </div>
       </CardContent>
     </Card>

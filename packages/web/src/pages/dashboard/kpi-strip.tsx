@@ -12,27 +12,27 @@ export function KpiStrip({ kpis }: KpiStripProps) {
   return (
     <KpiGrid>
       <KpiCard
-        label="Total Contract Value"
+        label="Valeur contractuelle totale"
         value={formatCurrency(kpis.totalContractValue)}
-        description="Across all validated quotes"
+        description="Sur tous les devis validés"
         icon={<BarChart3 size={16} />}
       />
       <KpiCard
-        label="Total Margin Forecast"
+        label="Marge prévisionnelle totale"
         value={formatCurrency(kpis.totalMarginForecast)}
-        description="From latest snapshots"
+        description="D'après les derniers snapshots"
         icon={<TrendingUp size={16} />}
       />
       <KpiCard
-        label="Active Projects"
+        label="Projets en cours"
         value={String(kpis.activeProjects)}
-        description="Currently in progress"
+        description="Actuellement en cours"
         icon={<Activity size={16} />}
       />
       <KpiCard
-        label="Pending Approvals"
+        label="Approbations en attente"
         value={String(kpis.overdueApprovals)}
-        description="Timesheets awaiting approval"
+        description="Feuilles de temps à approuver"
         icon={<AlertTriangle size={16} />}
       />
     </KpiGrid>

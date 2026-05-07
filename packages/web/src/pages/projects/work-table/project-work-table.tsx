@@ -13,6 +13,7 @@ import { buildGridRows } from './grid-builder'
 import { buildMarginInsight } from './margin-insight-builder'
 
 interface ProjectWorkTableProps {
+  projectId: string
   project: { name: string }
   periods: Period[]
   workTable: WorkTableCell[]
@@ -22,9 +23,11 @@ interface ProjectWorkTableProps {
   profiles: Profile[]
   employees: Employee[]
   onSaveCell?: (params: { taskId: string; profileId: string; employeeId?: string; periodId: string; days: number }) => void
+  onAssignEmployee?: (params: { taskId: string; profileId: string; employeeId: string }) => void
 }
 
 export function ProjectWorkTable({
+  projectId,
   project,
   periods,
   workTable,
@@ -34,6 +37,7 @@ export function ProjectWorkTable({
   profiles,
   employees,
   onSaveCell,
+  onAssignEmployee,
 }: ProjectWorkTableProps) {
   const allRows = useMemo(
     () => buildGridRows(workTable, periods, flatTasks, quotes, profiles, employees),
@@ -101,9 +105,10 @@ export function ProjectWorkTable({
 
   return (
     <PanelLayout>
-      <WorkTableHeader projectName={project.name} periodCount={periods.length} />
+      <WorkTableHeader projectId={projectId} projectName={project.name} periodCount={periods.length} />
       <ScrollPane>
         <WorkGridTable
+          projectId={projectId}
           periods={periods}
           visibleRows={visibleRows}
           collapsedPhases={collapsedPhases}
@@ -114,7 +119,9 @@ export function ProjectWorkTable({
           setExpandedProfileId={setExpandedProfileId}
           frozenData={frozenData}
           periodStartMap={periodStartMap}
+          employees={employees}
           onSaveCell={onSaveCell}
+          onAssignEmployee={onAssignEmployee}
         />
       </ScrollPane>
       <Separator />

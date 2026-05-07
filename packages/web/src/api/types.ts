@@ -1,7 +1,7 @@
 // API response types — mirrors mock.ts interfaces with numbers (API converts numerics)
 
 export type UserRole = 'ADMIN' | 'PM' | 'CONSULTANT' | 'FINANCE' | 'EXEC'
-export type ProjectStatus = 'DRAFT' | 'WAITING_APPROVAL' | 'TO_PLAN' | 'IN_PROGRESS' | 'COMPLETED'
+export type ProjectStatus = 'DRAFT' | 'WAITING_APPROVAL' | 'TO_PLAN' | 'PLANNING' | 'IN_PROGRESS' | 'COMPLETED'
 export type PeriodStatus = 'FUTURE' | 'OPEN' | 'CONSOLIDATION' | 'FROZEN'
 export type QuoteStatus = 'DRAFT' | 'SENT' | 'VALIDATED' | 'REJECTED'
 export type TaskStatus = 'planned' | 'active' | 'done'

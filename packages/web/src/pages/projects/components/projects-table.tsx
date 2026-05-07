@@ -26,15 +26,15 @@ export function ProjectsTable({ rows }: ProjectsTableProps) {
         <TableHeader>
           <TableRow variant="header">
             <HeadCell label="Client" />
-            <HeadCell label="Project" />
-            <HeadCell label="Status" />
-            <HeadCell label="Contract Value" align="right" />
-            <HeadCell label="Active Period" />
+            <HeadCell label="Projet" />
+            <HeadCell label="Statut" />
+            <HeadCell label="Valeur contractuelle" align="right" />
+            <HeadCell label="Période active" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.length === 0 ? (
-            <EmptyRow colSpan={5} message="No projects found" />
+            <EmptyRow colSpan={5} message="Aucun projet trouvé" />
           ) : (
             rows.map((row) => (
               <TableRow key={row.id} variant="interactive" onClick={() => navigate(`/projects/${row.id}`)}>

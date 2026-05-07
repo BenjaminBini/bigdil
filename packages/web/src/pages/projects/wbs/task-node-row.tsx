@@ -45,6 +45,7 @@ interface TaskNodeRowProps {
   onToggle?: () => void
   onAddSubTask: (task: Task) => void
   onEdit: (task: Task) => void
+  onDelete: (task: Task) => void
 }
 
 export function TaskNodeRow({
@@ -54,6 +55,7 @@ export function TaskNodeRow({
   onToggle,
   onAddSubTask,
   onEdit,
+  onDelete,
 }: TaskNodeRowProps) {
   return (
     <TaskNodeLayout>
@@ -84,7 +86,7 @@ export function TaskNodeRow({
         <Button variant="ghost" size="icon-sm" onClick={() => onEdit(task)} aria-label="Edit task" title="Edit">
           <Pencil size={14} />
         </Button>
-        <Button variant="ghost-destructive" size="icon-sm" aria-label="Archive task" title="Archive">
+        <Button variant="ghost-destructive" size="icon-sm" onClick={() => onDelete(task)} aria-label="Delete task" title="Supprimer">
           <Archive size={14} />
         </Button>
       </TaskNodeActions>

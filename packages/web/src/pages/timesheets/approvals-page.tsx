@@ -58,7 +58,7 @@ export default function ApprovalsPage() {
   }
 
   if (!approvals || !refData) {
-    return <ErrorState message="Failed to load approval data." />
+    return <ErrorState message="Impossible de charger les données d'approbation." />
   }
 
   const { profiles, employees } = refData
@@ -93,15 +93,15 @@ export default function ApprovalsPage() {
     if (!row) return
     const costRate = getCostRate(row.employeeId)
     approveTimesheet.mutate(id, {
-      onSuccess: () => toast.success(`Timesheet approved — cost rate frozen at ${formatCurrency(costRate)}/d`),
-      onError: () => toast.error('Failed to approve timesheet'),
+      onSuccess: () => toast.success(`Feuille approuvée — taux de coût figé à ${formatCurrency(costRate)}/j`),
+      onError: () => toast.error("Échec de l'approbation"),
     })
   }
 
   function handleReject(id: string) {
     rejectTimesheet.mutate(id, {
-      onSuccess: () => toast.error('Timesheet rejected'),
-      onError: () => toast.error('Failed to reject timesheet'),
+      onSuccess: () => toast.error('Feuille de temps rejetée'),
+      onError: () => toast.error('Échec du rejet'),
     })
   }
 
@@ -111,15 +111,15 @@ export default function ApprovalsPage() {
       const costRate = getCostRate(r.employeeId)
       approveTimesheet.mutate(r.id, {
         onSuccess: () =>
-          toast.success(`Approved ${getEmployeeName(r.employeeId)} — ${formatCurrency(costRate)}/d frozen`),
-        onError: () => toast.error(`Failed to approve ${getEmployeeName(r.employeeId)}`),
+          toast.success(`${getEmployeeName(r.employeeId)} approuvé — ${formatCurrency(costRate)}/j figé`),
+        onError: () => toast.error(`Échec : ${getEmployeeName(r.employeeId)}`),
       })
     })
   }
 
   return (
     <FullHeightColumn>
-      <PageHeader title="Timesheet Approvals" subtitle="PM view - review and approve submitted timesheets" />
+      <PageHeader title="Approbations" subtitle="Vue chef de projet — vérifier et approuver les feuilles soumises" />
 
       <PageContainer size="lg">
         <ApprovalsTable

@@ -8,7 +8,7 @@ import { FlexBetween } from '@/components/shared/layouts'
 import { VStack } from '@/components/shared/VStack'
 import { PageTitle } from '@/components/shared/page-title'
 import { MutedText } from '@/components/shared/muted-text'
-import { useProject, useCreateTask, useUpdateTask } from '@/api/hooks'
+import { useProject, useCreateTask, useUpdateTask, useDeleteTask } from '@/api/hooks'
 import type { Task } from '@/api/types'
 import { WbsTaskTree } from './wbs/task-tree'
 import { TaskDialog, type TaskFormState } from './wbs/task-dialog'
@@ -30,6 +30,7 @@ export default function WbsPage() {
   const { data, isLoading, error } = useProject(projectId!)
   const createTask = useCreateTask(projectId!)
   const updateTask = useUpdateTask(projectId!)
+  const deleteTask = useDeleteTask(projectId!)
 
   const [dialogMode, setDialogMode] = useState<DialogMode>(null)
   const [form, setForm] = useState<TaskFormState>(emptyForm)
@@ -50,6 +51,13 @@ export default function WbsPage() {
   function openEdit(task: Task) {
     setForm({ name: task.name, description: '', status: task.status })
     setDialogMode({ type: 'edit', task })
+  }
+
+  function handleDelete(task: Task) {
+    deleteTask.mutate(task.id, {
+      onSuccess: () => toast.success(`"${task.name}" supprimé`),
+      onError: () => toast.error('Échec de la suppression'),
+    })
   }
 
   function handleClose() {
@@ -105,6 +113,7 @@ export default function WbsPage() {
         tasks={data.tasks}
         onAddSubTask={openAddSubTask}
         onEdit={openEdit}
+        onDelete={handleDelete}
       />
 
       <VStack gap="xl" pt="sm">

@@ -3,6 +3,38 @@ import { prisma } from '@bigdil/db'
 
 export const projectsRouter = new Hono()
 
+function buildWeeklyPeriods(
+  projectId: string,
+  startDate: string,
+  endDate: string,
+  openFirst: boolean,
+): Array<{ id: string; projectId: string; periodNumber: number; startDate: string; endDate: string; status: 'FUTURE' | 'OPEN' }> {
+  const periods = []
+  const end = new Date(endDate)
+  let current = new Date(startDate)
+  let num = 1
+  while (current <= end) {
+    const pEnd = new Date(current)
+    pEnd.setDate(pEnd.getDate() + 6)
+    if (pEnd > end) pEnd.setTime(end.getTime())
+    periods.push({
+      id: crypto.randomUUID(),
+      projectId,
+      periodNumber: num,
+      startDate: current.toISOString().split('T')[0],
+      endDate: pEnd.toISOString().split('T')[0],
+      status: (openFirst && num === 1 ? 'OPEN' : 'FUTURE') as 'FUTURE' | 'OPEN',
+    })
+    current.setDate(current.getDate() + 7)
+    num++
+  }
+  return periods
+}
+
+function projectShape(p: { id: string; clientId: string; client: { name: string }; name: string; currency: string; status: string; startDate: string | null; endDate: string | null }) {
+  return { id: p.id, clientId: p.clientId, clientName: p.client.name, name: p.name, currency: p.currency, status: p.status, startDate: p.startDate, endDate: p.endDate }
+}
+
 // GET /api/projects — list all projects with client info
 projectsRouter.get('/', async (c) => {
   const [rows, contractValues] = await Promise.all([
@@ -241,9 +273,9 @@ projectsRouter.patch('/:id/status', async (c) => {
   const body = await c.req.json<{ status: string }>()
 
   const validTransitions: Record<string, string[]> = {
-    DRAFT: ['WAITING_APPROVAL'],
-    WAITING_APPROVAL: ['TO_PLAN', 'DRAFT'],
-    TO_PLAN: ['IN_PROGRESS'],
+    DRAFT: ['TO_PLAN'],
+    TO_PLAN: ['PLANNING', 'IN_PROGRESS'],
+    PLANNING: ['IN_PROGRESS'],
     IN_PROGRESS: ['COMPLETED'],
   }
 
@@ -255,22 +287,45 @@ projectsRouter.patch('/:id/status', async (c) => {
     return c.json({ error: `Cannot transition from ${project.status} to ${body.status}` }, 400)
   }
 
+  // TO_PLAN → PLANNING: generate all periods as FUTURE (no week opened yet)
+  if (project.status === 'TO_PLAN' && body.status === 'PLANNING') {
+    if (!project.startDate || !project.endDate) {
+      return c.json({ error: 'Project must have start and end dates before planning' }, 400)
+    }
+    const periods = buildWeeklyPeriods(projectId, project.startDate, project.endDate, false)
+    const updated = await prisma.$transaction(async (tx) => {
+      await tx.period.createMany({ data: periods })
+      return tx.project.update({ where: { id: projectId }, include: { client: true }, data: { status: 'PLANNING' } })
+    })
+    return c.json(projectShape(updated))
+  }
+
+  // TO_PLAN → IN_PROGRESS (legacy direct path) or PLANNING → IN_PROGRESS: open the first period
+  if (body.status === 'IN_PROGRESS') {
+    if (!project.startDate || !project.endDate) {
+      return c.json({ error: 'Project must have start and end dates before starting' }, 400)
+    }
+    const updated = await prisma.$transaction(async (tx) => {
+      // Generate periods only if coming from TO_PLAN (PLANNING already has them)
+      if (project.status === 'TO_PLAN') {
+        const periods = buildWeeklyPeriods(projectId, project.startDate!, project.endDate!, false)
+        await tx.period.createMany({ data: periods })
+      }
+      // Open the first FUTURE period
+      const first = await tx.period.findFirst({ where: { projectId, status: 'FUTURE' }, orderBy: { periodNumber: 'asc' } })
+      if (first) await tx.period.update({ where: { id: first.id }, data: { status: 'OPEN' } })
+      return tx.project.update({ where: { id: projectId }, include: { client: true }, data: { status: 'IN_PROGRESS' } })
+    })
+    return c.json(projectShape(updated))
+  }
+
   const updated = await prisma.project.update({
     where: { id: projectId },
     include: { client: true },
-    data: { status: body.status as 'DRAFT' | 'WAITING_APPROVAL' | 'TO_PLAN' | 'IN_PROGRESS' | 'COMPLETED' },
+    data: { status: body.status as 'DRAFT' | 'TO_PLAN' | 'PLANNING' | 'IN_PROGRESS' | 'COMPLETED' },
   })
 
-  return c.json({
-    id: updated.id,
-    clientId: updated.clientId,
-    clientName: updated.client.name,
-    name: updated.name,
-    currency: updated.currency,
-    status: updated.status,
-    startDate: updated.startDate,
-    endDate: updated.endDate,
-  })
+  return c.json(projectShape(updated))
 })
 
 // POST /api/projects — create a new project
@@ -457,6 +512,38 @@ projectsRouter.patch('/:id/tasks/:taskId', async (c) => {
   })
 
   return c.json(task)
+})
+
+// DELETE /api/projects/:id/tasks/:taskId — delete a task or phase (and all descendants)
+projectsRouter.delete('/:id/tasks/:taskId', async (c) => {
+  const projectId = c.req.param('id')
+  const taskId = c.req.param('taskId')
+
+  const task = await prisma.task.findFirst({ where: { id: taskId, projectId } })
+  if (!task) return c.json({ error: 'Task not found' }, 404)
+
+  // Collect all descendant task IDs (BFS)
+  const allIds: string[] = []
+  const queue = [taskId]
+  while (queue.length > 0) {
+    const current = queue.shift()!
+    allIds.push(current)
+    const children = await prisma.task.findMany({ where: { parentTaskId: current }, select: { id: true } })
+    queue.push(...children.map(c => c.id))
+  }
+
+  await prisma.$transaction([
+    prisma.snapshotWorkRow.deleteMany({ where: { taskId: { in: allIds } } }),
+    prisma.snapshotScopeLine.deleteMany({ where: { taskId: { in: allIds } } }),
+    prisma.profileTaskPeriodStart.deleteMany({ where: { taskId: { in: allIds } } }),
+    prisma.timesheetEntry.deleteMany({ where: { taskId: { in: allIds } } }),
+    prisma.plannedDay.deleteMany({ where: { taskId: { in: allIds } } }),
+    prisma.quoteLine.deleteMany({ where: { taskId: { in: allIds } } }),
+    // Delete children first (deepest last in allIds, so reverse)
+    ...([...allIds].reverse().map(id => prisma.task.delete({ where: { id } }))),
+  ])
+
+  return c.json({ ok: true })
 })
 
 // POST /api/projects/:id/quotes/:quoteId/validate — validate a quote

@@ -1,10 +1,11 @@
-import type { Period, ProfileTaskPeriodStart } from '@/api/types'
+import type { Employee, Period, ProfileTaskPeriodStart } from '@/api/types'
 import { GridTable } from '@/components/shared/grid-table'
 import type { FrozenData, GridRow } from '@/lib/work-table/types'
 import { WorkGridHeader } from './work-grid-header'
 import { WorkGridRow } from './work-grid-row'
 
 interface WorkGridTableProps {
+  projectId: string
   periods: Period[]
   visibleRows: GridRow[]
   collapsedPhases: Set<string>
@@ -15,10 +16,13 @@ interface WorkGridTableProps {
   setExpandedProfileId: (id: string | null) => void
   frozenData: Map<string, FrozenData>
   periodStartMap: Map<string, ProfileTaskPeriodStart>
+  employees: Employee[]
   onSaveCell?: (params: { taskId: string; profileId: string; employeeId?: string; periodId: string; days: number }) => void
+  onAssignEmployee?: (params: { taskId: string; profileId: string; employeeId: string }) => void
 }
 
 export function WorkGridTable({
+  projectId,
   periods,
   visibleRows,
   collapsedPhases,
@@ -29,7 +33,9 @@ export function WorkGridTable({
   setExpandedProfileId,
   frozenData,
   periodStartMap,
+  employees,
   onSaveCell,
+  onAssignEmployee,
 }: WorkGridTableProps) {
   return (
     <GridTable>
@@ -38,6 +44,7 @@ export function WorkGridTable({
         {visibleRows.map((row) => (
           <WorkGridRow
             key={row.id}
+            projectId={projectId}
             row={row}
             periods={periods}
             collapsedPhases={collapsedPhases}
@@ -48,7 +55,9 @@ export function WorkGridTable({
             setExpandedProfileId={setExpandedProfileId}
             frozenData={frozenData}
             periodStartMap={periodStartMap}
+            employees={employees}
             onSaveCell={onSaveCell}
+            onAssignEmployee={onAssignEmployee}
           />
         ))}
       </tbody>

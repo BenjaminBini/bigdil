@@ -24,21 +24,21 @@ export default function SettingsPage() {
   const [companyName, setCompanyName] = useState("Acme Consulting");
 
   function handleSave() {
-    toast.success("Settings saved");
+    toast.success("Paramètres enregistrés");
   }
 
   return (
     <PageContainer size="sm">
       <FlexBetween>
         <div>
-          <PageTitle>Settings</PageTitle>
+          <PageTitle>Paramètres</PageTitle>
           <MutedText spacing="tight">
-            Configure global application preferences
+            Configurer les préférences globales de l'application
           </MutedText>
         </div>
         <Button onClick={handleSave}>
           <Save />
-          Save Settings
+          Enregistrer
         </Button>
       </FlexBetween>
       <WeekSettingsSection
@@ -61,7 +61,7 @@ export default function SettingsPage() {
       <FlexEnd>
         <Button onClick={handleSave}>
           <Save />
-          Save Settings
+          Enregistrer
         </Button>
       </FlexEnd>
     </PageContainer>

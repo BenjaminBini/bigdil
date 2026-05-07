@@ -54,7 +54,7 @@ export default function TimesheetsPage() {
   }
 
   if (!timesheets || !refData || !projects) {
-    return <ErrorState message="Failed to load timesheet data." />
+    return <ErrorState message="Impossible de charger les feuilles de temps." />
   }
 
   const { profiles } = refData
@@ -67,7 +67,7 @@ export default function TimesheetsPage() {
 
   const activeProjectId = activeEntries[0]?.projectId ?? null
   const activeProject = projects.find((p) => p.id === activeProjectId)
-  const activeProjectName = activeProject?.name ?? 'Project'
+  const activeProjectName = activeProject?.name ?? 'Projet'
 
   const closedPeriodRows = buildClosedPeriodRows(frozenEntries)
   const totalPlanned = displayRows.reduce((sum, row) => sum + row.plannedDays, 0)
@@ -96,18 +96,18 @@ export default function TimesheetsPage() {
   }
 
   function handleSaveDraft() {
-    toast.success('Draft saved')
+    toast.success('Brouillon enregistré')
   }
 
   function handleSubmit() {
     const base = rows ?? initialRows
     setRows(base.map((row) => ({ ...row, status: 'SUBMITTED' })))
-    toast.success('Timesheet submitted')
+    toast.success('Feuille de temps soumise')
   }
 
   return (
     <FullHeightColumn>
-      <PageHeader title="My Timesheets" subtitle="Jean Martin - Senior Consultant" />
+      <PageHeader title="Mes feuilles de temps" subtitle="Jean Martin - Senior Consultant" />
 
       <PageContainer size="lg">
         <ActiveBanner projectName={activeProjectName} />

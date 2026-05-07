@@ -24,10 +24,10 @@ export default function EmployeesPage() {
           <TableHeader>
             <TableRow variant="header">
               <TableHead className="w-8 pr-0" />
-              <TableHead>Name</TableHead>
-              <TableHead>Active</TableHead>
-              <ThRight>Current Cost Rate/Day</ThRight>
-              <ThRight>Assigned Projects</ThRight>
+              <TableHead>Nom</TableHead>
+              <TableHead>Actif</TableHead>
+              <ThRight>Taux de coût/jour</ThRight>
+              <ThRight>Projets assignés</ThRight>
             </TableRow>
           </TableHeader>
           <TableBody>

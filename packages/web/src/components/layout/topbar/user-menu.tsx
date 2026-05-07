@@ -30,10 +30,10 @@ export function UserMenu() {
 
   const roleLabel: Record<string, string> = {
     ADMIN: 'Admin',
-    PM: 'Project Manager',
+    PM: 'Chef de projet',
     CONSULTANT: 'Consultant',
     FINANCE: 'Finance',
-    EXEC: 'Executive',
+    EXEC: 'Direction',
   }
 
   return (
@@ -64,7 +64,7 @@ export function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2" onSelect={() => navigate('/profile')}>
           <User className="size-4" />
-          My Profile
+          Mon profil
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -75,7 +75,7 @@ export function UserMenu() {
           }}
         >
           <LogOut className="size-4" />
-          Log out
+          Se déconnecter
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,4 +1,4 @@
-import { Calendar } from 'lucide-react'
+import { Calendar, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState, ErrorState } from '@/components/shared/page-container'
@@ -11,16 +11,38 @@ export function WorkTableProjectNotFound() {
   return <ErrorState message="Project not found." variant="muted" />
 }
 
-export function WorkTableUnavailableState() {
+interface WorkTableUnavailableStateProps {
+  hasDates: boolean
+  onSetDates?: () => void
+  onPlanProject?: () => void
+}
+
+export function WorkTableUnavailableState({ hasDates, onSetDates, onPlanProject }: WorkTableUnavailableStateProps) {
+  if (hasDates) {
+    return (
+      <EmptyState
+        icon={Play}
+        title="Prêt à planifier"
+        description="Les dates sont définies. Cliquez sur « Planifier » pour générer les périodes et accéder au tableau de planification."
+        action={
+          <Button onClick={onPlanProject}>
+            <Play size={16} />
+            Planifier le projet
+          </Button>
+        }
+      />
+    )
+  }
+
   return (
     <EmptyState
       icon={Calendar}
-      title="Work Table Not Available"
-      description='Set project dates and plan to see the work table. This project is currently in "To Plan" status - define your timeline to unlock the planning grid.'
+      title="Dates requises"
+      description="Définissez les dates de début et de fin du projet pour pouvoir planifier."
       action={
-        <Button>
+        <Button onClick={onSetDates}>
           <Calendar size={16} />
-          Set Dates &amp; Plan
+          Définir les dates
         </Button>
       }
     />

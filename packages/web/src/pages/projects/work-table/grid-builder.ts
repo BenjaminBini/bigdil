@@ -125,6 +125,64 @@ export function buildGridRows(
     empCells[cell.periodId] = (empCells[cell.periodId] ?? 0) + cell.days
   }
 
+  // Seed all phases and tasks from flatTasks so they appear even with no quote lines or cells.
+  for (const task of flatTasks) {
+    if (!task.parentTaskId) {
+      // Phase-level task
+      if (!phaseGrouping.has(task.id)) {
+        phaseGrouping.set(task.id, { task: new Map() })
+        phaseOrder.push(task.id)
+      }
+    } else {
+      // Sub-task — ensure its phase and itself are in the grouping
+      const phase = taskMap.get(task.parentTaskId)
+      if (!phase) continue
+      if (!phaseGrouping.has(phase.id)) {
+        phaseGrouping.set(phase.id, { task: new Map() })
+        phaseOrder.push(phase.id)
+      }
+      const phaseEntry = phaseGrouping.get(phase.id)!
+      if (!phaseEntry.task.has(task.id)) {
+        phaseEntry.task.set(task.id, { profileMap: new Map() })
+      }
+    }
+  }
+
+  // Seed rows for all validated quote-line (task, profile) combos that have no cells yet.
+  // This allows planners to enter days even on a fresh project with no allocations.
+  for (const quote of quotes) {
+    if (quote.status !== 'VALIDATED') continue
+    for (const line of quote.lines) {
+      const { taskId, profileId } = line
+      const phase = getPhase(taskId)
+      if (!phase) continue
+      const phaseId = phase.id
+
+      if (!phaseGrouping.has(phaseId)) {
+        phaseGrouping.set(phaseId, { task: new Map() })
+        phaseOrder.push(phaseId)
+      }
+      const phaseEntry = phaseGrouping.get(phaseId)!
+
+      if (!phaseEntry.task.has(taskId)) {
+        phaseEntry.task.set(taskId, { profileMap: new Map() })
+      }
+      const taskEntry = phaseEntry.task.get(taskId)!
+
+      if (!taskEntry.profileMap.has(profileId)) {
+        taskEntry.profileMap.set(profileId, { employeeMap: new Map() })
+      }
+      const profileEntry = taskEntry.profileMap.get(profileId)!
+
+      // Ensure at least an UNASSIGNED employee row exists, but only when no named
+      // employee is already assigned — otherwise the assigned row is the editable entry.
+      const hasNamedEmployee = [...profileEntry.employeeMap.keys()].some((k) => k !== 'UNASSIGNED')
+      if (!hasNamedEmployee && !profileEntry.employeeMap.has('UNASSIGNED')) {
+        profileEntry.employeeMap.set('UNASSIGNED', {})
+      }
+    }
+  }
+
   function makeSummary(
     cells: Record<string, number>,
     taskId: string | undefined,

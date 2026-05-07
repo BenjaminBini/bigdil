@@ -22,26 +22,26 @@ export function WeekSettingsSection({
   onDayPrecisionChange,
 }: WeekSettingsSectionProps) {
   return (
-    <SectionCard title="Week Settings" description="Controls how periods and calendars are displayed">
-      <FieldRow label="Week starts on" htmlFor="week-start">
+    <SectionCard title="Paramètres de semaine" description="Contrôle l'affichage des périodes et calendriers">
+      <FieldRow label="La semaine commence le" htmlFor="week-start">
         <Select value={weekStart} onValueChange={onWeekStartChange}>
           <SelectTrigger id="week-start"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="monday">Monday</SelectItem>
-            <SelectItem value="sunday">Sunday</SelectItem>
+            <SelectItem value="monday">Lundi</SelectItem>
+            <SelectItem value="sunday">Dimanche</SelectItem>
           </SelectContent>
         </Select>
       </FieldRow>
 
       <Separator />
 
-      <FieldRow label="Day precision" htmlFor="day-precision">
+      <FieldRow label="Précision jour" htmlFor="day-precision">
         <Select value={dayPrecision} onValueChange={onDayPrecisionChange}>
           <SelectTrigger id="day-precision"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="0.25">0.25 (quarter-day)</SelectItem>
-            <SelectItem value="0.5">0.5 (half-day)</SelectItem>
-            <SelectItem value="1.0">1.0 (full day)</SelectItem>
+            <SelectItem value="0.25">0.25 (quart de journée)</SelectItem>
+            <SelectItem value="0.5">0.5 (demi-journée)</SelectItem>
+            <SelectItem value="1.0">1.0 (journée entière)</SelectItem>
           </SelectContent>
         </Select>
       </FieldRow>
@@ -56,8 +56,8 @@ interface CurrencySectionProps {
 
 export function CurrencySection({ currency, onCurrencyChange }: CurrencySectionProps) {
   return (
-    <SectionCard title="Currency" description="Default currency for all financial calculations">
-      <FieldRow label="Default currency" htmlFor="currency">
+    <SectionCard title="Devise" description="Devise par défaut pour tous les calculs financiers">
+      <FieldRow label="Devise par défaut" htmlFor="currency">
         <Select value={currency} onValueChange={onCurrencyChange}>
           <SelectTrigger id="currency"><SelectValue /></SelectTrigger>
           <SelectContent>

@@ -42,9 +42,10 @@ interface PhaseBlockProps {
   phase: Task
   onAddSubTask: (task: Task) => void
   onEdit: (task: Task) => void
+  onDelete: (task: Task) => void
 }
 
-function PhaseBlock({ phase, onAddSubTask, onEdit }: PhaseBlockProps) {
+function PhaseBlock({ phase, onAddSubTask, onEdit, onDelete }: PhaseBlockProps) {
   const [expanded, setExpanded] = useState(true)
 
   return (
@@ -56,6 +57,7 @@ function PhaseBlock({ phase, onAddSubTask, onEdit }: PhaseBlockProps) {
         onToggle={() => setExpanded((value) => !value)}
         onAddSubTask={onAddSubTask}
         onEdit={onEdit}
+        onDelete={onDelete}
       />
 
       {expanded && phase.children && phase.children.length > 0 && (
@@ -67,7 +69,7 @@ function PhaseBlock({ phase, onAddSubTask, onEdit }: PhaseBlockProps) {
                 {index === phase.children!.length - 1 && <TreeHorizontalLine />}
               </TreeConnectorGutter>
               <TreeChildContent>
-                <TaskNodeRow task={child} isPhase={false} onAddSubTask={onAddSubTask} onEdit={onEdit} />
+                <TaskNodeRow task={child} isPhase={false} onAddSubTask={onAddSubTask} onEdit={onEdit} onDelete={onDelete} />
               </TreeChildContent>
             </TreeChildRow>
           ))}
@@ -77,10 +79,10 @@ function PhaseBlock({ phase, onAddSubTask, onEdit }: PhaseBlockProps) {
   )
 }
 
-function StandaloneTask({ task, onEdit }: { task: Task; onEdit: (task: Task) => void }) {
+function StandaloneTask({ task, onEdit, onDelete }: { task: Task; onEdit: (task: Task) => void; onDelete: (task: Task) => void }) {
   return (
     <Card variant="flush">
-      <TaskNodeRow task={task} isPhase={false} onAddSubTask={() => {}} onEdit={onEdit} />
+      <TaskNodeRow task={task} isPhase={false} onAddSubTask={() => {}} onEdit={onEdit} onDelete={onDelete} />
     </Card>
   )
 }
@@ -89,20 +91,21 @@ interface WbsTreeProps {
   tasks: Task[]
   onAddSubTask: (task: Task) => void
   onEdit: (task: Task) => void
+  onDelete: (task: Task) => void
 }
 
-export function WbsTaskTree({ tasks, onAddSubTask, onEdit }: WbsTreeProps) {
+export function WbsTaskTree({ tasks, onAddSubTask, onEdit, onDelete }: WbsTreeProps) {
   return (
     <VStack gap="md">
       {tasks.map((task) =>
         task.children && task.children.length > 0 ? (
-          <PhaseBlock key={task.id} phase={task} onAddSubTask={onAddSubTask} onEdit={onEdit} />
+          <PhaseBlock key={task.id} phase={task} onAddSubTask={onAddSubTask} onEdit={onEdit} onDelete={onDelete} />
         ) : task.parentTaskId === null ? (
           <Card key={task.id} variant="flush">
-            <TaskNodeRow task={task} isPhase isExpanded={false} onToggle={() => {}} onAddSubTask={onAddSubTask} onEdit={onEdit} />
+            <TaskNodeRow task={task} isPhase isExpanded={false} onToggle={() => {}} onAddSubTask={onAddSubTask} onEdit={onEdit} onDelete={onDelete} />
           </Card>
         ) : (
-          <StandaloneTask key={task.id} task={task} onEdit={onEdit} />
+          <StandaloneTask key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} />
         ),
       )}
     </VStack>

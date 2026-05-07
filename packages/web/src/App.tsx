@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
+import { ThemeProvider } from '@/lib/theme'
 import { AppLayout } from '@/components/layout/app-layout'
 import LoginPage from '@/pages/auth/login-page'
 import ClientsPage from '@/pages/clients/clients-page'
@@ -39,6 +40,7 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Toaster position="top-right" richColors />
@@ -88,5 +90,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
+    </ThemeProvider>
   )
 }

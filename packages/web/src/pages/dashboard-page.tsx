@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { useDashboard, useProjects } from "@/api/hooks";
 import { PageHeader } from "@/components/shared/page-header";
 import {
@@ -17,11 +16,11 @@ export default function DashboardPage() {
   const { data: projects } = useProjects();
 
   if (isLoading) return <LoadingState />;
-  if (error || !data) return <ErrorState message="Error loading dashboard" />;
+  if (error || !data) return <ErrorState message="Erreur lors du chargement du tableau de bord" />;
 
   return (
     <PageContainer size="full">
-      <PageHeader title="Dashboard" subtitle="Cross-project overview" />
+      <PageHeader title="Tableau de bord" subtitle="Vue d'ensemble multi-projets" />
       <KpiStrip kpis={data.kpis} />
 
       <GridCols2>

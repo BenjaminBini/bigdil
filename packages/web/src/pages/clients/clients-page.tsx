@@ -101,18 +101,18 @@ export default function ClientsPage() {
       <PageHeader
         variant="section"
         title="Clients"
-        subtitle="Manage your client portfolio"
+        subtitle="Gérez votre portefeuille clients"
         actions={
           <Button onClick={() => setShowNewClient(true)}>
             <Plus />
-            New Client
+            Nouveau client
           </Button>
         }
       />
 
       <SearchInput
         maxWidth="md"
-        placeholder="Search clients..."
+        placeholder="Rechercher un client..."
         value={search}
         onChange={(event) => setSearch(event.target.value)}
       />

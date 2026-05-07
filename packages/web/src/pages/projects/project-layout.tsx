@@ -48,6 +48,8 @@ export default function ProjectLayout() {
         clientId={data.clientId}
         clientName={data.clientName}
         kpis={kpis}
+        startDate={data.startDate}
+        endDate={data.endDate}
       />
       <PageContainer>
         <Outlet />

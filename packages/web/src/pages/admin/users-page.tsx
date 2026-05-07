@@ -20,29 +20,29 @@ export default function UsersPage() {
   if (error || !refData) return <ErrorState />
 
   function handleEdit(user: User) {
-    toast.info(`Edit user: ${user.name}`)
+    toast.info(`Modifier l'utilisateur : ${user.name}`)
   }
 
   function handleResetPassword(user: User) {
-    toast.info(`Password reset email sent to ${user.email}`)
+    toast.info(`Email de réinitialisation envoyé à ${user.email}`)
   }
 
   function handleDeactivate(user: User) {
-    toast.warning(`Deactivating ${user.name}…`)
+    toast.warning(`Désactivation de ${user.name}…`)
   }
 
   return (
     <PageContainer size="lg">
       <FlexBetween>
         <div>
-          <PageTitle>User Management</PageTitle>
+          <PageTitle>Gestion des utilisateurs</PageTitle>
           <MutedText spacing="tight">
-            {USERS.length} user{USERS.length !== 1 ? 's' : ''}
+            {USERS.length} utilisateur{USERS.length !== 1 ? 's' : ''}
           </MutedText>
         </div>
         <Button onClick={() => setNewUserOpen(true)}>
           <Plus />
-          New User
+          Nouvel utilisateur
         </Button>
       </FlexBetween>
 
