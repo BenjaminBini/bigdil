@@ -2,7 +2,7 @@ default:
   image: node:22-alpine
   before_script:
     - corepack enable
-    - corepack prepare pnpm@latest --activate
+    - corepack prepare pnpm@10.33.2 --activate
     - pnpm install --frozen-lockfile
 
 stages:
