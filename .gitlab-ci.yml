@@ -1,0 +1,58 @@
+default:
+  image: node:22-alpine
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@latest --activate
+    - pnpm install --frozen-lockfile
+
+stages:
+  - check
+  - build
+
+typecheck:web:
+  stage: check
+  script:
+    - pnpm --filter web exec tsc -b --noEmit
+  cache:
+    key: pnpm-$CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+      - packages/*/node_modules/
+
+typecheck:api:
+  stage: check
+  script:
+    - pnpm --filter @bigdil/api exec tsc --noEmit
+  cache:
+    key: pnpm-$CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+      - packages/*/node_modules/
+
+build:web:
+  stage: build
+  script:
+    - pnpm --filter web build
+  artifacts:
+    paths:
+      - packages/web/dist/
+    expire_in: 1 week
+  cache:
+    key: pnpm-$CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+      - packages/*/node_modules/
+
+build:api:
+  stage: build
+  script:
+    - pnpm --filter @bigdil/api build
+  artifacts:
+    paths:
+      - packages/api/dist/
+    expire_in: 1 week
+  cache:
+    key: pnpm-$CI_COMMIT_REF_SLUG
+    paths:
+      - node_modules/
+      - packages/*/node_modules/
