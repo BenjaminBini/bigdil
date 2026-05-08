@@ -9,3 +9,7 @@ dist/
 .env.*
 !.env.example
 node_modules
+
+# Claude Code worktrees (embedded repos)
+.claude/worktrees/
+.claude/scheduled_tasks.lock
