@@ -17,15 +17,12 @@ export interface QuoteGridRow {
   cost: number
   margin: number
   marginPct: number | null
-  isFrozenRate: boolean
   lines?: QuoteLine[]
 }
 
 export function buildQuoteGrid(
   quote: Quote,
   flatTasks: Task[],
-  frozenRateKeys: Set<string>,
-  isChangeOrder: boolean,
   getTaskName: (id: string) => string,
   getProfileName: (id: string) => string,
 ): QuoteGridRow[] {
@@ -88,9 +85,6 @@ export function buildQuoteGrid(
         const marginPct = revenue > 0 ? (margin / revenue) * 100 : 0
         const sellRate = lines[0].sellRatePerDay
         const costRate = lines[0].costRateAssumptionPerDay
-        const rateKey = `${taskId}::${profileId}`
-        const isFrozen = isChangeOrder && frozenRateKeys.has(rateKey)
-
         profileRows.push({
           id: `prof-${taskId}-${profileId}`,
           kind: 'profile',
@@ -106,7 +100,6 @@ export function buildQuoteGrid(
           cost,
           margin,
           marginPct,
-          isFrozenRate: isFrozen,
           lines,
         })
 
@@ -130,7 +123,6 @@ export function buildQuoteGrid(
         cost: taskCost,
         margin: taskMargin,
         marginPct: taskRevenue > 0 ? (taskMargin / taskRevenue) * 100 : 0,
-        isFrozenRate: false,
       })
       taskRows.push(...profileRows)
 
@@ -153,7 +145,6 @@ export function buildQuoteGrid(
       cost: phaseCost,
       margin: phaseMargin,
       marginPct: phaseRevenue > 0 ? (phaseMargin / phaseRevenue) * 100 : 0,
-      isFrozenRate: false,
     })
     rows.push(...taskRows)
 
@@ -169,7 +160,7 @@ export function buildQuoteGrid(
     id: 'grand-total',
     kind: 'grand-total',
     phaseId: '',
-    label: 'Grand Total',
+    label: 'Total général',
     depth: 0,
     days: grandDays,
     sellRatePerDay: avgSellRate,
@@ -178,16 +169,7 @@ export function buildQuoteGrid(
     cost: grandCost,
     margin: grandMargin,
     marginPct: grandRevenue > 0 ? (grandMargin / grandRevenue) * 100 : 0,
-    isFrozenRate: false,
   })
 
   return rows
-}
-
-export function buildValidatedRateKeys(referenceQuote: Quote): Set<string> {
-  const keys = new Set<string>()
-  for (const line of referenceQuote.lines) {
-    keys.add(`${line.taskId}::${line.profileId}`)
-  }
-  return keys
 }

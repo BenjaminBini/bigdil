@@ -1,3 +1,4 @@
+import { GridTable } from '@/components/shared/grid-table'
 import type { QuoteGridRow } from './model'
 import { QuoteGridHeader } from './quote-grid-header'
 import { QuoteGridRowView } from './quote-grid-row'
@@ -12,16 +13,16 @@ interface QuoteGridProps {
 
 export function QuoteGrid({ rows, isReadOnly, collapsed, onToggle, hasChildrenSet }: QuoteGridProps) {
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+    <GridTable className="w-full text-sm">
       <colgroup>
-        <col style={{ minWidth: 260 }} />
-        <col style={{ width: 80 }} />
-        <col style={{ width: 120 }} />
-        <col style={{ width: 120 }} />
-        <col style={{ width: 120 }} />
-        <col style={{ width: 120 }} />
-        <col style={{ width: 120 }} />
-        <col style={{ width: 80 }} />
+        <col className="min-w-[260px]" />
+        <col className="w-20" />
+        <col className="w-28" />
+        <col className="w-28" />
+        <col className="w-28" />
+        <col className="w-28" />
+        <col className="w-28" />
+        <col className="w-20" />
       </colgroup>
 
       <QuoteGridHeader />
@@ -38,6 +39,6 @@ export function QuoteGrid({ rows, isReadOnly, collapsed, onToggle, hasChildrenSe
           />
         ))}
       </tbody>
-    </table>
+    </GridTable>
   )
 }

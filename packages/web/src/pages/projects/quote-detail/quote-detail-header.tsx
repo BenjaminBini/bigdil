@@ -20,11 +20,11 @@ interface QuoteDetailHeaderProps {
 }
 
 function MetaText({ children }: { children: ReactNode }) {
-  return <span className="text-sm text-gray-500">{children}</span>
+  return <span className="text-sm text-muted-foreground">{children}</span>
 }
 
 function MetaValue({ children }: { children: ReactNode }) {
-  return <span className="text-gray-700">{children}</span>
+  return <span className="font-medium text-foreground">{children}</span>
 }
 
 function ActionsRow({ children }: { children: ReactNode }) {
@@ -47,22 +47,18 @@ export function QuoteDetailHeader({
           <QuoteStatusBadge status={quote.status} />
           {isValidated && (
             <InlineStack gap="xs">
-              <Lock size={12} className="text-gray-400" />
-              <TextCaption>Read-only</TextCaption>
+              <Lock size={12} className="text-muted-foreground" />
+              <TextCaption>Lecture seule</TextCaption>
             </InlineStack>
           )}
         </FlexRow>
         <FlexRow gap="lg">
-          {quote.effectiveAt && (
-            <MetaText>
-              Effective: <MetaValue>{formatDate(quote.effectiveAt)}</MetaValue>
-            </MetaText>
-          )}
-          {quote.validatedAt && (
-            <MetaText>
-              Validated: <MetaValue>{formatDate(quote.validatedAt)}</MetaValue>
-            </MetaText>
-          )}
+          <MetaText>
+            Date d'effet : <MetaValue>{quote.effectiveAt ? formatDate(quote.effectiveAt) : '—'}</MetaValue>
+          </MetaText>
+          <MetaText>
+            Validé le : <MetaValue>{quote.validatedAt ? formatDate(quote.validatedAt) : '—'}</MetaValue>
+          </MetaText>
         </FlexRow>
       </VStack>
 
@@ -70,16 +66,16 @@ export function QuoteDetailHeader({
         {isDraft && (
           <Button onClick={onValidate}>
             <CheckCircle size={16} />
-            Validate Quote
+            Valider le devis
           </Button>
         )}
         <Button variant="outline" size="sm" onClick={onDuplicate}>
           <Copy size={14} />
-          Duplicate
+          Dupliquer
         </Button>
         <Button variant="outline" size="sm" onClick={onExport}>
           <Download size={14} />
-          Export
+          Exporter
         </Button>
       </ActionsRow>
     </FlexBetween>

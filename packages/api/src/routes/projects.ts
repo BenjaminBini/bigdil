@@ -546,6 +546,80 @@ projectsRouter.delete('/:id/tasks/:taskId', async (c) => {
   return c.json({ ok: true })
 })
 
+// POST /api/projects/:id/quotes/:quoteId/lines — add a line to a draft quote
+projectsRouter.post('/:id/quotes/:quoteId/lines', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+  const body = await c.req.json<{ taskId: string; profileId: string; days: number; sellRatePerDay: number; costRateAssumptionPerDay: number }>()
+
+  const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+  if (quote.status !== 'DRAFT') return c.json({ error: 'Only DRAFT quotes can be edited' }, 400)
+
+  const line = await prisma.quoteLine.create({
+    data: {
+      id: crypto.randomUUID(),
+      quoteId,
+      taskId: body.taskId,
+      profileId: body.profileId,
+      days: body.days,
+      sellRatePerDay: body.sellRatePerDay,
+      costRateAssumptionPerDay: body.costRateAssumptionPerDay,
+      revenueAmount: body.days * body.sellRatePerDay,
+      budgetCostAmount: body.days * body.costRateAssumptionPerDay,
+    },
+  })
+  return c.json(line, 201)
+})
+
+// PATCH /api/projects/:id/quotes/:quoteId/lines/:lineId — update a line
+projectsRouter.patch('/:id/quotes/:quoteId/lines/:lineId', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+  const lineId = c.req.param('lineId')
+  const body = await c.req.json<{ days?: number; sellRatePerDay?: number; costRateAssumptionPerDay?: number }>()
+
+  const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+  if (quote.status !== 'DRAFT') return c.json({ error: 'Only DRAFT quotes can be edited' }, 400)
+
+  const current = await prisma.quoteLine.findFirst({ where: { id: lineId, quoteId } })
+  if (!current) return c.json({ error: 'Line not found' }, 404)
+
+  const days = body.days ?? current.days
+  const sellRate = body.sellRatePerDay ?? current.sellRatePerDay
+  const costRate = body.costRateAssumptionPerDay ?? current.costRateAssumptionPerDay
+
+  const updated = await prisma.quoteLine.update({
+    where: { id: lineId },
+    data: {
+      days,
+      sellRatePerDay: sellRate,
+      costRateAssumptionPerDay: costRate,
+      revenueAmount: days * sellRate,
+      budgetCostAmount: days * costRate,
+    },
+  })
+  return c.json(updated)
+})
+
+// DELETE /api/projects/:id/quotes/:quoteId/lines/:lineId — remove a line
+projectsRouter.delete('/:id/quotes/:quoteId/lines/:lineId', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+  const lineId = c.req.param('lineId')
+
+  const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+  if (quote.status !== 'DRAFT') return c.json({ error: 'Only DRAFT quotes can be edited' }, 400)
+
+  const line = await prisma.quoteLine.findFirst({ where: { id: lineId, quoteId } })
+  if (!line) return c.json({ error: 'Line not found' }, 404)
+
+  await prisma.quoteLine.delete({ where: { id: lineId } })
+  return c.json({ ok: true })
+})
+
 // POST /api/projects/:id/quotes/:quoteId/validate — validate a quote
 projectsRouter.post('/:id/quotes/:quoteId/validate', async (c) => {
   const projectId = c.req.param('id')

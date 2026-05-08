@@ -1,190 +1,16 @@
-/* eslint-disable max-lines */
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { useProject, useReferenceData, useValidateQuote, useDuplicateQuote } from '@/api/hooks'
 import { Card } from '@/components/ui/card'
-import { AlertBanner } from '@/components/shared/alert-banner'
 import { LoadingState, ErrorState } from '@/components/shared/page-container'
 import { VStack } from '@/components/shared/VStack'
-import type { Quote, QuoteLine, Task } from '@/api/types'
-import type { QuoteGridRow } from './quote-detail/model'
+import { buildQuoteGrid } from './quote-detail/model'
 import { QuoteDetailHeader } from './quote-detail/quote-detail-header'
 import { QuoteGrid } from './quote-detail/quote-grid'
+import { QuoteDraftGrid } from './quote-detail/quote-draft-grid'
 import { QuoteTotalsCard } from './quote-detail/quote-totals-card'
 import { ValidateDialog } from './quote-detail/validate-dialog'
-
-function buildValidatedRateKeys(referenceQuote: Quote): Set<string> {
-  const keys = new Set<string>()
-  for (const line of referenceQuote.lines) {
-    keys.add(`${line.taskId}::${line.profileId}`)
-  }
-  return keys
-}
-
-function buildQuoteGrid(
-  quote: Quote,
-  flatTasks: Task[],
-  frozenRateKeys: Set<string>,
-  isChangeOrder: boolean,
-  getTaskName: (id: string) => string,
-  getProfileName: (id: string) => string,
-): QuoteGridRow[] {
-  function getPhase(taskId: string): Task | null {
-    const task = flatTasks.find((candidate) => candidate.id === taskId)
-    if (!task) return null
-    if (!task.parentTaskId) return task
-    return flatTasks.find((candidate) => candidate.id === task.parentTaskId) ?? null
-  }
-
-  const phaseOrder: string[] = []
-  const phaseMap = new Map<string, Map<string, Map<string, QuoteLine[]>>>()
-
-  for (const line of quote.lines) {
-    const phase = getPhase(line.taskId)
-    if (!phase) continue
-    const phaseId = phase.id
-
-    if (!phaseMap.has(phaseId)) {
-      phaseMap.set(phaseId, new Map())
-      phaseOrder.push(phaseId)
-    }
-    const taskMap = phaseMap.get(phaseId)!
-
-    if (!taskMap.has(line.taskId)) {
-      taskMap.set(line.taskId, new Map())
-    }
-    const profileMap = taskMap.get(line.taskId)!
-
-    if (!profileMap.has(line.profileId)) {
-      profileMap.set(line.profileId, [])
-    }
-    profileMap.get(line.profileId)!.push(line)
-  }
-
-  const rows: QuoteGridRow[] = []
-  let grandDays = 0
-  let grandRevenue = 0
-  let grandCost = 0
-
-  for (const phaseId of phaseOrder) {
-    const taskMap = phaseMap.get(phaseId)!
-    let phaseDays = 0
-    let phaseRevenue = 0
-    let phaseCost = 0
-
-    const taskRows: QuoteGridRow[] = []
-
-    for (const [taskId, profileMap] of taskMap) {
-      let taskDays = 0
-      let taskRevenue = 0
-      let taskCost = 0
-      const profileRows: QuoteGridRow[] = []
-
-      for (const [profileId, lines] of profileMap) {
-        const days = lines.reduce((sum, line) => sum + line.days, 0)
-        const revenue = lines.reduce((sum, line) => sum + line.revenueAmount, 0)
-        const cost = lines.reduce((sum, line) => sum + line.budgetCostAmount, 0)
-        const margin = revenue - cost
-        const marginPct = revenue > 0 ? (margin / revenue) * 100 : 0
-        const sellRate = lines[0].sellRatePerDay
-        const costRate = lines[0].costRateAssumptionPerDay
-        const rateKey = `${taskId}::${profileId}`
-        const isFrozen = isChangeOrder && frozenRateKeys.has(rateKey)
-
-        profileRows.push({
-          id: `prof-${taskId}-${profileId}`,
-          kind: 'profile',
-          phaseId,
-          taskId,
-          profileId,
-          label: getProfileName(profileId),
-          depth: 2,
-          days,
-          sellRatePerDay: sellRate,
-          costRatePerDay: costRate,
-          revenue,
-          cost,
-          margin,
-          marginPct,
-          isFrozenRate: isFrozen,
-          lines,
-        })
-
-        taskDays += days
-        taskRevenue += revenue
-        taskCost += cost
-      }
-
-      const taskMargin = taskRevenue - taskCost
-      taskRows.push({
-        id: `task-${taskId}`,
-        kind: 'task',
-        phaseId,
-        taskId,
-        label: getTaskName(taskId),
-        depth: 1,
-        days: taskDays,
-        sellRatePerDay: null,
-        costRatePerDay: null,
-        revenue: taskRevenue,
-        cost: taskCost,
-        margin: taskMargin,
-        marginPct: taskRevenue > 0 ? (taskMargin / taskRevenue) * 100 : 0,
-        isFrozenRate: false,
-      })
-      taskRows.push(...profileRows)
-
-      phaseDays += taskDays
-      phaseRevenue += taskRevenue
-      phaseCost += taskCost
-    }
-
-    const phaseMargin = phaseRevenue - phaseCost
-    rows.push({
-      id: `phase-${phaseId}`,
-      kind: 'phase',
-      phaseId,
-      label: getTaskName(phaseId),
-      depth: 0,
-      days: phaseDays,
-      sellRatePerDay: null,
-      costRatePerDay: null,
-      revenue: phaseRevenue,
-      cost: phaseCost,
-      margin: phaseMargin,
-      marginPct: phaseRevenue > 0 ? (phaseMargin / phaseRevenue) * 100 : 0,
-      isFrozenRate: false,
-    })
-    rows.push(...taskRows)
-
-    grandDays += phaseDays
-    grandRevenue += phaseRevenue
-    grandCost += phaseCost
-  }
-
-  const grandMargin = grandRevenue - grandCost
-  const avgSellRate = grandDays > 0 ? grandRevenue / grandDays : null
-  const avgCostRate = grandDays > 0 ? grandCost / grandDays : null
-  rows.push({
-    id: 'grand-total',
-    kind: 'grand-total',
-    phaseId: '',
-    label: 'Grand Total',
-    depth: 0,
-    days: grandDays,
-    sellRatePerDay: avgSellRate,
-    costRatePerDay: avgCostRate,
-    revenue: grandRevenue,
-    cost: grandCost,
-    margin: grandMargin,
-    marginPct: grandRevenue > 0 ? (grandMargin / grandRevenue) * 100 : 0,
-    isFrozenRate: false,
-  })
-
-  return rows
-}
 
 export default function QuoteDetailPage() {
   const { id: projectId, quoteId } = useParams()
@@ -206,10 +32,6 @@ export default function QuoteDetailPage() {
   const getTaskName = (taskId: string) => data.flatTasks.find((task) => task.id === taskId)?.name ?? taskId
   const getProfileName = (profileId: string) => refData.profiles.find((profile) => profile.id === profileId)?.name ?? profileId
 
-  const validatedQuotes = data.quotes.filter((entry) => entry.status === 'VALIDATED' && entry.id !== quoteId)
-  const isChangeOrder = validatedQuotes.length > 0
-  const frozenRateKeys = isChangeOrder ? buildValidatedRateKeys(validatedQuotes[0]) : new Set<string>()
-
   const isValidated = quote.status === 'VALIDATED'
   const isDraft = quote.status === 'DRAFT'
 
@@ -221,20 +43,13 @@ export default function QuoteDetailPage() {
     validateQuote.mutate(quoteId!, {
       onSuccess: () => {
         setValidateDialogOpen(false)
-        toast.success('Quote validated', { description: 'All sell rates for this quote have been frozen.' })
+        toast.success('Devis validé', { description: 'Tous les TJM de vente ont été gelés.' })
       },
-      onError: () => toast.error('Failed to validate quote'),
+      onError: () => toast.error('Échec de la validation'),
     })
   }
 
-  const gridRows = buildQuoteGrid(
-    quote,
-    data.flatTasks,
-    frozenRateKeys,
-    isChangeOrder,
-    getTaskName,
-    getProfileName,
-  )
+  const gridRows = buildQuoteGrid(quote, data.flatTasks, getTaskName, getProfileName)
 
   const hasChildrenSet = new Set<string>()
   for (const row of gridRows) {
@@ -263,35 +78,45 @@ export default function QuoteDetailPage() {
         onDuplicate={() => {
           duplicateQuote.mutate(quoteId!, {
             onSuccess: (newQuote) => {
-              toast.success(`"${newQuote.title}" created`)
+              toast.success(`"${newQuote.title}" dupliqué`)
               void navigate(`/projects/${projectId}/quotes/${newQuote.id}`)
             },
-            onError: () => toast.error('Failed to duplicate quote'),
+            onError: () => toast.error('Échec de la duplication'),
           })
         }}
-        onExport={() => toast.info('Would export quote')}
+        onExport={() => toast.info('Export à venir')}
       />
 
-      {isChangeOrder && (
-        <AlertBanner
-          variant="warning"
-          icon={<Info size={16} color="#d97706" />}
-          title="Change Order"
-          description="Adds to existing scope. Sell rates match previously validated rates for the same Task + Profile combinations."
-        />
-      )}
-
       <Card variant="flush">
-        <QuoteGrid
-          rows={visibleRows}
-          isReadOnly={isValidated}
-          collapsed={collapsed}
-          onToggle={toggleCollapse}
-          hasChildrenSet={hasChildrenSet}
-        />
+        {isDraft ? (
+          <QuoteDraftGrid
+            projectId={projectId!}
+            quoteId={quoteId!}
+            flatTasks={data.flatTasks}
+            profiles={refData.profiles}
+            lines={quote.lines}
+          />
+        ) : (
+          <QuoteGrid
+            rows={visibleRows}
+            isReadOnly={isValidated}
+            collapsed={collapsed}
+            onToggle={toggleCollapse}
+            hasChildrenSet={hasChildrenSet}
+          />
+        )}
       </Card>
 
-      {totalRow && <QuoteTotalsCard totalRow={totalRow} />}
+      {totalRow && !isDraft && <QuoteTotalsCard totalRow={totalRow} />}
+      {isDraft && <QuoteTotalsCard totalRow={{
+        id: 'totals', kind: 'grand-total', phaseId: '', label: 'Total général', depth: 0,
+        days: quote.lines.reduce((s, l) => s + l.days, 0),
+        revenue: quote.lines.reduce((s, l) => s + l.revenueAmount, 0),
+        cost: quote.lines.reduce((s, l) => s + l.budgetCostAmount, 0),
+        margin: quote.lines.reduce((s, l) => s + l.revenueAmount - l.budgetCostAmount, 0),
+        marginPct: (() => { const rev = quote.lines.reduce((s, l) => s + l.revenueAmount, 0); const cost = quote.lines.reduce((s, l) => s + l.budgetCostAmount, 0); return rev > 0 ? ((rev - cost) / rev) * 100 : null })(),
+        sellRatePerDay: null, costRatePerDay: null, isFrozenRate: false,
+      }} />}
 
       <ValidateDialog open={validateDialogOpen} onConfirm={handleValidate} onClose={() => setValidateDialogOpen(false)} />
     </VStack>

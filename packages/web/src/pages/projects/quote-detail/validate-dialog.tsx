@@ -19,15 +19,15 @@ export function ValidateDialog({ open, onConfirm, onClose }: ValidateDialogProps
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <DialogContent size="sm">
         <DialogHeader>
-          <DialogTitle>Validate Quote</DialogTitle>
+          <DialogTitle>Valider le devis</DialogTitle>
         </DialogHeader>
         <MutedText>
-          Once validated, all sell rates for Task + Profile combinations will be frozen
-          and cannot be changed in future change orders. Are you sure?
+          Une fois validés, tous les TJM de vente pour chaque combinaison Tâche + Profil seront gelés
+          et ne pourront plus être modifiés dans les avenants futurs. Confirmer ?
         </MutedText>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={onConfirm}>Confirm Validation</Button>
+          <Button variant="outline" onClick={onClose}>Annuler</Button>
+          <Button onClick={onConfirm}>Confirmer la validation</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

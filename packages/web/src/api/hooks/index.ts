@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '../client'
 import type {
-  ProjectListItem, ProjectDetail, WorkTableData, Snapshot, Quote,
+  ProjectListItem, ProjectDetail, WorkTableData, Snapshot, Quote, QuoteLine,
   TimesheetEntry, ReferenceData, DashboardData,
   EmployeeDetail, ProfileDetail, Profile, Task, Client, Employee,
   FinancialReportRow, UtilizationReportRow,
@@ -261,12 +261,48 @@ export function useUpdateClient() {
 export function useCreateQuote(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: {
-      title: string
-      effectiveAt?: string | null
-      lines: Array<{ taskId: string; profileId: string; days: number; sellRatePerDay: number; costRateAssumptionPerDay: number }>
-    }) =>
-      apiFetch<Quote>(`/api/projects/${projectId}/quotes`, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: { title: string; effectiveAt?: string | null }) =>
+      apiFetch<Quote>(`/api/projects/${projectId}/quotes`, { method: 'POST', body: JSON.stringify({ ...data, lines: [] }) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useAddQuoteLine(projectId: string, quoteId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { taskId: string; profileId: string; days: number; sellRatePerDay: number; costRateAssumptionPerDay: number }) =>
+      apiFetch<QuoteLine>(`/api/projects/${projectId}/quotes/${quoteId}/lines`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useUpdateQuoteLine(projectId: string, quoteId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ lineId, ...data }: { lineId: string; days?: number; sellRatePerDay?: number; costRateAssumptionPerDay?: number }) =>
+      apiFetch<QuoteLine>(`/api/projects/${projectId}/quotes/${quoteId}/lines/${lineId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: (updatedLine) => {
+      queryClient.setQueryData<ProjectDetail>(queryKeys.project(projectId), (old) => {
+        if (!old) return old
+        return {
+          ...old,
+          quotes: old.quotes.map(q =>
+            q.id !== quoteId ? q : {
+              ...q,
+              lines: q.lines.map(l => l.id !== updatedLine.id ? l : updatedLine),
+            }
+          ),
+        }
+      })
+    },
+  })
+}
+
+export function useDeleteQuoteLine(projectId: string, quoteId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (lineId: string) =>
+      apiFetch<{ ok: boolean }>(`/api/projects/${projectId}/quotes/${quoteId}/lines/${lineId}`, { method: 'DELETE' }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
   })
 }

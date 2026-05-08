@@ -52,14 +52,14 @@ export default function QuotesPage() {
       {/* Page header */}
       <FlexBetween>
         <div>
-          <PageTitle>Quotes</PageTitle>
+          <PageTitle>Devis</PageTitle>
           <MutedText spacing="tight">
-            All quotes and change orders for this project
+            Devis et avenants du projet
           </MutedText>
         </div>
         <Button onClick={() => setShowNewQuote(true)}>
           <Plus />
-          New Quote
+          Nouveau devis
         </Button>
       </FlexBetween>
 
@@ -68,20 +68,20 @@ export default function QuotesPage() {
         <Table>
           <TableHeader>
             <TableRow variant="header">
-              <TableHead>Title</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Effective Date</TableHead>
-              <TableHead>Validated Date</TableHead>
-              <ThRight>Total Days</ThRight>
-              <ThRight>Revenue (ex-VAT)</ThRight>
-              <ThRight>Budget Cost</ThRight>
-              <ThRight>Margin</ThRight>
-              <ThRight>Margin %</ThRight>
+              <TableHead>Titre</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Date d'effet</TableHead>
+              <TableHead>Date de validation</TableHead>
+              <ThRight>Jours</ThRight>
+              <ThRight>CA HT</ThRight>
+              <ThRight>Coût budgété</ThRight>
+              <ThRight>Marge</ThRight>
+              <ThRight>Marge %</ThRight>
             </TableRow>
           </TableHeader>
           <TableBody>
             {quotes.length === 0 ? (
-              <EmptyRow colSpan={9} message="No quotes yet" />
+              <EmptyRow colSpan={9} message="Aucun devis" />
             ) : (
               quotes.map((quote) => {
                 const { totalDays, totalRevenue, totalBudgetCost, totalMargin, marginPct } =
@@ -131,8 +131,6 @@ export default function QuotesPage() {
         open={showNewQuote}
         onClose={() => setShowNewQuote(false)}
         projectId={projectId!}
-        tasks={data.flatTasks}
-        profiles={refData.profiles}
       />
     </PageContainer>
   )
