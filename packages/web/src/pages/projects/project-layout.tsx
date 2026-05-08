@@ -13,8 +13,11 @@ export default function ProjectLayout() {
   if (isLoading) return <LoadingState />
   if (error || !data) return <ErrorState message="Error loading project" />
 
-  const validatedQuote = data.quotes.find((quote) => quote.status === 'VALIDATED') ?? data.quotes[0] ?? null
-  const estimatedCost = validatedQuote ? validatedQuote.lines.reduce((sum, line) => sum + line.budgetCostAmount, 0) : null
+  const validatedQuotes = data.quotes.filter((quote) => quote.status === 'VALIDATED')
+  const quotesForKpi = validatedQuotes.length > 0 ? validatedQuotes : (data.quotes[0] ? [data.quotes[0]] : [])
+  const estimatedCost = quotesForKpi.length > 0
+    ? quotesForKpi.reduce((sum, q) => sum + q.lines.reduce((s, l) => s + l.budgetCostAmount, 0), 0)
+    : null
   const estimatedMarginEur = estimatedCost != null ? data.contractValue - estimatedCost : null
   const estimatedMarginPct =
     estimatedMarginEur != null && data.contractValue > 0
@@ -26,7 +29,9 @@ export default function ProjectLayout() {
     {
       label: 'Estimated Cost',
       value: estimatedCost != null ? formatCurrency(estimatedCost) : '—',
-      sub: validatedQuote ? 'from quote' : undefined,
+      sub: quotesForKpi.length > 0
+        ? quotesForKpi.length > 1 ? `from ${quotesForKpi.length} quotes` : 'from quote'
+        : undefined,
     },
     {
       label: 'Estimated Margin',
