@@ -34,21 +34,26 @@ export function Topbar({ projectId: projectIdProp, onProjectChange }: TopbarProp
   return (
     <header className="flex h-14 items-center gap-3 border-b bg-background px-4">
       <nav aria-label="Breadcrumb" className="flex min-w-0 flex-1 items-center gap-1 text-sm">
-        {breadcrumbs.map((crumb, idx) => (
-          <span key={idx} className="flex items-center gap-1 min-w-0">
-            {idx > 0 && <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />}
-            <span
-              className={cn(
-                'truncate',
-                idx === breadcrumbs.length - 1
-                  ? 'font-semibold text-foreground'
-                  : 'text-muted-foreground',
+        {breadcrumbs.map((crumb, idx) => {
+          const isLast = idx === breadcrumbs.length - 1
+          return (
+            <span key={idx} className="flex items-center gap-1 min-w-0">
+              {idx > 0 && <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />}
+              {isLast ? (
+                <span className="truncate font-semibold text-foreground">{crumb.label}</span>
+              ) : (
+                <button
+                  onClick={() => navigate(crumb.href)}
+                  className={cn(
+                    'truncate text-muted-foreground transition-colors hover:text-foreground',
+                  )}
+                >
+                  {crumb.label}
+                </button>
               )}
-            >
-              {crumb}
             </span>
-          </span>
-        ))}
+          )
+        })}
       </nav>
 
       {showProjectSelector && (
