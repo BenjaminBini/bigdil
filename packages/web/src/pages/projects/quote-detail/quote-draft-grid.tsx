@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -104,8 +104,19 @@ function ProfileRow({ line, profileName, projectId, quoteId }: ProfileRowProps) 
   const updateLine = useUpdateQuoteLine(projectId, quoteId)
   const deleteLine = useDeleteQuoteLine(projectId, quoteId)
 
-  const revenue = line.days * line.sellRatePerDay
-  const cost = line.days * line.costRateAssumptionPerDay
+  const [localDays, setLocalDays] = useState(line.days)
+  const [localSellRate, setLocalSellRate] = useState(line.sellRatePerDay)
+  const [localCostRate, setLocalCostRate] = useState(line.costRateAssumptionPerDay)
+
+  // Re-sync when a different line is rendered into this slot
+  useEffect(() => {
+    setLocalDays(line.days)
+    setLocalSellRate(line.sellRatePerDay)
+    setLocalCostRate(line.costRateAssumptionPerDay)
+  }, [line.id])
+
+  const revenue = localDays * localSellRate
+  const cost = localDays * localCostRate
   const margin = revenue - cost
   const marginPct = revenue > 0 ? (margin / revenue) * 100 : null
   const s = sentiment(margin, marginPct)
@@ -130,6 +141,7 @@ function ProfileRow({ line, profileName, projectId, quoteId }: ProfileRowProps) 
           defaultValue={line.days}
           min={0}
           step={0.5}
+          onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setLocalDays(v) }}
           onBlur={e => save('days', e.target.value)}
         />
       </QuoteTd>
@@ -140,6 +152,7 @@ function ProfileRow({ line, profileName, projectId, quoteId }: ProfileRowProps) 
           defaultValue={line.sellRatePerDay}
           min={0}
           step={0.01}
+          onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setLocalSellRate(v) }}
           onBlur={e => save('sellRatePerDay', e.target.value)}
         />
       </QuoteTd>
@@ -153,6 +166,7 @@ function ProfileRow({ line, profileName, projectId, quoteId }: ProfileRowProps) 
           defaultValue={line.costRateAssumptionPerDay}
           min={0}
           step={0.01}
+          onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setLocalCostRate(v) }}
           onBlur={e => save('costRateAssumptionPerDay', e.target.value)}
         />
       </QuoteTd>
