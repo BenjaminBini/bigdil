@@ -17,9 +17,9 @@ export function StatusItem({ icon, title, description, className }: StatusItemPr
     <div className={cn('flex items-start gap-3 p-4', className)}>
       <div className="mt-0.5 shrink-0">{icon}</div>
       <div>
-        <p className="text-sm font-medium text-gray-900">{title}</p>
+        <p className="text-sm font-medium text-foreground">{title}</p>
         {description && (
-          <div className="mt-0.5 text-xs text-gray-500">{description}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">{description}</div>
         )}
       </div>
     </div>

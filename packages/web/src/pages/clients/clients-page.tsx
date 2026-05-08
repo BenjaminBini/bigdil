@@ -97,7 +97,7 @@ export default function ClientsPage() {
   }
 
   return (
-    <PageContainer size="lg">
+    <>
       <PageHeader
         variant="section"
         title="Clients"
@@ -109,7 +109,7 @@ export default function ClientsPage() {
           </Button>
         }
       />
-
+      <PageContainer size="lg">
       <SearchInput
         maxWidth="md"
         placeholder="Rechercher un client..."
@@ -126,6 +126,7 @@ export default function ClientsPage() {
       />
 
       <NewClientDialog open={showNewClient} onClose={() => setShowNewClient(false)} />
-    </PageContainer>
+      </PageContainer>
+    </>
   )
 }

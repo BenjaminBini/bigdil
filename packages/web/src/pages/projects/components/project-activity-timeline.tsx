@@ -32,7 +32,7 @@ export function ProjectActivityTimeline({ periods }: ProjectActivityTimelineProp
             {timeline.map((event) => (
               <TimelineItem
                 key={event.id}
-                icon={<CheckCircle2 size={16} color="#6b7280" />}
+                icon={<CheckCircle2 size={16} className="text-muted-foreground" />}
                 label={event.label}
                 sub={event.date}
               />

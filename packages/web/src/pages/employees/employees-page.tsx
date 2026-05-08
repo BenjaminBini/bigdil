@@ -16,9 +16,9 @@ export default function EmployeesPage() {
   if (error || !refData) return <ErrorState />
 
   return (
-    <PageContainer size="md">
+    <>
       <EmployeesHeader onNew={() => setShowNewEmployee(true)} />
-
+      <PageContainer size="md">
       <Card variant="flush">
         <Table>
           <TableHeader>
@@ -42,6 +42,7 @@ export default function EmployeesPage() {
         </Table>
       </Card>
       <NewEmployeeDialog open={showNewEmployee} onClose={() => setShowNewEmployee(false)} />
-    </PageContainer>
+      </PageContainer>
+    </>
   )
 }

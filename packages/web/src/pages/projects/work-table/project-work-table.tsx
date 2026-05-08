@@ -105,7 +105,7 @@ export function ProjectWorkTable({
 
   return (
     <PanelLayout>
-      <WorkTableHeader projectId={projectId} projectName={project.name} periodCount={periods.length} />
+      <WorkTableHeader projectName={project.name} periodCount={periods.length} />
       <ScrollPane>
         <WorkGridTable
           projectId={projectId}

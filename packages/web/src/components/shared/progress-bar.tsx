@@ -17,7 +17,7 @@ export function ProgressBar({ percent, color = 'bg-green-500', className, size }
   const clamped = Math.max(0, Math.min(100, percent))
 
   return (
-    <div className={cn(size === 'sm' ? 'h-1' : 'h-2', 'overflow-hidden rounded-full bg-gray-100', className)}>
+    <div className={cn(size === 'sm' ? 'h-1' : 'h-2', 'overflow-hidden rounded-full bg-muted', className)}>
       <div
         className={cn('h-full rounded-full transition-all', color)}
         style={{ width: `${clamped}%` }}

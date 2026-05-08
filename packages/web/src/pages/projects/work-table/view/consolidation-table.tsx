@@ -13,14 +13,14 @@ function ConsolidationShell({ children }: { children: ReactNode }) {
 
 function ConsolidationTitleBar({ children }: { children: ReactNode }) {
   return (
-    <FlexRow gap="md" className="border-b bg-white px-4 py-2">
+    <FlexRow gap="md" className="border-b bg-card px-4 py-2">
       {children}
     </FlexRow>
   )
 }
 
 function ConsolidationTitle({ children }: { children: ReactNode }) {
-  return <h2 className="text-sm font-semibold text-slate-800">{children}</h2>
+  return <h2 className="text-sm font-semibold text-foreground">{children}</h2>
 }
 
 function ConsolidationScrollArea({ children }: { children: ReactNode }) {

@@ -39,7 +39,7 @@ export function WorkGridTable({
 }: WorkGridTableProps) {
   return (
     <GridTable>
-      <WorkGridHeader periods={periods} />
+      <WorkGridHeader projectId={projectId} periods={periods} />
       <tbody>
         {visibleRows.map((row) => (
           <WorkGridRow

@@ -10,7 +10,7 @@ interface MutedTextProps {
 
 export function MutedText({ children, className, spacing }: MutedTextProps) {
   return (
-    <p className={cn('text-sm text-gray-500', spacing === 'tight' && 'mt-0.5', className)}>
+    <p className={cn('text-sm text-muted-foreground', spacing === 'tight' && 'mt-0.5', className)}>
       {children}
     </p>
   )

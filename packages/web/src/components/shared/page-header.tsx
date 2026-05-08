@@ -6,7 +6,7 @@ const headerVariants = cva('flex flex-wrap items-start justify-between gap-4', {
   variants: {
     variant: {
       default: 'border-b bg-background px-6 py-5',
-      section: '',
+      section: 'px-6 pt-5 pb-0',
     },
   },
   defaultVariants: {

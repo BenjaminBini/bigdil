@@ -24,10 +24,10 @@ export interface KpiCardProps {
 }
 
 const VARIANT_CONTAINER: Record<KpiCardVariant, string> = {
-  default: 'rounded-lg border p-4 shadow-xs border-border bg-card',
-  highlight: 'rounded-lg border p-4 shadow-xs border-green-200 bg-green-50',
-  warning: 'rounded-lg border p-4 shadow-xs border-amber-200 bg-amber-50',
-  dim: 'rounded-lg border p-4 shadow-xs border-border bg-card opacity-60',
+  default: 'border p-4 border-border bg-card',
+  highlight: 'border p-4 border-green-200 bg-green-50',
+  warning: 'border p-4 border-amber-200 bg-amber-50',
+  dim: 'border p-4 border-border bg-card opacity-60',
   inline: '',
 }
 

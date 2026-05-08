@@ -38,10 +38,10 @@ interface ErrorStateProps {
 
 export function ErrorState({ message = 'Error loading data', variant = 'error' }: ErrorStateProps) {
   if (variant === 'empty') {
-    return <div className="py-12 text-center text-sm text-gray-400">{message}</div>
+    return <div className="py-12 text-center text-sm text-muted-foreground">{message}</div>
   }
   if (variant === 'muted') {
-    return <div className="py-6 text-center text-sm text-gray-500">{message}</div>
+    return <div className="py-6 text-center text-sm text-muted-foreground">{message}</div>
   }
   return <div className="p-6">{message}</div>
 }

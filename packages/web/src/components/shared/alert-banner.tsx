@@ -15,21 +15,21 @@ export interface AlertBannerProps {
 }
 
 const VARIANT_CLASSES: Record<AlertBannerVariant, string> = {
-  info: 'border-blue-200 bg-blue-50',
-  warning: 'border-amber-200 bg-amber-50',
-  success: 'border-green-200 bg-green-50',
+  info: 'border-l-blue-400 bg-blue-50 dark:bg-blue-950/30 dark:border-l-blue-500',
+  warning: 'border-l-amber-400 bg-amber-50 dark:bg-amber-950/30 dark:border-l-amber-500',
+  success: 'border-l-green-400 bg-green-50 dark:bg-green-950/30 dark:border-l-green-500',
 }
 
 const VARIANT_TITLE: Record<AlertBannerVariant, string> = {
-  info: 'text-blue-800',
-  warning: 'text-amber-800',
-  success: 'text-green-800',
+  info: 'text-blue-800 dark:text-blue-300',
+  warning: 'text-amber-800 dark:text-amber-300',
+  success: 'text-green-800 dark:text-green-300',
 }
 
 const VARIANT_DESC: Record<AlertBannerVariant, string> = {
-  info: 'text-blue-700',
-  warning: 'text-amber-700',
-  success: 'text-green-700',
+  info: 'text-blue-700 dark:text-blue-400',
+  warning: 'text-amber-700 dark:text-amber-400',
+  success: 'text-green-700 dark:text-green-400',
 }
 
 /**
@@ -47,7 +47,7 @@ export function AlertBanner({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-lg border',
+        'flex items-start gap-3 border-l-4',
         size === 'compact' ? 'px-4 py-3 text-sm' : 'p-4',
         VARIANT_CLASSES[variant],
         className,

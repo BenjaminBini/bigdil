@@ -8,7 +8,7 @@ export interface MetricStripItem {
 
 /** Numeric value displayed inside a MetricStrip item. */
 export function MetricValue({ children }: { children: ReactNode }) {
-  return <span className="font-medium text-gray-900 tabular-nums">{children}</span>
+  return <span className="font-medium text-foreground tabular-nums">{children}</span>
 }
 
 export interface MetricStripProps {
@@ -25,9 +25,9 @@ export function MetricStrip({ items, className }: MetricStripProps) {
     <div className={cn('flex flex-wrap items-center gap-4 text-sm', className)}>
       {items.map((item, idx) => (
         <div key={item.label} className="contents">
-          {idx > 0 && <div className="h-4 w-px bg-slate-200" />}
+          {idx > 0 && <div className="h-4 w-px bg-border" />}
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">{item.label}:</span>
+            <span className="text-muted-foreground">{item.label}:</span>
             {item.value}
           </div>
         </div>

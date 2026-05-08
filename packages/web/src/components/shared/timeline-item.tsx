@@ -15,14 +15,14 @@ export function TimelineItem({ icon, label, sub, className }: TimelineItemProps)
   return (
     <div
       className={cn(
-        'flex gap-3 border-b border-gray-100 py-3 last:border-0',
+        'flex gap-3 border-b border-border/50 py-3 last:border-0',
         className,
       )}
     >
       {icon && <div className="mt-0.5 shrink-0">{icon}</div>}
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-gray-900">{label}</p>
-        {sub && <p className="mt-0.5 text-xs text-gray-400">{sub}</p>}
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
       </div>
     </div>
   )

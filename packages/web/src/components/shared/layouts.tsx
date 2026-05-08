@@ -124,7 +124,7 @@ export function BottomBar({
   return (
     <div
       className={cn(
-        "shrink-0 border-t bg-white px-4",
+        "shrink-0 border-t bg-card px-4",
         bottomBarSize[size],
         className,
       )}
@@ -136,7 +136,7 @@ export function BottomBar({
 
 /** Vertical divider line */
 export function Divider({ className }: { className?: string }) {
-  return <div className={cn("w-px bg-slate-200", className)} />;
+  return <div className={cn("w-px bg-border", className)} />;
 }
 
 /** Full-height column layout — for pages that need flex-col min-h-full */
@@ -149,6 +149,6 @@ export function FullHeightColumn({ children, className }: LayoutProps) {
 /** Section with divide-y between children */
 export function DivideStack({ children, className }: LayoutProps) {
   return (
-    <div className={cn("divide-y divide-gray-100", className)}>{children}</div>
+    <div className={cn("divide-y divide-border", className)}>{children}</div>
   );
 }

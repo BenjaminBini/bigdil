@@ -11,9 +11,8 @@ interface QuoteThProps {
   borderRight?: boolean
 }
 
-const QUOTE_TH_BASE = 'px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500'
+const QUOTE_TH_BASE = 'px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'
 
-/** Standard quote grid header cell */
 export function QuoteTh({ children, align = 'right', className, borderLeft, borderRight, ...props }: QuoteThProps) {
   return (
     <th
@@ -22,8 +21,8 @@ export function QuoteTh({ children, align = 'right', className, borderLeft, bord
         align === 'right' && 'text-right',
         align === 'center' && 'text-center',
         align === 'left' && 'text-left',
-        borderLeft && 'border-l border-gray-200',
-        borderRight && 'border-r border-gray-200',
+        borderLeft && 'border-l border-border',
+        borderRight && 'border-r border-border',
         className,
       )}
       {...props}
@@ -36,22 +35,21 @@ export function QuoteTh({ children, align = 'right', className, borderLeft, bord
 const QUOTE_GROUP_TH_BASE = 'py-1.5 text-center text-[10px] font-semibold uppercase tracking-widest'
 
 const groupColors = {
-  blue: 'bg-blue-50/50 text-blue-700',
-  orange: 'bg-orange-50/50 text-orange-700',
-  muted: 'bg-gray-50 text-gray-600',
+  blue: 'bg-sky-50/50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-400',
+  orange: 'bg-amber-50/50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
+  muted: 'bg-muted text-muted-foreground',
 } as const
 
 type GroupBorder = 'left' | 'right' | 'both'
 
-/** Quote grid group header (Revenue/Cost/Margin row) */
 export function QuoteGroupTh({ children, className, color, bordered, ...props }: QuoteThProps & { color?: 'blue' | 'orange' | 'muted'; bordered?: GroupBorder }) {
   return (
     <th
       className={cn(
         QUOTE_GROUP_TH_BASE,
         color && groupColors[color],
-        (bordered === 'left' || bordered === 'both') && 'border-l border-gray-200',
-        (bordered === 'right' || bordered === 'both') && 'border-r border-gray-200',
+        (bordered === 'left' || bordered === 'both') && 'border-l border-border',
+        (bordered === 'right' || bordered === 'both') && 'border-r border-border',
         className,
       )}
       {...props}

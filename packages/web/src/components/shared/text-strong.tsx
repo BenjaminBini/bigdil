@@ -13,7 +13,7 @@ interface TextStrongProps {
 /** Inline bold span — font-medium */
 export function TextStrong({ children, className, size, color }: TextStrongProps) {
   return (
-    <span className={cn('font-medium', size === 'sm' && 'text-sm', color === 'muted' && 'text-gray-700', className)}>
+    <span className={cn('font-medium', size === 'sm' && 'text-sm', color === 'muted' && 'text-foreground/70', className)}>
       {children}
     </span>
   )

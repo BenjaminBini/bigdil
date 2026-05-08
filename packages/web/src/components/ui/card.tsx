@@ -3,12 +3,12 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-const cardVariants = cva("flex flex-col rounded-xl border shadow-sm", {
+const cardVariants = cva("flex flex-col border", {
   variants: {
     variant: {
       default: "bg-card text-card-foreground gap-6 py-6",
       compact: "bg-card text-card-foreground gap-2 py-4",
-      muted: "bg-gray-50 text-card-foreground gap-6 py-6",
+      muted: "bg-muted/50 text-card-foreground gap-6 py-6",
       flush: "bg-card text-card-foreground overflow-hidden",
     },
   },

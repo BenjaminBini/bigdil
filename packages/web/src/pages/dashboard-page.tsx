@@ -19,19 +19,21 @@ export default function DashboardPage() {
   if (error || !data) return <ErrorState message="Erreur lors du chargement du tableau de bord" />;
 
   return (
-    <PageContainer size="full">
+    <>
       <PageHeader title="Tableau de bord" subtitle="Vue d'ensemble multi-projets" />
-      <KpiStrip kpis={data.kpis} />
+      <PageContainer size="full">
+        <KpiStrip kpis={data.kpis} />
 
-      <GridCols2>
-        <ActiveProjectsCard projects={data.activeProjectsList} />
-        <AlertsCard alerts={data.alerts} />
-      </GridCols2>
+        <GridCols2>
+          <ActiveProjectsCard projects={data.activeProjectsList} />
+          <AlertsCard alerts={data.alerts} />
+        </GridCols2>
 
-      <RecentActivityCard
-        recentActivity={data.recentActivity}
-        projects={projects}
-      />
-    </PageContainer>
+        <RecentActivityCard
+          recentActivity={data.recentActivity}
+          projects={projects}
+        />
+      </PageContainer>
+    </>
   );
 }

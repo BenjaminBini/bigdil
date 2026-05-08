@@ -17,7 +17,7 @@ function ExpandedDetail({ children, colSpan }: { children: ReactNode; colSpan: n
   return (
     <tr>
       <td colSpan={colSpan} className="border-b p-0">
-        <div className="bg-gray-50/70 px-6 py-4">{children}</div>
+        <div className="bg-muted/30 px-6 py-4">{children}</div>
       </td>
     </tr>
   )

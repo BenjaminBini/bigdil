@@ -28,8 +28,8 @@ export function StepIndicator({ labels, current, className }: StepIndicatorProps
                 className={cn(
                   'size-7 rounded-full flex items-center justify-center text-xs font-semibold border-2',
                   done && 'bg-green-600 border-green-600 text-white',
-                  active && 'bg-gray-900 border-gray-900 text-white',
-                  !done && !active && 'bg-white border-gray-300 text-gray-400',
+                  active && 'bg-foreground border-foreground text-background',
+                  !done && !active && 'bg-background border-border text-muted-foreground',
                 )}
               >
                 {done ? <CheckCircle2 className="size-4" /> : step}
@@ -37,7 +37,7 @@ export function StepIndicator({ labels, current, className }: StepIndicatorProps
               <span
                 className={cn(
                   'mt-1 text-xs whitespace-nowrap',
-                  active ? 'text-gray-900 font-medium' : 'text-gray-400',
+                  active ? 'text-foreground font-medium' : 'text-muted-foreground',
                 )}
               >
                 {label}
@@ -47,7 +47,7 @@ export function StepIndicator({ labels, current, className }: StepIndicatorProps
               <div
                 className={cn(
                   'h-0.5 w-16 mx-1 mb-4',
-                  done ? 'bg-green-500' : 'bg-gray-200',
+                  done ? 'bg-green-500' : 'bg-border',
                 )}
               />
             )}

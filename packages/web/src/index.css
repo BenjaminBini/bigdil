@@ -141,6 +141,36 @@
   }
 }
 
+@layer utilities {
+  /* Sidebar dot-grid texture */
+  .textured {
+    background-image: radial-gradient(oklch(0 0 0 / 0.055) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+  .dark .textured {
+    background-image: radial-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+
+  /* Main content area — gradient + noise */
+  .main-texture {
+    background-color: var(--background);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse 140% 90% at 65% 0%, oklch(0.99 0.012 230) 0%, oklch(0.935 0.006 210) 100%);
+    background-size: 192px 192px, 100% 100%;
+    background-repeat: repeat, no-repeat;
+  }
+  .dark .main-texture {
+    background-color: var(--background);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse 120% 80% at 60% 0%, oklch(0.155 0.012 245) 0%, oklch(0.125 0.006 240) 100%);
+    background-size: 192px 192px, 100% 100%;
+    background-repeat: repeat, no-repeat;
+  }
+}
+
 /* Dark mode enhancements — depth and texture */
 .dark {
   /* Subtle noise grain overlay for depth */

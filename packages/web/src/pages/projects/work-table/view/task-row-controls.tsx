@@ -2,25 +2,22 @@ import { useRef, useState } from 'react'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { useCreateTask, useUpdateTask, useDeleteTask } from '@/api/hooks'
+import { useUpdateTask, useDeleteTask } from '@/api/hooks'
 import type { GridRow } from '@/lib/work-table/types'
 
 interface TaskRowControlsProps {
   projectId: string
   row: GridRow
+  onAddTask?: () => void
 }
 
-export function TaskRowControls({ projectId, row }: TaskRowControlsProps) {
-  const createTask = useCreateTask(projectId)
+export function TaskRowControls({ projectId, row, onAddTask }: TaskRowControlsProps) {
   const updateTask = useUpdateTask(projectId)
   const deleteTask = useDeleteTask(projectId)
 
   const [renaming, setRenaming] = useState(false)
   const [nameVal, setNameVal] = useState(row.label)
-  const [addingTask, setAddingTask] = useState(false)
-  const [newTaskName, setNewTaskName] = useState('')
   const renameRef = useRef<HTMLInputElement>(null)
-  const newTaskRef = useRef<HTMLInputElement>(null)
 
   function commitRename() {
     const trimmed = nameVal.trim()
@@ -33,18 +30,6 @@ export function TaskRowControls({ projectId, row }: TaskRowControlsProps) {
       setNameVal(row.label)
     }
     setRenaming(false)
-  }
-
-  function commitAddTask() {
-    const trimmed = newTaskName.trim()
-    if (trimmed) {
-      createTask.mutate({ name: trimmed, parentTaskId: row.phaseId }, {
-        onSuccess: () => toast.success(`Tâche "${trimmed}" créée`),
-        onError: () => toast.error('Échec de la création'),
-      })
-    }
-    setNewTaskName('')
-    setAddingTask(false)
   }
 
   function handleDelete() {
@@ -69,41 +54,23 @@ export function TaskRowControls({ projectId, row }: TaskRowControlsProps) {
           if (e.key === 'Escape') { setNameVal(row.label); setRenaming(false) }
         }}
         onClick={(e) => e.stopPropagation()}
-        className="ml-1 w-32 rounded border border-sky-400 bg-white px-1 py-0.5 text-sm outline-none focus:ring-1 focus:ring-sky-400"
+        className="ml-1 w-32 rounded border border-sky-400 bg-background px-1 py-0.5 text-sm outline-none focus:ring-1 focus:ring-sky-400"
       />
     )
   }
 
   return (
-    <>
-      {addingTask && (
-        <input
-          ref={newTaskRef}
-          autoFocus
-          placeholder="Nom de la tâche…"
-          value={newTaskName}
-          onChange={(e) => setNewTaskName(e.target.value)}
-          onBlur={commitAddTask}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') newTaskRef.current?.blur()
-            if (e.key === 'Escape') { setNewTaskName(''); setAddingTask(false) }
-          }}
-          onClick={(e) => e.stopPropagation()}
-          className="ml-1 w-32 rounded border border-sky-400 bg-white px-1 py-0.5 text-xs outline-none focus:ring-1 focus:ring-sky-400"
-        />
+    <div className="flex items-center">
+      {row.kind === 'phase' && onAddTask && (
+        <button
+          title="Ajouter une tâche"
+          onClick={(e) => { e.stopPropagation(); onAddTask() }}
+          className="ml-2 inline-flex items-center justify-center rounded p-1 text-muted-foreground transition-colors hover:bg-border hover:text-foreground"
+        >
+          <Plus size={14} />
+        </button>
       )}
-
-      <div className="ml-1 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-        {row.kind === 'phase' && !addingTask && (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            title="Ajouter une tâche"
-            onClick={(e) => { e.stopPropagation(); setAddingTask(true) }}
-          >
-            <Plus size={12} />
-          </Button>
-        )}
+      <div className="absolute right-1 flex items-center gap-0.5 rounded-md border bg-card px-0.5 shadow-sm opacity-0 transition-opacity group-hover:opacity-100">
         <Button
           variant="ghost"
           size="icon-sm"
@@ -121,6 +88,6 @@ export function TaskRowControls({ projectId, row }: TaskRowControlsProps) {
           <Trash2 size={12} />
         </Button>
       </div>
-    </>
+    </div>
   )
 }

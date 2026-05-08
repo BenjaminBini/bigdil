@@ -31,10 +31,10 @@ export function SnapshotsTable({ periods, snapshots, contractValue, projectId, o
             <HeadCell label="Period #" />
             <HeadCell label="Dates" />
             <HeadCell label="Status" />
-            <HeadCell label="Snapshot Date" />
-            <HeadCell label="Contract Value" align="right" />
-            <HeadCell label="Margin Forecast" align="right" />
-            <HeadCell label="Produced Value (period)" align="right" />
+            <HeadCell label="Snapshot Date" wrap />
+            <HeadCell label="Contract Value" align="right" wrap />
+            <HeadCell label="Margin Forecast" align="right" wrap />
+            <HeadCell label="Produced Value (period)" align="right" wrap />
             <HeadCell label="Alerts" />
             <HeadCell label="Actions" align="right" />
           </TableRow>

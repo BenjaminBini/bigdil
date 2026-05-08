@@ -6,9 +6,9 @@ import { UtilizationTab } from './components/utilization-tab'
 
 export default function ReportsPage() {
   return (
-    <PageContainer size="full">
+    <>
       <PageHeader title="Rapports" subtitle="Analyse financière et taux d'occupation" />
-
+      <PageContainer size="full">
       <Tabs defaultValue="financial">
         <TabsList>
           <TabsTrigger value="financial">Financier</TabsTrigger>
@@ -21,6 +21,7 @@ export default function ReportsPage() {
           <UtilizationTab />
         </TabsContent>
       </Tabs>
-    </PageContainer>
+      </PageContainer>
+    </>
   )
 }

@@ -11,7 +11,7 @@ interface TextCaptionProps {
 /** Tiny muted caption — text-xs text-gray-400 */
 export function TextCaption({ children, className, center }: TextCaptionProps) {
   return (
-    <p className={cn('text-xs text-gray-400', center && 'text-center', className)}>
+    <p className={cn('text-xs text-muted-foreground', center && 'text-center', className)}>
       {children}
     </p>
   )

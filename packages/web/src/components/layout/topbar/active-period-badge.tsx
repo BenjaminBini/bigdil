@@ -39,7 +39,7 @@ export function ActivePeriodBadge({ projectId }: ActivePeriodBadgeProps) {
         </Badge>
       )}
       {frozenPeriod && (
-        <Badge className="border-gray-200 bg-gray-100 text-xs font-medium text-gray-600">
+        <Badge className="border-border bg-muted text-xs font-medium text-muted-foreground">
           W{frozenPeriod.periodNumber} Frozen
         </Badge>
       )}

@@ -11,7 +11,7 @@ function CardLink({ to, children }: { to: string; children: ReactNode }) {
   return (
     <Link
       to={to}
-      className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-accent"
+      className="flex items-center justify-between border-b p-3 transition-colors hover:bg-accent last:border-b-0"
     >
       {children}
     </Link>

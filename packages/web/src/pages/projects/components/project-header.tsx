@@ -35,7 +35,11 @@ function ProjectActionsRow({ children }: { children: ReactNode }) {
 }
 
 function KpiScrollRow({ children }: { children: ReactNode }) {
-  return <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-4">{children}</div>
+  return (
+    <div className="-mx-6 flex divide-x divide-border overflow-x-auto border-t">
+      {children}
+    </div>
+  )
 }
 
 export function ProjectHeader({ projectId, name, status, clientId, clientName, kpis, startDate, endDate }: ProjectHeaderProps) {

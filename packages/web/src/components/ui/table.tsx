@@ -12,11 +12,11 @@ const tableRowVariants = cva(
     variants: {
       variant: {
         default: "hover:bg-muted/50 data-[state=selected]:bg-muted",
-        header: "bg-gray-50",
-        interactive: "cursor-pointer hover:bg-gray-50",
-        subtotal: "bg-gray-50/50 font-medium",
-        total: "bg-gray-50 border-t-2 border-gray-200 font-semibold",
-        muted: "text-gray-400",
+        header: "bg-muted/50",
+        interactive: "cursor-pointer hover:bg-muted/50",
+        subtotal: "bg-muted/30 font-medium",
+        total: "bg-muted/50 border-t-2 border-border font-semibold",
+        muted: "text-muted-foreground",
       },
     },
     defaultVariants: {

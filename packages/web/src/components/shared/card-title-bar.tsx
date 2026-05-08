@@ -9,10 +9,10 @@ interface CardTitleBarProps {
 
 export function CardTitleBar({ title, subtitle, actions }: CardTitleBarProps) {
   return (
-    <div className="flex items-center justify-between border-b bg-gray-50 px-5 py-4">
+    <div className="flex items-center justify-between border-b bg-muted/50 px-5 py-4">
       <div>
-        <h2 className="font-semibold text-gray-900">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>}
+        <h2 className="font-semibold text-foreground">{title}</h2>
+        {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
     </div>
@@ -28,7 +28,7 @@ interface CardFooterBarProps {
 
 export function CardFooterBar({ children, className, align }: CardFooterBarProps) {
   return (
-    <div className={cn('flex items-center gap-4 border-t bg-gray-50 px-5 py-3 text-xs text-gray-500', align === 'end' && 'justify-end', className)}>
+    <div className={cn('flex items-center gap-4 border-t bg-muted/50 px-5 py-3 text-xs text-muted-foreground', align === 'end' && 'justify-end', className)}>
       {children}
     </div>
   )

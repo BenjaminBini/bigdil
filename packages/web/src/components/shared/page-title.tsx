@@ -8,12 +8,12 @@ interface PageTitleProps {
 
 export function PageTitle({ children, className }: PageTitleProps) {
   return (
-    <h1 className={cn('text-2xl font-bold tracking-tight text-gray-900', className)}>{children}</h1>
+    <h1 className={cn('text-2xl font-bold tracking-tight text-foreground', className)}>{children}</h1>
   )
 }
 
 export function SectionTitle({ children, className, spacing }: PageTitleProps & { spacing?: 'sm' }) {
   return (
-    <h2 className={cn('text-sm font-semibold text-gray-700', spacing === 'sm' && 'mb-2', className)}>{children}</h2>
+    <h2 className={cn('text-sm font-semibold text-foreground/80', spacing === 'sm' && 'mb-2', className)}>{children}</h2>
   )
 }

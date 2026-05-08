@@ -8,7 +8,7 @@ export function DetailPageBackground({
 }: {
   readonly children: ReactNode;
 }) {
-  return <div className="bg-gray-50">{children}</div>;
+  return <div className="bg-muted/30">{children}</div>;
 }
 
 /** White header strip with bottom border — contains title, tabs, optional KPIs */
@@ -18,7 +18,7 @@ export function DetailHeaderShell({
   readonly children: ReactNode;
 }) {
   return (
-    <div className="border-b bg-white">
+    <div className="border-b bg-card">
       <div className="mx-auto max-w-7xl space-y-4 px-6 pb-0 pt-6">
         {children}
       </div>
@@ -59,8 +59,8 @@ export function TabLink({
         cn(
           "whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors",
           isActive
-            ? "border-gray-900 text-gray-900"
-            : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+            ? "border-foreground text-foreground"
+            : "border-transparent text-muted-foreground hover:border-border hover:text-foreground/80",
         )
       }
     >

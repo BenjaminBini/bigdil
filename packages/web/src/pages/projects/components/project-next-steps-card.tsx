@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { NumberedList } from '@/components/shared/numbered-list'
 
 function BodyText({ children }: { children: ReactNode }) {
-  return <p className="text-sm leading-relaxed text-gray-700">{children}</p>
+  return <p className="text-sm leading-relaxed text-foreground/80">{children}</p>
 }
 
 const nextSteps = [

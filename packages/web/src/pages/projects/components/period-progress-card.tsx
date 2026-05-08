@@ -11,7 +11,7 @@ import type { ReactNode } from 'react'
 import type { Period } from '@/api/types'
 
 function PeriodLabel({ children }: { children: ReactNode }) {
-  return <p className="text-sm text-gray-900">{children}</p>
+  return <p className="text-sm text-foreground">{children}</p>
 }
 
 interface PeriodProgressCardProps {

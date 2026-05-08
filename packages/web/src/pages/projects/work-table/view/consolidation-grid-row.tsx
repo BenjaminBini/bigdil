@@ -27,8 +27,8 @@ export function ConsolidationGridRow({
   const detail = frozenData.get(row.id)
 
   return (
-    <tr className={cn('group', rowBg, row.kind === 'grand-total' && 'border-t-2 border-slate-300')}>
-      <StickyColumnCell className={cn('border-b border-slate-200', rowBg, row.kind === 'phase' && 'text-sm font-bold text-slate-800', row.kind === 'task' && 'font-semibold text-slate-700', row.kind === 'profile' && 'text-xs text-slate-500', row.kind === 'employee' && 'text-xs', row.kind === 'employee' && row.employeeId === null && 'italic text-slate-400', row.kind === 'employee' && row.employeeId !== null && 'text-slate-600', row.kind === 'grand-total' && 'font-bold text-slate-900')}>
+    <tr className={cn('group', rowBg, row.kind === 'grand-total' && 'border-t-2 border-border')}>
+      <StickyColumnCell className={cn('border-b border-border/70', rowBg, row.kind === 'phase' && 'text-sm font-bold text-foreground', row.kind === 'task' && 'font-semibold text-foreground/80', row.kind === 'profile' && 'text-xs text-muted-foreground', row.kind === 'employee' && 'text-xs', row.kind === 'employee' && row.employeeId === null && 'italic text-muted-foreground/70', row.kind === 'employee' && row.employeeId !== null && 'text-foreground/70', row.kind === 'grand-total' && 'font-bold text-foreground')}>
         <TreeRowLabel
           label={row.label}
           depth={row.depth}
@@ -59,16 +59,16 @@ export function ConsolidationGridRow({
           <td
             key={col.key}
             className={cn(
-              'border-b border-slate-100 px-1 py-1 text-right text-xs font-mono tabular-nums',
+              'border-b border-border/50 px-1 py-1 text-right text-xs font-mono tabular-nums',
               rowBg,
-              index === 7 || index === 13 ? 'border-r-2 border-r-slate-400' : index === 3 || index === 6 || index === 10 || index === 12 ? 'border-r-2 border-r-slate-300' : 'border-r border-r-slate-100',
-              isEmpty && 'text-slate-300',
-              !isEmpty && !isMarginCol && 'text-slate-700',
-              isMarginCol && !isEmpty && value! > 0 && 'text-emerald-700',
-              isMarginCol && !isEmpty && value! < 0 && 'text-red-600',
+              index === 7 || index === 13 ? 'border-r-2 border-r-border' : index === 3 || index === 6 || index === 10 || index === 12 ? 'border-r-2 border-r-border/70' : 'border-r border-r-border/40',
+              isEmpty && 'text-muted-foreground/40',
+              !isEmpty && !isMarginCol && 'text-foreground/80',
+              isMarginCol && !isEmpty && value! > 0 && 'text-emerald-600 dark:text-emerald-400',
+              isMarginCol && !isEmpty && value! < 0 && 'text-red-600 dark:text-red-400',
               row.kind === 'phase' && 'font-semibold',
               row.kind === 'grand-total' && 'font-bold',
-              row.kind === 'employee' && 'text-slate-500',
+              row.kind === 'employee' && 'text-muted-foreground',
             )}
             style={{ width: col.w, minWidth: col.w }}
           >

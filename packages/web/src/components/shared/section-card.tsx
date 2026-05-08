@@ -21,7 +21,7 @@ export function Toggle({ checked, onChange, label, children }: ToggleProps) {
         onClick={() => onChange(!checked)}
         className={[
           'relative mt-0.5 inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
-          checked ? 'bg-blue-600' : 'bg-gray-200',
+          checked ? 'bg-blue-600' : 'bg-muted',
         ].join(' ')}
       >
         <span
@@ -32,10 +32,10 @@ export function Toggle({ checked, onChange, label, children }: ToggleProps) {
         />
       </button>
       <div className="space-y-0.5">
-        <Label htmlFor={id} className="cursor-pointer text-sm font-medium text-gray-700">
+        <Label htmlFor={id} className="cursor-pointer text-sm font-medium text-foreground/80">
           {label}
         </Label>
-        {children && <p className="text-xs text-gray-500">{children}</p>}
+        {children && <p className="text-xs text-muted-foreground">{children}</p>}
       </div>
     </div>
   )
@@ -49,10 +49,10 @@ interface SectionCardProps {
 
 export function SectionCard({ title, description, children }: SectionCardProps) {
   return (
-    <div className="rounded-lg border bg-white shadow-xs">
+    <div className="border bg-card">
       <div className="border-b px-6 py-4">
-        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
-        {description && <p className="mt-0.5 text-sm text-gray-500">{description}</p>}
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
       </div>
       <div className="space-y-5 px-6 py-5">{children}</div>
     </div>
@@ -68,7 +68,7 @@ interface FieldRowProps {
 export function FieldRow({ label, htmlFor, children }: FieldRowProps) {
   return (
     <div className="flex items-center gap-4">
-      <Label htmlFor={htmlFor} className="w-56 shrink-0 text-sm font-medium text-gray-700">
+      <Label htmlFor={htmlFor} className="w-56 shrink-0 text-sm font-medium text-foreground/80">
         {label}
       </Label>
       <div className="max-w-xs flex-1">{children}</div>

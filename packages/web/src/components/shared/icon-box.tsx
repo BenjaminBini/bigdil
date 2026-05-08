@@ -15,7 +15,7 @@ const SIZE_CLASSES = {
 }
 
 const VARIANT_CLASSES = {
-  muted: 'bg-gray-100 text-gray-600',
+  muted: 'bg-muted text-muted-foreground',
   primary: 'bg-primary text-primary-foreground shadow-sm',
   accent: 'bg-blue-100 text-blue-600',
 }

@@ -21,7 +21,7 @@ export function Legend({ items, className }: LegendProps) {
       {items.map((item) => (
         <span key={item.label} className="flex items-center gap-1.5">
           {item.icon ? (
-            <span className="inline-flex size-3 items-center justify-center rounded-sm border border-slate-200 bg-slate-100">
+            <span className="inline-flex size-3 items-center justify-center rounded-sm border border-border bg-muted">
               {item.icon}
             </span>
           ) : item.swatch ? (

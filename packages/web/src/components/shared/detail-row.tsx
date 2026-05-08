@@ -15,12 +15,12 @@ export function DetailRow({ label, value, className }: DetailRowProps) {
   return (
     <div
       className={cn(
-        'flex items-baseline justify-between gap-4 border-b border-gray-100 py-2 last:border-0',
+        'flex items-baseline justify-between gap-4 border-b border-border/50 py-2 last:border-0',
         className,
       )}
     >
-      <span className="shrink-0 text-sm text-gray-500">{label}</span>
-      <span className="text-right text-sm font-medium text-gray-900">{value}</span>
+      <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
+      <span className="text-right text-sm font-medium text-foreground">{value}</span>
     </div>
   )
 }

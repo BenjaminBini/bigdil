@@ -31,7 +31,7 @@ export function SortableHead<K extends string>({
 
   return (
     <TableHead
-      className={`cursor-pointer select-none hover:text-gray-900 ${align === 'right' ? 'text-right' : ''}`}
+      className={`cursor-pointer select-none hover:text-foreground ${align === 'right' ? 'text-right' : ''}`}
       onClick={() => onSort(col)}
     >
       <span className={`inline-flex items-center ${align === 'right' ? 'w-full justify-end' : ''}`}>

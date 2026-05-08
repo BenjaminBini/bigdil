@@ -14,9 +14,9 @@ export function isRowVisible(
 }
 
 export function getRowBackground(row: GridRow): string {
-  if (row.kind === 'phase') return 'bg-slate-50'
-  if (row.kind === 'grand-total') return 'bg-slate-100'
-  if (row.kind === 'task') return 'bg-white'
-  if (row.kind === 'profile') return 'bg-[#f9fafb]'
-  return 'bg-white'
+  if (row.kind === 'phase') return 'bg-muted/50'
+  if (row.kind === 'grand-total') return 'bg-muted'
+  if (row.kind === 'task') return 'bg-card'
+  if (row.kind === 'profile') return 'bg-muted/20'
+  return 'bg-card'
 }

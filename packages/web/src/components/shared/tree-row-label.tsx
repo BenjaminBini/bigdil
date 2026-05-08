@@ -26,7 +26,7 @@ export function TreeRowLabel({
       {onToggle ? (
         <button
           onClick={onToggle}
-          className="shrink-0 text-slate-400 transition-colors hover:text-slate-700"
+          className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
         >
           {isExpanded ? (
             <ChevronDown className="size-3.5" />

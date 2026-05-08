@@ -12,7 +12,7 @@ export function Sidebar() {
   const navGroups = buildNavGroups(currentUserRole)
 
   return (
-    <aside className={cn('flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-200', collapsed ? 'w-14' : 'w-56')}>
+    <aside className={cn('textured flex flex-col border-r bg-sidebar text-sidebar-foreground transition-all duration-200', collapsed ? 'w-14' : 'w-56')}>
       <div className={cn('flex h-14 items-center border-b px-3', collapsed ? 'justify-center' : 'gap-2')}>
         <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
           <span className="text-xs font-bold">B</span>

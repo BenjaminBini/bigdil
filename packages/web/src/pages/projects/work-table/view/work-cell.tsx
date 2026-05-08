@@ -45,16 +45,16 @@ export function WorkCell({ days, periodStatus, rowKind, onSave }: WorkCellProps)
 
   const cellBg =
     periodStatus === 'FROZEN'
-      ? 'bg-slate-50'
+      ? 'bg-muted/30'
       : periodStatus === 'CONSOLIDATION'
-        ? 'bg-amber-50'
+        ? 'bg-amber-50 dark:bg-amber-950/30'
         : periodStatus === 'OPEN'
-          ? 'bg-sky-50'
-          : 'bg-white'
+          ? 'bg-sky-50 dark:bg-sky-950/30'
+          : 'bg-card'
 
   if (editing) {
     return (
-      <td className={cn('border-b border-r border-slate-100 p-0 min-w-[56px] w-14', cellBg)}>
+      <td className={cn('border-b border-r border-border/50 p-0 min-w-[56px] w-14', cellBg)}>
         <CompactInput
           ref={inputRef}
           type="text"
@@ -72,14 +72,14 @@ export function WorkCell({ days, periodStatus, rowKind, onSave }: WorkCellProps)
   return (
     <td
       className={cn(
-        'min-w-[56px] w-14 border-b border-r border-slate-100 px-1.5 py-1 text-right text-xs font-mono',
+        'min-w-[56px] w-14 border-b border-r border-border/50 px-1.5 py-1 text-right text-xs font-mono',
         cellBg,
-        rowKind === 'phase' && 'font-semibold text-slate-700',
-        rowKind === 'task' && 'font-medium text-slate-700',
-        rowKind === 'grand-total' && 'font-bold text-slate-900',
-        isEmpty && 'text-slate-300',
-        isEditable && 'cursor-pointer transition-colors hover:border hover:border-sky-300 hover:bg-sky-100',
-        (periodStatus === 'FROZEN' || periodStatus === 'CONSOLIDATION') && 'text-slate-500',
+        rowKind === 'phase' && 'font-semibold text-foreground/70',
+        rowKind === 'task' && 'font-medium text-foreground/70',
+        rowKind === 'grand-total' && 'font-bold text-foreground',
+        isEmpty && 'text-muted-foreground/40',
+        isEditable && 'cursor-pointer transition-colors hover:border hover:border-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/30',
+        (periodStatus === 'FROZEN' || periodStatus === 'CONSOLIDATION') && 'text-muted-foreground',
       )}
       onClick={handleClick}
       title={isEditable ? 'Click to edit' : undefined}

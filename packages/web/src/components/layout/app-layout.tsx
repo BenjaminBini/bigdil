@@ -28,7 +28,7 @@ export function AppLayout() {
           <Topbar />
 
           {/* Page content */}
-          <main className="flex-1 overflow-y-auto">
+          <main className="main-texture flex-1 overflow-y-auto">
             <Outlet />
           </main>
         </div>

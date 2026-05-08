@@ -36,7 +36,7 @@ export default function ProjectsPage() {
   })
 
   return (
-    <PageContainer>
+    <>
       <PageHeader
         variant="section"
         title="Projets"
@@ -48,7 +48,7 @@ export default function ProjectsPage() {
           </Button>
         }
       />
-
+      <PageContainer>
       <ProjectsFilters
         search={search}
         clientFilter={clientFilter}
@@ -63,6 +63,7 @@ export default function ProjectsPage() {
       <ProjectsTable rows={filteredRows} />
 
       <NewProjectDialog open={showNewProject} onClose={() => setShowNewProject(false)} />
-    </PageContainer>
+      </PageContainer>
+    </>
   )
 }

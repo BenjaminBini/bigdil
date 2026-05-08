@@ -17,7 +17,7 @@ export function GridTable({ children, className }: GridTableProps) {
 
 /** Sticky thead for scrollable grids */
 export function StickyThead({ children }: { children: ReactNode }) {
-  return <thead className="sticky top-0 z-10 bg-gray-50">{children}</thead>
+  return <thead className="sticky top-0 z-10 bg-muted">{children}</thead>
 }
 
 /** Horizontal scroll wrapper for wide tables */
