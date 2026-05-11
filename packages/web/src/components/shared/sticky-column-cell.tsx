@@ -6,6 +6,7 @@ type StickyColumnCellProps<T extends 'td' | 'th' = 'td'> = {
   width?: number
   zIndex?: number
   shadowColor?: string
+  noShadow?: boolean
 } & ComponentPropsWithoutRef<T>
 
 export function StickyColumnCell<T extends 'td' | 'th' = 'td'>({
@@ -13,6 +14,7 @@ export function StickyColumnCell<T extends 'td' | 'th' = 'td'>({
   width = 260,
   zIndex = 20,
   shadowColor = '#cbd5e1',
+  noShadow = false,
   className,
   style,
   children,
@@ -30,7 +32,7 @@ export function StickyColumnCell<T extends 'td' | 'th' = 'td'>({
         minWidth: width,
         width,
         zIndex,
-        boxShadow: `2px 0 0 0 ${shadowColor}`,
+        boxShadow: noShadow ? undefined : `2px 0 0 0 ${shadowColor}`,
         ...style,
       }}
       {...rest}

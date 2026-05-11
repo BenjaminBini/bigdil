@@ -4,8 +4,10 @@ import { cn } from '@/lib/utils'
 import { buildBreadcrumbs } from './topbar/breadcrumbs'
 import { ProjectSelector } from './topbar/project-selector'
 import { ActivePeriodBadge } from './topbar/active-period-badge'
+import { WindowControl } from './topbar/window-control'
 import { UserMenu } from './topbar/user-menu'
 import { ThemeToggle } from './topbar/theme-toggle'
+import { LanguageToggle } from './topbar/language-toggle'
 
 export interface TopbarProps {
   projectId?: string | null
@@ -64,6 +66,8 @@ export function Topbar({ projectId: projectIdProp, onProjectChange }: TopbarProp
 
       <div className="flex shrink-0 items-center gap-2">
         {projectId && <ActivePeriodBadge projectId={projectId} />}
+        <WindowControl />
+        <LanguageToggle />
         <ThemeToggle />
         <UserMenu />
       </div>
