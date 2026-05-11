@@ -1,466 +1,757 @@
 import { prisma } from './client.js'
-import type { PeriodStatus } from '../generated/prisma/enums.js'
 
-// ── Helper: generate periods ───────────────────
+// ── Minimal dev seed (post-refactor) ──
+// One client / project / task / quote, plus admin user, employee, profile,
+// an assignment slot, planned days for OPEN week, a DRAFT Timesheet for that
+// week with one TaskTimesheet, and the global timesheet window pointing at
+// 2026M5__2026W19.
 
-function generatePeriods(projectId: string, startDate: string, weeks: number, closedCount = 4) {
-  const result: Array<{
-    id: string; projectId: string; periodNumber: number;
-    startDate: string; endDate: string; status: PeriodStatus; frozenAt: string | null;
-  }> = []
-  const start = new Date(startDate)
-  for (let i = 0; i < weeks; i++) {
-    const pStart = new Date(start)
-    pStart.setDate(pStart.getDate() + i * 7)
-    const pEnd = new Date(pStart)
-    pEnd.setDate(pEnd.getDate() + 6)
-    let status: PeriodStatus = 'FUTURE'
-    let frozenAt: string | null = null
-    if (closedCount > 0 && i < closedCount - 1) {
-      status = 'FROZEN'
-      frozenAt = new Date(pEnd.getTime() + 2 * 86400000).toISOString().split('T')[0]
-    } else if (closedCount > 0 && i === closedCount - 1) {
-      status = 'CONSOLIDATION'
-    } else if (i === closedCount) {
-      status = 'OPEN'
-    }
-    result.push({
-      id: `${projectId}-per${i + 1}`,
-      projectId,
-      periodNumber: i + 1,
-      startDate: pStart.toISOString().split('T')[0],
-      endDate: pEnd.toISOString().split('T')[0],
-      status,
-      frozenAt,
-    })
-  }
-  return result
+const MONTH = '2026M5'
+const OPEN_WEEK = '2026W19'
+const OPEN_PERIOD_KEY = `${MONTH}__${OPEN_WEEK}`
+
+async function reset() {
+  // FK-safe order: leaves first, roots last.
+  await prisma.auditLog.deleteMany()
+  await prisma.snapshotMetrics.deleteMany()
+  await prisma.snapshotWorkRow.deleteMany()
+  await prisma.snapshotScopeLine.deleteMany()
+  await prisma.snapshot.deleteMany()
+  await prisma.monthFreeze.deleteMany()
+  await prisma.taskTimesheet.deleteMany()
+  await prisma.timesheet.deleteMany()
+  await prisma.plannedDay.deleteMany()
+  await prisma.assignmentSlot.deleteMany()
+  await prisma.profileTaskPeriodStart.deleteMany()
+  await prisma.quoteLine.deleteMany()
+  await prisma.quote.deleteMany()
+  await prisma.task.deleteMany()
+  await prisma.phase.deleteMany()
+  await prisma.project.deleteMany()
+  await prisma.employeeCostRate.deleteMany()
+  // User → Employee FK is nullable, but break the link first to be safe.
+  await prisma.user.updateMany({ data: { employeeId: null } })
+  await prisma.user.deleteMany()
+  await prisma.employee.deleteMany()
+  await prisma.profile.deleteMany()
+  await prisma.client.deleteMany()
+  await prisma.globalTimesheetWindow.deleteMany()
 }
 
-async function seed() {
-  console.log('Seeding database...')
+async function main() {
+  await reset()
 
-  // Truncate all tables in reverse dependency order
-  await prisma.$executeRaw`
-    TRUNCATE snapshot_metrics, snapshot_scope_lines, snapshot_work_rows, snapshots,
-             profile_task_period_starts, timesheet_entries, planned_days,
-             quote_lines, quotes, periods, tasks, projects,
-             employee_cost_rates, users, employees, profiles, clients
-    CASCADE
-  `
-
-  // ── Clients ──
-  await prisma.client.createMany({
-    data: [
-      { id: 'c1', name: 'TechVision SA', contactName: 'Antoine Lefèvre', contactEmail: 'a.lefevre@techvision.fr', address: '42 Avenue des Champs-Élysées, 75008 Paris' },
-    ],
+  const client = await prisma.client.create({
+    data: {
+      name: 'Acme Corp',
+      contactName: 'Jane Doe',
+      contactEmail: 'jane@acme.test',
+      addressLine1: '1 Rue de la Paix',
+      postalCode: '75002',
+      city: 'Paris',
+      country: 'FR',
+    },
   })
 
-  // ── Profiles ──
-  await prisma.profile.createMany({
-    data: [
-      { id: 'pr1', name: 'Senior Consultant', defaultSellRatePerDay: 1200, defaultCostRatePerDay: 550 },
-      { id: 'pr2', name: 'Consultant', defaultSellRatePerDay: 950, defaultCostRatePerDay: 420 },
-      { id: 'pr3', name: 'Junior Consultant', defaultSellRatePerDay: 700, defaultCostRatePerDay: 300 },
-      { id: 'pr4', name: 'Technical Architect', defaultSellRatePerDay: 1500, defaultCostRatePerDay: 700 },
-      { id: 'pr5', name: 'Project Manager', defaultSellRatePerDay: 1100, defaultCostRatePerDay: 520 },
-    ],
+  const profile = await prisma.profile.create({
+    data: {
+      name: 'Senior Consultant',
+      defaultSellRatePerDay: 1200,
+      defaultCostRatePerDay: 600,
+    },
   })
 
-  // ── Employees ──
-  await prisma.employee.createMany({
-    data: [
-      { id: 'e1', name: 'Jean Martin', active: true, currentCostRatePerDay: 560 },
-      { id: 'e2', name: 'Sophie Bernard', active: true, currentCostRatePerDay: 430 },
-      { id: 'e3', name: 'Thomas Petit', active: true, currentCostRatePerDay: 310 },
-      { id: 'e4', name: 'Paul Girard', active: true, currentCostRatePerDay: 700 },
-      { id: 'e5', name: 'Isabelle Faure', active: false, currentCostRatePerDay: 400 },
-      { id: 'e6', name: 'Marc Dubois', active: true, currentCostRatePerDay: 540 },
-      { id: 'e7', name: 'Camille Lefevre', active: true, currentCostRatePerDay: 410 },
-      { id: 'e8', name: 'Lucas Moreau', active: true, currentCostRatePerDay: 390 },
-      { id: 'e9', name: 'Emma Garnier', active: true, currentCostRatePerDay: 420 },
-      { id: 'e10', name: 'Hugo Blanc', active: true, currentCostRatePerDay: 380 },
-    ],
+  const employee = await prisma.employee.create({
+    data: {
+      name: 'Alice Martin',
+      active: true,
+      currentCostRatePerDay: 600,
+      costRates: {
+        create: {
+          validFrom: new Date('2026-01-01'),
+          costRatePerDay: 600,
+        },
+      },
+    },
   })
 
-  // ── Employee Cost Rates ──
-  await prisma.employeeCostRate.createMany({
-    data: [
-      { id: 'ecr1', employeeId: 'e1', validFrom: '2024-01-01', validTo: '2025-03-31', costRatePerDay: 520 },
-      { id: 'ecr2', employeeId: 'e1', validFrom: '2025-04-01', validTo: null, costRatePerDay: 560 },
-      { id: 'ecr3', employeeId: 'e2', validFrom: '2024-01-01', validTo: null, costRatePerDay: 430 },
-      { id: 'ecr4', employeeId: 'e3', validFrom: '2024-06-01', validTo: null, costRatePerDay: 310 },
-      { id: 'ecr5', employeeId: 'e4', validFrom: '2023-01-01', validTo: null, costRatePerDay: 700 },
-      { id: 'ecr6', employeeId: 'e5', validFrom: '2023-01-01', validTo: '2025-09-30', costRatePerDay: 400 },
-      { id: 'ecr7', employeeId: 'e6', validFrom: '2024-06-01', validTo: null, costRatePerDay: 540 },
-      { id: 'ecr8', employeeId: 'e7', validFrom: '2025-01-01', validTo: null, costRatePerDay: 410 },
-      { id: 'ecr9', employeeId: 'e8', validFrom: '2025-03-01', validTo: null, costRatePerDay: 390 },
-      { id: 'ecr10', employeeId: 'e9', validFrom: '2024-09-01', validTo: null, costRatePerDay: 420 },
-      { id: 'ecr11', employeeId: 'e10', validFrom: '2025-06-01', validTo: null, costRatePerDay: 380 },
-    ],
+  const adminUser = await prisma.user.create({
+    data: {
+      email: 'admin@bigdil.test',
+      role: 'ADMIN',
+      name: 'Admin User',
+      employeeId: employee.id,
+    },
   })
 
-  // ── Users ──
-  await prisma.user.createMany({
-    data: [
-      { id: 'u1', email: 'marie.dupont@acme-consulting.fr', role: 'PM', name: 'Marie Dupont', employeeId: null },
-      { id: 'u2', email: 'jean.martin@acme-consulting.fr', role: 'CONSULTANT', name: 'Jean Martin', employeeId: 'e1' },
-      { id: 'u3', email: 'sophie.bernard@acme-consulting.fr', role: 'CONSULTANT', name: 'Sophie Bernard', employeeId: 'e2' },
-      { id: 'u4', email: 'thomas.petit@acme-consulting.fr', role: 'CONSULTANT', name: 'Thomas Petit', employeeId: 'e3' },
-      { id: 'u5', email: 'claire.moreau@acme-consulting.fr', role: 'ADMIN', name: 'Claire Moreau', employeeId: null },
-      { id: 'u6', email: 'luc.leroy@acme-consulting.fr', role: 'FINANCE', name: 'Luc Leroy', employeeId: null },
-      { id: 'u7', email: 'nathalie.roux@acme-consulting.fr', role: 'EXEC', name: 'Nathalie Roux', employeeId: null },
-      { id: 'u8', email: 'paul.girard@acme-consulting.fr', role: 'CONSULTANT', name: 'Paul Girard', employeeId: 'e4' },
-    ],
+  const project = await prisma.project.create({
+    data: {
+      clientId: client.id,
+      name: 'Acme Migration',
+      currency: 'EUR',
+      startDate: new Date('2026-04-01'),
+      endDate: new Date('2026-08-31'),
+    },
   })
 
-  // ── Projects ──
-  await prisma.project.createMany({
-    data: [
-      { id: 'p1', clientId: 'c1', name: 'ERP Migration', currency: 'EUR', status: 'IN_PROGRESS', startDate: '2026-01-05', endDate: '2026-04-27' },
-      { id: 'p2', clientId: 'c1', name: 'Digital Workplace Rollout', currency: 'EUR', status: 'TO_PLAN', startDate: null, endDate: null },
-      { id: 'p3', clientId: 'c1', name: 'Cloud Infrastructure Setup', currency: 'EUR', status: 'IN_PROGRESS', startDate: '2026-01-19', endDate: '2026-03-30' },
-    ],
+  const phase = await prisma.phase.create({
+    data: {
+      projectId: project.id,
+      name: 'Discovery phase',
+      sortOrder: 1,
+    },
   })
 
-  // ── Tasks — Project 1 ──
-  await prisma.task.createMany({
-    data: [
-      { id: 't1', projectId: 'p1', parentTaskId: null, name: 'Phase 1 — Analysis', sortOrder: 1, status: 'done' },
-      { id: 't1a', projectId: 'p1', parentTaskId: 't1', name: 'Requirements Gathering', sortOrder: 1, status: 'done' },
-      { id: 't1b', projectId: 'p1', parentTaskId: 't1', name: 'Gap Analysis', sortOrder: 2, status: 'done' },
-      { id: 't2', projectId: 'p1', parentTaskId: null, name: 'Phase 2 — Design', sortOrder: 2, status: 'active' },
-      { id: 't2a', projectId: 'p1', parentTaskId: 't2', name: 'Solution Architecture', sortOrder: 1, status: 'active' },
-      { id: 't2b', projectId: 'p1', parentTaskId: 't2', name: 'Data Migration Design', sortOrder: 2, status: 'active' },
-      { id: 't2c', projectId: 'p1', parentTaskId: 't2', name: 'Integration Specifications', sortOrder: 3, status: 'planned' },
-      { id: 't3', projectId: 'p1', parentTaskId: null, name: 'Phase 3 — Implementation', sortOrder: 3, status: 'planned' },
-      { id: 't3a', projectId: 'p1', parentTaskId: 't3', name: 'Core Module Development', sortOrder: 1, status: 'planned' },
-      { id: 't3b', projectId: 'p1', parentTaskId: 't3', name: 'Data Migration Execution', sortOrder: 2, status: 'planned' },
-      { id: 't3c', projectId: 'p1', parentTaskId: 't3', name: 'Integration Development', sortOrder: 3, status: 'planned' },
-      { id: 't4', projectId: 'p1', parentTaskId: null, name: 'Phase 4 — Testing & Go-Live', sortOrder: 4, status: 'planned' },
-      { id: 't4a', projectId: 'p1', parentTaskId: 't4', name: 'UAT', sortOrder: 1, status: 'planned' },
-      { id: 't4b', projectId: 'p1', parentTaskId: 't4', name: 'Go-Live Support', sortOrder: 2, status: 'planned' },
-      { id: 't5', projectId: 'p1', parentTaskId: null, name: 'Project Management', sortOrder: 5, status: 'active' },
-    ],
+  const task = await prisma.task.create({
+    data: {
+      phaseId: phase.id,
+      name: 'Initial workshops',
+      sortOrder: 1,
+      status: 'active',
+    },
   })
 
-  // ── Tasks — Project 2 ──
-  await prisma.task.createMany({
-    data: [
-      { id: 't2_1', projectId: 'p2', parentTaskId: null, name: 'Phase 1 — Assessment', sortOrder: 1, status: 'planned' },
-      { id: 't2_1a', projectId: 'p2', parentTaskId: 't2_1', name: 'Current State Audit', sortOrder: 1, status: 'planned' },
-      { id: 't2_1b', projectId: 'p2', parentTaskId: 't2_1', name: 'User Needs Analysis', sortOrder: 2, status: 'planned' },
-      { id: 't2_2', projectId: 'p2', parentTaskId: null, name: 'Phase 2 — Deployment', sortOrder: 2, status: 'planned' },
-      { id: 't2_2a', projectId: 'p2', parentTaskId: 't2_2', name: 'Platform Configuration', sortOrder: 1, status: 'planned' },
-      { id: 't2_2b', projectId: 'p2', parentTaskId: 't2_2', name: 'User Training', sortOrder: 2, status: 'planned' },
-      { id: 't2_3', projectId: 'p2', parentTaskId: null, name: 'Project Management', sortOrder: 3, status: 'planned' },
-    ],
+  const quote = await prisma.quote.create({
+    data: {
+      projectId: project.id,
+      title: 'Acme Migration — Phase 1',
+      status: 'VALIDATED',
+      sentAt: new Date('2026-03-25'),
+      effectiveAt: new Date('2026-04-01'),
+      validatedAt: new Date('2026-04-01'),
+    },
   })
 
-  // ── Tasks — Project 3 ──
-  await prisma.task.createMany({
-    data: [
-      { id: 't3_1', projectId: 'p3', parentTaskId: null, name: 'Phase 1 — Delivery', sortOrder: 1, status: 'active' },
-      { id: 't3_1a', projectId: 'p3', parentTaskId: 't3_1', name: 'Development & Management', sortOrder: 1, status: 'active' },
-    ],
+  await prisma.quoteLine.create({
+    data: {
+      quoteId: quote.id,
+      taskId: task.id,
+      profileId: profile.id,
+      days: 20,
+      sellRatePerDay: 1200,
+      costRateAssumptionPerDay: 600,
+      revenueAmount: 24000,
+      budgetCostAmount: 12000,
+    },
   })
 
-  // ── Periods — Project 1 (16 weeks) ──
-  const p1Periods = generatePeriods('p1', '2026-01-05', 16)
-  await prisma.period.createMany({ data: p1Periods })
-
-  // ── Periods — Project 3 (10 weeks, 5 closed) ──
-  const p3Periods = generatePeriods('p3', '2026-01-19', 10, 5)
-  await prisma.period.createMany({ data: p3Periods })
-
-  // ── Quotes — Project 1 ──
-  await prisma.quote.createMany({
-    data: [
-      { id: 'q1', projectId: 'p1', title: 'Initial Scope — ERP Migration', status: 'VALIDATED', effectiveAt: '2025-12-15', validatedAt: '2025-12-20' },
-      { id: 'q2', projectId: 'p1', title: 'Change Order #1 — Extended Integration', status: 'VALIDATED', effectiveAt: '2026-01-26', validatedAt: '2026-01-28' },
-    ],
+  await prisma.profileTaskPeriodStart.create({
+    data: {
+      taskId: task.id,
+      profileId: profile.id,
+      periodKey: MONTH,
+      remainingAtStart: 10,
+      soldAtStart: 20,
+    },
   })
+
+  const slot = await prisma.assignmentSlot.create({
+    data: {
+      projectId: project.id,
+      taskId: task.id,
+      profileId: profile.id,
+      employeeId: employee.id,
+    },
+  })
+
+  await prisma.plannedDay.create({
+    data: {
+      assignmentSlotId: slot.id,
+      periodKey: OPEN_PERIOD_KEY,
+      days: 10,
+    },
+  })
+
+  const timesheet = await prisma.timesheet.create({
+    data: {
+      employeeId: employee.id,
+      periodKey: OPEN_PERIOD_KEY,
+      status: 'DRAFT',
+    },
+  })
+
+  await prisma.taskTimesheet.create({
+    data: {
+      timesheetId: timesheet.id,
+      assignmentSlotId: slot.id,
+      workDate: new Date('2026-05-05'),
+      days: 1,
+    },
+  })
+
+  // ── Second project: Nimbus Platform Rebuild ─────────────────────────────
+  // Richer fixture: multiple phases (Discovery, Build, Launch), multiple
+  // tasks per phase, multiple profiles, multiple employees, a SENT quote
+  // (under client review) and a VALIDATED quote (contractual baseline),
+  // assignments and planned days spanning several weeks.
+
+  const clientNimbus = await prisma.client.create({
+    data: {
+      name: 'Nimbus Industries',
+      contactName: 'Marc Lefèvre',
+      contactEmail: 'marc.lefevre@nimbus.test',
+      addressLine1: '42 Avenue de la République',
+      postalCode: '69003',
+      city: 'Lyon',
+      country: 'FR',
+    },
+  })
+
+  const profileTechLead = await prisma.profile.create({
+    data: { name: 'Tech Lead', defaultSellRatePerDay: 1400, defaultCostRatePerDay: 750 },
+  })
+  const profileDev = await prisma.profile.create({
+    data: { name: 'Developer', defaultSellRatePerDay: 950, defaultCostRatePerDay: 480 },
+  })
+  const profilePM = await prisma.profile.create({
+    data: { name: 'Project Manager', defaultSellRatePerDay: 1100, defaultCostRatePerDay: 580 },
+  })
+
+  const empBob = await prisma.employee.create({
+    data: {
+      name: 'Bob Durand',
+      active: true,
+      currentCostRatePerDay: 750,
+      costRates: { create: { validFrom: new Date('2026-01-01'), costRatePerDay: 750 } },
+    },
+  })
+  const empClara = await prisma.employee.create({
+    data: {
+      name: 'Clara Nguyen',
+      active: true,
+      currentCostRatePerDay: 480,
+      costRates: { create: { validFrom: new Date('2026-01-01'), costRatePerDay: 480 } },
+    },
+  })
+  const empDaniel = await prisma.employee.create({
+    data: {
+      name: 'Daniel Rossi',
+      active: true,
+      currentCostRatePerDay: 580,
+      costRates: { create: { validFrom: new Date('2026-01-01'), costRatePerDay: 580 } },
+    },
+  })
+
+  const projectNimbus = await prisma.project.create({
+    data: {
+      clientId: clientNimbus.id,
+      name: 'Nimbus Platform Rebuild',
+      currency: 'EUR',
+      startDate: new Date('2026-03-01'),
+      endDate: new Date('2026-10-31'),
+    },
+  })
+
+  const phaseDiscovery = await prisma.phase.create({
+    data: { projectId: projectNimbus.id, name: 'Discovery', sortOrder: 1 },
+  })
+  const phaseBuild = await prisma.phase.create({
+    data: { projectId: projectNimbus.id, name: 'Build', sortOrder: 2 },
+  })
+  const phaseLaunch = await prisma.phase.create({
+    data: { projectId: projectNimbus.id, name: 'Launch', sortOrder: 3 },
+  })
+
+  const tDiscWorkshops = await prisma.task.create({
+    data: { phaseId: phaseDiscovery.id, name: 'Stakeholder workshops', sortOrder: 1, status: 'done' },
+  })
+  const tDiscArch = await prisma.task.create({
+    data: { phaseId: phaseDiscovery.id, name: 'Target architecture', sortOrder: 2, status: 'active' },
+  })
+  const tBuildApi = await prisma.task.create({
+    data: { phaseId: phaseBuild.id, name: 'API platform', sortOrder: 1, status: 'active' },
+  })
+  const tBuildFront = await prisma.task.create({
+    data: { phaseId: phaseBuild.id, name: 'Web frontend', sortOrder: 2, status: 'planned' },
+  })
+  const tBuildData = await prisma.task.create({
+    data: { phaseId: phaseBuild.id, name: 'Data migration', sortOrder: 3, status: 'planned' },
+  })
+  const tLaunchUat = await prisma.task.create({
+    data: { phaseId: phaseLaunch.id, name: 'UAT & training', sortOrder: 1, status: 'planned' },
+  })
+  const tLaunchCutover = await prisma.task.create({
+    data: { phaseId: phaseLaunch.id, name: 'Production cutover', sortOrder: 2, status: 'planned' },
+  })
+
+  // VALIDATED baseline quote — contractual reference.
+  const quoteBaseline = await prisma.quote.create({
+    data: {
+      projectId: projectNimbus.id,
+      title: 'Nimbus Rebuild — Baseline',
+      status: 'VALIDATED',
+      sentAt: new Date('2026-02-20'),
+      effectiveAt: new Date('2026-03-01'),
+      validatedAt: new Date('2026-02-28'),
+    },
+  })
+
   await prisma.quoteLine.createMany({
     data: [
-      { id: 'ql1', quoteId: 'q1', taskId: 't1a', profileId: 'pr1', days: 5, sellRatePerDay: 1200, costRateAssumptionPerDay: 550, revenueAmount: 6000, budgetCostAmount: 2750 },
-      { id: 'ql2', quoteId: 'q1', taskId: 't1b', profileId: 'pr1', days: 5, sellRatePerDay: 1200, costRateAssumptionPerDay: 550, revenueAmount: 6000, budgetCostAmount: 2750 },
-      { id: 'ql3', quoteId: 'q1', taskId: 't1b', profileId: 'pr2', days: 3, sellRatePerDay: 950, costRateAssumptionPerDay: 420, revenueAmount: 2850, budgetCostAmount: 1260 },
-      { id: 'ql4', quoteId: 'q1', taskId: 't2a', profileId: 'pr4', days: 8, sellRatePerDay: 1500, costRateAssumptionPerDay: 700, revenueAmount: 12000, budgetCostAmount: 5600 },
-      { id: 'ql5', quoteId: 'q1', taskId: 't2b', profileId: 'pr1', days: 6, sellRatePerDay: 1200, costRateAssumptionPerDay: 550, revenueAmount: 7200, budgetCostAmount: 3300 },
-      { id: 'ql6', quoteId: 'q1', taskId: 't2c', profileId: 'pr2', days: 5, sellRatePerDay: 950, costRateAssumptionPerDay: 420, revenueAmount: 4750, budgetCostAmount: 2100 },
-      { id: 'ql7', quoteId: 'q1', taskId: 't3a', profileId: 'pr1', days: 15, sellRatePerDay: 1200, costRateAssumptionPerDay: 550, revenueAmount: 18000, budgetCostAmount: 8250 },
-      { id: 'ql8', quoteId: 'q1', taskId: 't3a', profileId: 'pr2', days: 20, sellRatePerDay: 950, costRateAssumptionPerDay: 420, revenueAmount: 19000, budgetCostAmount: 8400 },
-      { id: 'ql9', quoteId: 'q1', taskId: 't3b', profileId: 'pr2', days: 10, sellRatePerDay: 950, costRateAssumptionPerDay: 420, revenueAmount: 9500, budgetCostAmount: 4200 },
-      { id: 'ql10', quoteId: 'q1', taskId: 't3c', profileId: 'pr1', days: 8, sellRatePerDay: 1200, costRateAssumptionPerDay: 550, revenueAmount: 9600, budgetCostAmount: 4400 },
-      { id: 'ql11', quoteId: 'q1', taskId: 't4a', profileId: 'pr2', days: 8, sellRatePerDay: 950, costRateAssumptionPerDay: 420, revenueAmount: 7600, budgetCostAmount: 3360 },
-      { id: 'ql12', quoteId: 'q1', taskId: 't4b', profileId: 'pr3', days: 5, sellRatePerDay: 700, costRateAssumptionPerDay: 300, revenueAmount: 3500, budgetCostAmount: 1500 },
-      { id: 'ql13', quoteId: 'q1', taskId: 't5', profileId: 'pr5', days: 10, sellRatePerDay: 1100, costRateAssumptionPerDay: 520, revenueAmount: 11000, budgetCostAmount: 5200 },
-      // Change Order #1
-      { id: 'ql14', quoteId: 'q2', taskId: 't3c', profileId: 'pr1', days: 5, sellRatePerDay: 1200, costRateAssumptionPerDay: 550, revenueAmount: 6000, budgetCostAmount: 2750 },
-      { id: 'ql15', quoteId: 'q2', taskId: 't3a', profileId: 'pr2', days: 5, sellRatePerDay: 950, costRateAssumptionPerDay: 420, revenueAmount: 4750, budgetCostAmount: 2100 },
+      { quoteId: quoteBaseline.id, taskId: tDiscWorkshops.id, profileId: profilePM.id, days: 8, sellRatePerDay: 1100, costRateAssumptionPerDay: 580, revenueAmount: 8800, budgetCostAmount: 4640 },
+      { quoteId: quoteBaseline.id, taskId: tDiscArch.id, profileId: profileTechLead.id, days: 12, sellRatePerDay: 1400, costRateAssumptionPerDay: 750, revenueAmount: 16800, budgetCostAmount: 9000 },
+      { quoteId: quoteBaseline.id, taskId: tBuildApi.id, profileId: profileTechLead.id, days: 25, sellRatePerDay: 1400, costRateAssumptionPerDay: 750, revenueAmount: 35000, budgetCostAmount: 18750 },
+      { quoteId: quoteBaseline.id, taskId: tBuildApi.id, profileId: profileDev.id, days: 60, sellRatePerDay: 950, costRateAssumptionPerDay: 480, revenueAmount: 57000, budgetCostAmount: 28800 },
+      { quoteId: quoteBaseline.id, taskId: tBuildFront.id, profileId: profileDev.id, days: 45, sellRatePerDay: 950, costRateAssumptionPerDay: 480, revenueAmount: 42750, budgetCostAmount: 21600 },
+      { quoteId: quoteBaseline.id, taskId: tBuildData.id, profileId: profileDev.id, days: 20, sellRatePerDay: 950, costRateAssumptionPerDay: 480, revenueAmount: 19000, budgetCostAmount: 9600 },
+      { quoteId: quoteBaseline.id, taskId: tLaunchUat.id, profileId: profilePM.id, days: 15, sellRatePerDay: 1100, costRateAssumptionPerDay: 580, revenueAmount: 16500, budgetCostAmount: 8700 },
+      { quoteId: quoteBaseline.id, taskId: tLaunchCutover.id, profileId: profileTechLead.id, days: 6, sellRatePerDay: 1400, costRateAssumptionPerDay: 750, revenueAmount: 8400, budgetCostAmount: 4500 },
     ],
   })
 
-  // ── Quotes — Project 2 ──
-  await prisma.quote.createMany({
-    data: [
-      { id: 'q3', projectId: 'p2', title: 'Initial Scope — Digital Workplace', status: 'VALIDATED', effectiveAt: '2026-02-20', validatedAt: '2026-02-25' },
-    ],
+  // VALIDATED change-order quote (avenant) — signed but pre-effective until
+  // May 15. Work-table should hide it before effectiveAt; consolidation banner
+  // surfaces it as upcoming.
+  const quoteAvenant = await prisma.quote.create({
+    data: {
+      projectId: projectNimbus.id,
+      title: 'Nimbus Rebuild — Avenant SSO',
+      status: 'VALIDATED',
+      sentAt: new Date('2026-04-22'),
+      validatedAt: new Date('2026-05-02'),
+      effectiveAt: new Date('2026-05-15'),
+    },
   })
+
   await prisma.quoteLine.createMany({
     data: [
-      { id: 'ql20', quoteId: 'q3', taskId: 't2_1a', profileId: 'pr1', days: 4, sellRatePerDay: 1200, costRateAssumptionPerDay: 550, revenueAmount: 4800, budgetCostAmount: 2200 },
-      { id: 'ql21', quoteId: 'q3', taskId: 't2_1b', profileId: 'pr2', days: 5, sellRatePerDay: 950, costRateAssumptionPerDay: 420, revenueAmount: 4750, budgetCostAmount: 2100 },
-      { id: 'ql22', quoteId: 'q3', taskId: 't2_2a', profileId: 'pr1', days: 8, sellRatePerDay: 1200, costRateAssumptionPerDay: 550, revenueAmount: 9600, budgetCostAmount: 4400 },
-      { id: 'ql23', quoteId: 'q3', taskId: 't2_2b', profileId: 'pr2', days: 6, sellRatePerDay: 950, costRateAssumptionPerDay: 420, revenueAmount: 5700, budgetCostAmount: 2520 },
-      { id: 'ql24', quoteId: 'q3', taskId: 't2_3', profileId: 'pr5', days: 5, sellRatePerDay: 1100, costRateAssumptionPerDay: 520, revenueAmount: 5500, budgetCostAmount: 2600 },
+      { quoteId: quoteAvenant.id, taskId: tBuildApi.id, profileId: profileTechLead.id, days: 5, sellRatePerDay: 1400, costRateAssumptionPerDay: 750, revenueAmount: 7000, budgetCostAmount: 3750 },
+      { quoteId: quoteAvenant.id, taskId: tBuildFront.id, profileId: profileDev.id, days: 10, sellRatePerDay: 950, costRateAssumptionPerDay: 480, revenueAmount: 9500, budgetCostAmount: 4800 },
     ],
   })
 
-  // ── Quotes — Project 3 ──
-  await prisma.quote.createMany({
-    data: [
-      { id: 'q4', projectId: 'p3', title: 'Initial Scope — Cloud Infrastructure', status: 'VALIDATED', effectiveAt: '2026-01-10', validatedAt: '2026-01-15' },
-    ],
-  })
-  await prisma.quoteLine.createMany({
-    data: [
-      { id: 'ql30', quoteId: 'q4', taskId: 't3_1a', profileId: 'pr5', days: 10, sellRatePerDay: 1100, costRateAssumptionPerDay: 520, revenueAmount: 11000, budgetCostAmount: 5200 },
-      { id: 'ql31', quoteId: 'q4', taskId: 't3_1a', profileId: 'pr2', days: 60, sellRatePerDay: 950, costRateAssumptionPerDay: 420, revenueAmount: 57000, budgetCostAmount: 25200 },
-    ],
+  // DRAFT quote — being prepared internally.
+  await prisma.quote.create({
+    data: {
+      projectId: projectNimbus.id,
+      title: 'Nimbus Rebuild — Run & support',
+      status: 'DRAFT',
+    },
   })
 
-  // ── Planned Days — Project 1 Work Table ──
-  let pdId = 0
-  const pd = (taskId: string, profileId: string, employeeId: string | null, periodNum: number, days: number) => {
-    pdId++
-    return {
-      id: `pd${pdId}`, projectId: 'p1', periodId: `p1-per${periodNum}`,
-      taskId, profileId, employeeId, days,
-    }
-  }
+  // Assignment slots — Bob on tech-lead tasks, Clara on dev tasks, Daniel on PM tasks.
+  const slotBobArch = await prisma.assignmentSlot.create({
+    data: { projectId: projectNimbus.id, taskId: tDiscArch.id, profileId: profileTechLead.id, employeeId: empBob.id },
+  })
+  const slotBobApi = await prisma.assignmentSlot.create({
+    data: { projectId: projectNimbus.id, taskId: tBuildApi.id, profileId: profileTechLead.id, employeeId: empBob.id },
+  })
+  const slotClaraApi = await prisma.assignmentSlot.create({
+    data: { projectId: projectNimbus.id, taskId: tBuildApi.id, profileId: profileDev.id, employeeId: empClara.id },
+  })
+  const slotClaraFront = await prisma.assignmentSlot.create({
+    data: { projectId: projectNimbus.id, taskId: tBuildFront.id, profileId: profileDev.id, employeeId: empClara.id },
+  })
+  const slotDanielWorkshops = await prisma.assignmentSlot.create({
+    data: { projectId: projectNimbus.id, taskId: tDiscWorkshops.id, profileId: profilePM.id, employeeId: empDaniel.id },
+  })
+  const slotDanielUat = await prisma.assignmentSlot.create({
+    data: { projectId: projectNimbus.id, taskId: tLaunchUat.id, profileId: profilePM.id, employeeId: empDaniel.id },
+  })
+
+  // Planned days across recent + upcoming weeks. PeriodKey is monthCode__weekCode.
+  const W18 = '2026M5__2026W18'
+  const W19 = '2026M5__2026W19'
+  const W20 = '2026M5__2026W20'
+  const W21 = '2026M5__2026W21'
 
   await prisma.plannedDay.createMany({
     data: [
-      // Phase 1 Analysis
-      pd('t1a', 'pr1', 'e1', 1, 2.5), pd('t1a', 'pr1', 'e1', 2, 2.5),
-      pd('t1b', 'pr1', 'e1', 2, 2.5), pd('t1b', 'pr1', 'e1', 3, 2.5),
-      pd('t1b', 'pr2', 'e2', 2, 1.5), pd('t1b', 'pr2', 'e2', 3, 1.5),
-      // Phase 2 Design
-      pd('t2a', 'pr4', 'e4', 3, 2), pd('t2a', 'pr4', 'e4', 4, 2.5),
-      pd('t2a', 'pr4', 'e4', 5, 2), pd('t2a', 'pr4', 'e4', 6, 1.5),
-      pd('t2b', 'pr1', 'e1', 4, 3), pd('t2b', 'pr1', 'e1', 5, 3),
-      pd('t2c', 'pr2', 'e2', 5, 2.5), pd('t2c', 'pr2', 'e2', 6, 2.5),
-      // Phase 3 Implementation
-      pd('t3a', 'pr1', 'e1', 7, 3), pd('t3a', 'pr1', 'e1', 8, 3),
-      pd('t3a', 'pr1', 'e1', 9, 3), pd('t3a', 'pr1', 'e1', 10, 3), pd('t3a', 'pr1', 'e1', 11, 3),
-      pd('t3a', 'pr2', 'e2', 7, 4), pd('t3a', 'pr2', 'e2', 8, 4),
-      pd('t3a', 'pr2', 'e2', 9, 4), pd('t3a', 'pr2', 'e2', 10, 4), pd('t3a', 'pr2', 'e2', 11, 4),
-      pd('t3a', 'pr2', 'e3', 9, 2.5), pd('t3a', 'pr2', 'e3', 10, 2.5),
-      pd('t3b', 'pr2', 'e2', 11, 2.5), pd('t3b', 'pr2', 'e2', 12, 4), pd('t3b', 'pr2', 'e2', 13, 3.5),
-      pd('t3c', 'pr1', 'e1', 12, 3), pd('t3c', 'pr1', 'e1', 13, 3), pd('t3c', 'pr1', 'e1', 14, 3.5),
-      pd('t3c', 'pr1', null, 14, 2), pd('t3c', 'pr1', null, 15, 1.5),
-      // Phase 4 Testing
-      pd('t4a', 'pr2', 'e2', 14, 3), pd('t4a', 'pr2', 'e2', 15, 3), pd('t4a', 'pr2', 'e2', 16, 2),
-      pd('t4b', 'pr3', 'e3', 15, 2.5), pd('t4b', 'pr3', 'e3', 16, 2.5),
-      // PM
-      pd('t5', 'pr5', null, 1, 0.5), pd('t5', 'pr5', null, 2, 0.5), pd('t5', 'pr5', null, 3, 0.5),
-      pd('t5', 'pr5', null, 4, 0.75), pd('t5', 'pr5', null, 5, 0.75), pd('t5', 'pr5', null, 6, 0.75),
-      pd('t5', 'pr5', null, 7, 0.75), pd('t5', 'pr5', null, 8, 0.75),
-      pd('t5', 'pr5', null, 9, 0.5), pd('t5', 'pr5', null, 10, 0.5), pd('t5', 'pr5', null, 11, 0.5),
-      pd('t5', 'pr5', null, 12, 0.5), pd('t5', 'pr5', null, 13, 0.5),
-      pd('t5', 'pr5', null, 14, 0.5), pd('t5', 'pr5', null, 15, 0.5), pd('t5', 'pr5', null, 16, 0.5),
+      // Bob — tech lead across arch + API
+      { assignmentSlotId: slotBobArch.id, periodKey: W18, days: 2 },
+      { assignmentSlotId: slotBobApi.id, periodKey: W19, days: 4 },
+      { assignmentSlotId: slotBobApi.id, periodKey: W20, days: 5 },
+      { assignmentSlotId: slotBobApi.id, periodKey: W21, days: 3 },
+      // Clara — dev across API + frontend
+      { assignmentSlotId: slotClaraApi.id, periodKey: W18, days: 5 },
+      { assignmentSlotId: slotClaraApi.id, periodKey: W19, days: 5 },
+      { assignmentSlotId: slotClaraFront.id, periodKey: W20, days: 4 },
+      { assignmentSlotId: slotClaraFront.id, periodKey: W21, days: 5 },
+      // Daniel — PM across workshops + UAT
+      { assignmentSlotId: slotDanielWorkshops.id, periodKey: W18, days: 1 },
+      { assignmentSlotId: slotDanielUat.id, periodKey: W20, days: 2 },
+      { assignmentSlotId: slotDanielUat.id, periodKey: W21, days: 2 },
     ],
   })
 
-  // ── Planned Days — Project 3 Work Table ──
-  let pd3Id = 0
-  const pd3 = (taskId: string, profileId: string, employeeId: string | null, periodNum: number, days: number) => {
-    pd3Id++
-    return {
-      id: `pd3_${pd3Id}`, projectId: 'p3', periodId: `p3-per${periodNum}`,
-      taskId, profileId, employeeId, days,
-    }
-  }
-
-  await prisma.plannedDay.createMany({
-    data: [
-      // PM e6 Marc Dubois
-      pd3('t3_1a', 'pr5', 'e6', 1, 0.5), pd3('t3_1a', 'pr5', 'e6', 2, 0.5),
-      pd3('t3_1a', 'pr5', 'e6', 3, 1), pd3('t3_1a', 'pr5', 'e6', 4, 1),
-      pd3('t3_1a', 'pr5', 'e6', 5, 0.5), pd3('t3_1a', 'pr5', 'e6', 6, 0.5),
-      pd3('t3_1a', 'pr5', 'e6', 7, 0.5), pd3('t3_1a', 'pr5', 'e6', 8, 0.5),
-      pd3('t3_1a', 'pr5', 'e6', 9, 0.5), pd3('t3_1a', 'pr5', 'e6', 10, 0.5),
-      // PM e7 Camille Lefevre
-      pd3('t3_1a', 'pr5', 'e7', 1, 0.5), pd3('t3_1a', 'pr5', 'e7', 2, 0.5),
-      pd3('t3_1a', 'pr5', 'e7', 3, 0.5), pd3('t3_1a', 'pr5', 'e7', 4, 0.5),
-      pd3('t3_1a', 'pr5', 'e7', 5, 0.5), pd3('t3_1a', 'pr5', 'e7', 6, 0.5),
-      pd3('t3_1a', 'pr5', 'e7', 7, 0.5), pd3('t3_1a', 'pr5', 'e7', 8, 0.5),
-      // Dev e8 Lucas Moreau
-      pd3('t3_1a', 'pr2', 'e8', 1, 1), pd3('t3_1a', 'pr2', 'e8', 2, 1.5),
-      pd3('t3_1a', 'pr2', 'e8', 3, 1.5), pd3('t3_1a', 'pr2', 'e8', 4, 1.5),
-      pd3('t3_1a', 'pr2', 'e8', 5, 1.5), pd3('t3_1a', 'pr2', 'e8', 6, 1.5),
-      pd3('t3_1a', 'pr2', 'e8', 7, 1.5), pd3('t3_1a', 'pr2', 'e8', 8, 1.5),
-      pd3('t3_1a', 'pr2', 'e8', 9, 1.5), pd3('t3_1a', 'pr2', 'e8', 10, 1),
-      // Dev e9 Emma Garnier
-      pd3('t3_1a', 'pr2', 'e9', 1, 1), pd3('t3_1a', 'pr2', 'e9', 2, 1.5),
-      pd3('t3_1a', 'pr2', 'e9', 3, 1.5), pd3('t3_1a', 'pr2', 'e9', 4, 1.5),
-      pd3('t3_1a', 'pr2', 'e9', 5, 1.5), pd3('t3_1a', 'pr2', 'e9', 6, 1.5),
-      pd3('t3_1a', 'pr2', 'e9', 7, 1.5), pd3('t3_1a', 'pr2', 'e9', 8, 1.5),
-      pd3('t3_1a', 'pr2', 'e9', 9, 1.5), pd3('t3_1a', 'pr2', 'e9', 10, 1),
-      // Dev e10 Hugo Blanc
-      pd3('t3_1a', 'pr2', 'e10', 1, 1), pd3('t3_1a', 'pr2', 'e10', 2, 1),
-      pd3('t3_1a', 'pr2', 'e10', 3, 1.5), pd3('t3_1a', 'pr2', 'e10', 4, 1.5),
-      pd3('t3_1a', 'pr2', 'e10', 5, 1), pd3('t3_1a', 'pr2', 'e10', 6, 1.5),
-      pd3('t3_1a', 'pr2', 'e10', 7, 1.5), pd3('t3_1a', 'pr2', 'e10', 8, 1.5),
-      pd3('t3_1a', 'pr2', 'e10', 9, 1), pd3('t3_1a', 'pr2', 'e10', 10, 0.5),
-      // Dev e2 Sophie Bernard
-      pd3('t3_1a', 'pr2', 'e2', 2, 1), pd3('t3_1a', 'pr2', 'e2', 3, 1),
-      pd3('t3_1a', 'pr2', 'e2', 4, 1.5), pd3('t3_1a', 'pr2', 'e2', 5, 1.5),
-      pd3('t3_1a', 'pr2', 'e2', 6, 1), pd3('t3_1a', 'pr2', 'e2', 7, 1),
-      pd3('t3_1a', 'pr2', 'e2', 8, 1), pd3('t3_1a', 'pr2', 'e2', 9, 1), pd3('t3_1a', 'pr2', 'e2', 10, 1),
-      // Dev e3 Thomas Petit
-      pd3('t3_1a', 'pr2', 'e3', 2, 1), pd3('t3_1a', 'pr2', 'e3', 3, 1),
-      pd3('t3_1a', 'pr2', 'e3', 4, 1), pd3('t3_1a', 'pr2', 'e3', 5, 1.5),
-      pd3('t3_1a', 'pr2', 'e3', 6, 1.5), pd3('t3_1a', 'pr2', 'e3', 7, 1),
-      pd3('t3_1a', 'pr2', 'e3', 8, 1), pd3('t3_1a', 'pr2', 'e3', 9, 1), pd3('t3_1a', 'pr2', 'e3', 10, 0.5),
-    ],
-  })
-
-  // ── Period Start Data — Project 1 ──
-  let psId = 0
-  const ps = (taskId: string, profileId: string, periodNum: number, remaining: number, sold: number, proj = 'p1') => {
-    psId++
-    return {
-      id: `ps${psId}`, taskId, profileId, periodId: `${proj}-per${periodNum}`,
-      remainingAtStart: remaining, soldAtStart: sold,
-    }
-  }
-
+  // Period-start snapshots so the work table can render "remaining at start".
   await prisma.profileTaskPeriodStart.createMany({
     data: [
-      ps('t1a', 'pr1', 5, 0, 5), ps('t1b', 'pr1', 5, 0, 5), ps('t1b', 'pr2', 5, 0, 3),
-      ps('t2a', 'pr4', 5, 3.5, 8), ps('t2b', 'pr1', 5, 3, 6), ps('t2c', 'pr2', 5, 5, 5),
-      ps('t3a', 'pr1', 5, 15, 15), ps('t3a', 'pr2', 5, 25, 30),
-      ps('t3b', 'pr2', 5, 10, 10), ps('t3c', 'pr1', 5, 13, 10),
-      ps('t4a', 'pr2', 5, 8, 8), ps('t4b', 'pr3', 5, 5, 5), ps('t5', 'pr5', 5, 7, 8),
-      // Project 3
-      ps('t3_1a', 'pr5', 6, 4, 10, 'p3'), ps('t3_1a', 'pr2', 6, 30, 60, 'p3'),
+      { taskId: tDiscArch.id, profileId: profileTechLead.id, periodKey: MONTH, remainingAtStart: 8, soldAtStart: 12 },
+      { taskId: tBuildApi.id, profileId: profileTechLead.id, periodKey: MONTH, remainingAtStart: 20, soldAtStart: 25 },
+      { taskId: tBuildApi.id, profileId: profileDev.id, periodKey: MONTH, remainingAtStart: 50, soldAtStart: 60 },
+      { taskId: tBuildFront.id, profileId: profileDev.id, periodKey: MONTH, remainingAtStart: 45, soldAtStart: 45 },
+      { taskId: tLaunchUat.id, profileId: profilePM.id, periodKey: MONTH, remainingAtStart: 15, soldAtStart: 15 },
     ],
   })
 
-  // ── Timesheets — Project 1 ──
-  await prisma.timesheetEntry.createMany({
+  // ── Historical spent time on Nimbus — March + April 2026 ─────────────────
+  // APPROVED weekly timesheets, one bundle per (employee, week). Each
+  // TaskTimesheet carries the frozen rates that would be snapshotted on
+  // approval (appliedCostRatePerDay, appliedCostAmount, appliedSellRatePerDay,
+  // appliedSellAmount) so cost/revenue accounting survives later rate changes.
+
+  type HistEntry = {
+    employeeId: string
+    employeeCostRate: number
+    periodKey: string
+    workDate: string
+    slotId: string
+    sellRate: number
+    days: number
+  }
+
+  function approvedDate(periodKey: string) {
+    // Pretend the approver clicked through on the Friday of the same week.
+    const m = periodKey.match(/(\d{4})W(\d{2})$/)
+    if (!m) return new Date()
+    // For simplicity: Monday of ISO week + 4 days = Friday.
+    const year = parseInt(m[1], 10)
+    const week = parseInt(m[2], 10)
+    // ISO week 1: week containing Jan 4. Find its Monday.
+    const jan4 = new Date(Date.UTC(year, 0, 4))
+    const jan4Dow = jan4.getUTCDay() || 7 // Sunday=7
+    const week1Mon = new Date(jan4)
+    week1Mon.setUTCDate(jan4.getUTCDate() - (jan4Dow - 1))
+    const monday = new Date(week1Mon)
+    monday.setUTCDate(week1Mon.getUTCDate() + (week - 1) * 7)
+    monday.setUTCDate(monday.getUTCDate() + 4)
+    return monday
+  }
+
+  // Helper: every Mon-Fri in this list of (periodKey, workDate, days) tuples
+  // gets one TaskTimesheet attached to the corresponding employee bundle.
+  const historicalEntries: HistEntry[] = [
+    // ── Bob — Tech Lead — Discovery architecture (March) ──
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M3__2026W11', workDate: '2026-03-10', slotId: slotBobArch.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M3__2026W11', workDate: '2026-03-12', slotId: slotBobArch.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M3__2026W12', workDate: '2026-03-17', slotId: slotBobArch.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M3__2026W12', workDate: '2026-03-19', slotId: slotBobArch.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M3__2026W13', workDate: '2026-03-24', slotId: slotBobArch.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M3__2026W13', workDate: '2026-03-26', slotId: slotBobArch.id, sellRate: 1400, days: 1 },
+    // ── Bob — Tech Lead — API platform (April) ──
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M4__2026W15', workDate: '2026-04-07', slotId: slotBobApi.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M4__2026W15', workDate: '2026-04-09', slotId: slotBobApi.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M4__2026W16', workDate: '2026-04-14', slotId: slotBobApi.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M4__2026W16', workDate: '2026-04-16', slotId: slotBobApi.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M4__2026W17', workDate: '2026-04-21', slotId: slotBobApi.id, sellRate: 1400, days: 1 },
+    { employeeId: empBob.id, employeeCostRate: 750, periodKey: '2026M4__2026W17', workDate: '2026-04-23', slotId: slotBobApi.id, sellRate: 1400, days: 1 },
+
+    // ── Clara — Developer — API platform (March) ──
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W11', workDate: '2026-03-09', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W11', workDate: '2026-03-10', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W11', workDate: '2026-03-11', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W11', workDate: '2026-03-13', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W12', workDate: '2026-03-16', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W12', workDate: '2026-03-17', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W12', workDate: '2026-03-19', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W12', workDate: '2026-03-20', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W13', workDate: '2026-03-23', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W13', workDate: '2026-03-25', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M3__2026W13', workDate: '2026-03-26', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    // ── Clara — Developer — API platform (April) ──
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M4__2026W15', workDate: '2026-04-06', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M4__2026W15', workDate: '2026-04-08', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M4__2026W15', workDate: '2026-04-10', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M4__2026W16', workDate: '2026-04-13', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M4__2026W16', workDate: '2026-04-14', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M4__2026W16', workDate: '2026-04-16', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M4__2026W17', workDate: '2026-04-20', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M4__2026W17', workDate: '2026-04-22', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+    { employeeId: empClara.id, employeeCostRate: 480, periodKey: '2026M4__2026W17', workDate: '2026-04-24', slotId: slotClaraApi.id, sellRate: 950, days: 1 },
+
+    // ── Daniel — Project Manager — Workshops (March) ──
+    { employeeId: empDaniel.id, employeeCostRate: 580, periodKey: '2026M3__2026W11', workDate: '2026-03-10', slotId: slotDanielWorkshops.id, sellRate: 1100, days: 0.5 },
+    { employeeId: empDaniel.id, employeeCostRate: 580, periodKey: '2026M3__2026W12', workDate: '2026-03-17', slotId: slotDanielWorkshops.id, sellRate: 1100, days: 1 },
+    { employeeId: empDaniel.id, employeeCostRate: 580, periodKey: '2026M3__2026W12', workDate: '2026-03-19', slotId: slotDanielWorkshops.id, sellRate: 1100, days: 0.5 },
+    { employeeId: empDaniel.id, employeeCostRate: 580, periodKey: '2026M3__2026W13', workDate: '2026-03-24', slotId: slotDanielWorkshops.id, sellRate: 1100, days: 1 },
+    { employeeId: empDaniel.id, employeeCostRate: 580, periodKey: '2026M3__2026W13', workDate: '2026-03-26', slotId: slotDanielWorkshops.id, sellRate: 1100, days: 0.5 },
+  ]
+
+  // Group entries by (employeeId, periodKey) so we create exactly one
+  // Timesheet bundle per pair — TaskTimesheet rows attach to that bundle.
+  const bundleKey = (e: HistEntry) => `${e.employeeId}::${e.periodKey}`
+  const bundles = new Map<string, { employeeId: string; periodKey: string; entries: HistEntry[] }>()
+  for (const entry of historicalEntries) {
+    const key = bundleKey(entry)
+    const existing = bundles.get(key)
+    if (existing) existing.entries.push(entry)
+    else bundles.set(key, { employeeId: entry.employeeId, periodKey: entry.periodKey, entries: [entry] })
+  }
+
+  for (const bundle of bundles.values()) {
+    const approvedAt = approvedDate(bundle.periodKey)
+    const ts = await prisma.timesheet.create({
+      data: {
+        employeeId: bundle.employeeId,
+        periodKey: bundle.periodKey,
+        status: 'APPROVED',
+        submittedAt: approvedAt,
+        submittedById: adminUser.id,
+        approvedAt,
+        approvedById: adminUser.id,
+      },
+    })
+    await prisma.taskTimesheet.createMany({
+      data: bundle.entries.map((entry) => ({
+        timesheetId: ts.id,
+        assignmentSlotId: entry.slotId,
+        workDate: new Date(entry.workDate),
+        days: entry.days,
+        appliedCostRatePerDay: entry.employeeCostRate,
+        appliedCostAmount: entry.days * entry.employeeCostRate,
+        appliedSellRatePerDay: entry.sellRate,
+        appliedSellAmount: entry.days * entry.sellRate,
+      })),
+    })
+  }
+
+  // A DRAFT timesheet for Clara on the OPEN week, with two entries.
+  const tsClara = await prisma.timesheet.create({
+    data: { employeeId: empClara.id, periodKey: OPEN_PERIOD_KEY, status: 'DRAFT' },
+  })
+  await prisma.taskTimesheet.createMany({
     data: [
-      { id: 'ts1', employeeId: 'e1', projectId: 'p1', periodId: 'p1-per1', taskId: 't1a', profileId: 'pr1', workDate: p1Periods[0].startDate, days: 2.5, status: 'APPROVED', approvedAt: p1Periods[0].frozenAt, appliedCostRatePerDay: 520, appliedCostAmount: 1300, appliedSellRatePerDay: 1200, appliedSellAmount: 3000, notes: '' },
-      { id: 'ts2', employeeId: 'e1', projectId: 'p1', periodId: 'p1-per2', taskId: 't1a', profileId: 'pr1', workDate: p1Periods[1].startDate, days: 2.5, status: 'APPROVED', approvedAt: p1Periods[1].frozenAt, appliedCostRatePerDay: 520, appliedCostAmount: 1300, appliedSellRatePerDay: 1200, appliedSellAmount: 3000, notes: '' },
-      { id: 'ts3', employeeId: 'e1', projectId: 'p1', periodId: 'p1-per2', taskId: 't1b', profileId: 'pr1', workDate: p1Periods[1].startDate, days: 2.5, status: 'APPROVED', approvedAt: p1Periods[1].frozenAt, appliedCostRatePerDay: 520, appliedCostAmount: 1300, appliedSellRatePerDay: 1200, appliedSellAmount: 3000, notes: '' },
-      { id: 'ts4', employeeId: 'e2', projectId: 'p1', periodId: 'p1-per2', taskId: 't1b', profileId: 'pr2', workDate: p1Periods[1].startDate, days: 1.5, status: 'APPROVED', approvedAt: p1Periods[1].frozenAt, appliedCostRatePerDay: 430, appliedCostAmount: 645, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts5', employeeId: 'e1', projectId: 'p1', periodId: 'p1-per3', taskId: 't1b', profileId: 'pr1', workDate: p1Periods[2].startDate, days: 2.5, status: 'APPROVED', approvedAt: p1Periods[2].frozenAt, appliedCostRatePerDay: 520, appliedCostAmount: 1300, appliedSellRatePerDay: 1200, appliedSellAmount: 3000, notes: '' },
-      { id: 'ts6', employeeId: 'e2', projectId: 'p1', periodId: 'p1-per3', taskId: 't1b', profileId: 'pr2', workDate: p1Periods[2].startDate, days: 1.5, status: 'APPROVED', approvedAt: p1Periods[2].frozenAt, appliedCostRatePerDay: 430, appliedCostAmount: 645, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts7', employeeId: 'e4', projectId: 'p1', periodId: 'p1-per3', taskId: 't2a', profileId: 'pr4', workDate: p1Periods[2].startDate, days: 2, status: 'APPROVED', approvedAt: p1Periods[2].frozenAt, appliedCostRatePerDay: 700, appliedCostAmount: 1400, appliedSellRatePerDay: 1500, appliedSellAmount: 3000, notes: '' },
-      { id: 'ts8', employeeId: 'e4', projectId: 'p1', periodId: 'p1-per4', taskId: 't2a', profileId: 'pr4', workDate: p1Periods[3].startDate, days: 2.5, status: 'APPROVED', approvedAt: p1Periods[3].frozenAt, appliedCostRatePerDay: 700, appliedCostAmount: 1750, appliedSellRatePerDay: 1500, appliedSellAmount: 3750, notes: '' },
-      { id: 'ts9', employeeId: 'e1', projectId: 'p1', periodId: 'p1-per4', taskId: 't2b', profileId: 'pr1', workDate: p1Periods[3].startDate, days: 3, status: 'APPROVED', approvedAt: p1Periods[3].frozenAt, appliedCostRatePerDay: 560, appliedCostAmount: 1680, appliedSellRatePerDay: 1200, appliedSellAmount: 3600, notes: '' },
-      // Active period (5) — draft/submitted
-      { id: 'ts10', employeeId: 'e4', projectId: 'p1', periodId: 'p1-per5', taskId: 't2a', profileId: 'pr4', workDate: p1Periods[4].startDate, days: 2, status: 'DRAFT', approvedAt: null, appliedCostRatePerDay: null, appliedCostAmount: null, appliedSellRatePerDay: null, appliedSellAmount: null, notes: '' },
-      { id: 'ts11', employeeId: 'e1', projectId: 'p1', periodId: 'p1-per5', taskId: 't2b', profileId: 'pr1', workDate: p1Periods[4].startDate, days: 3, status: 'DRAFT', approvedAt: null, appliedCostRatePerDay: null, appliedCostAmount: null, appliedSellRatePerDay: null, appliedSellAmount: null, notes: '' },
-      { id: 'ts12', employeeId: 'e2', projectId: 'p1', periodId: 'p1-per5', taskId: 't2c', profileId: 'pr2', workDate: p1Periods[4].startDate, days: 2.5, status: 'SUBMITTED', approvedAt: null, appliedCostRatePerDay: null, appliedCostAmount: null, appliedSellRatePerDay: null, appliedSellAmount: null, notes: 'Completed integration specs draft' },
+      { timesheetId: tsClara.id, assignmentSlotId: slotClaraApi.id, workDate: new Date('2026-05-04'), days: 1 },
+      { timesheetId: tsClara.id, assignmentSlotId: slotClaraApi.id, workDate: new Date('2026-05-05'), days: 1 },
     ],
   })
 
-  // ── Timesheets — Project 3 ──
-  await prisma.timesheetEntry.createMany({
+  // ── Third project: Beta Refactor ────────────────────────────────────────
+  // Minimal scenario: 1 phase, 3 tasks, 1 profile, 1 employee. Started in
+  // January 2026 with a baseline quote covering 2 of the 3 tasks; a second
+  // quote signed in March extended scope to the third task. Each quote is
+  // 20 days per task. Useful to demo the "scope extension via avenant"
+  // pattern with no employee/profile noise.
+
+  const clientBeta = await prisma.client.create({
+    data: {
+      name: 'Beta Industries',
+      contactName: 'Sophie Laurent',
+      contactEmail: 'sophie@beta.test',
+      addressLine1: '7 Place Bellecour',
+      postalCode: '13001',
+      city: 'Marseille',
+      country: 'FR',
+    },
+  })
+
+  const profileEngineer = await prisma.profile.create({
+    data: { name: 'Software Engineer', defaultSellRatePerDay: 1000, defaultCostRatePerDay: 500 },
+  })
+
+  const empEve = await prisma.employee.create({
+    data: {
+      name: 'Eve Schmidt',
+      active: true,
+      currentCostRatePerDay: 500,
+      costRates: { create: { validFrom: new Date('2026-01-01'), costRatePerDay: 500 } },
+    },
+  })
+
+  const projectBeta = await prisma.project.create({
+    data: {
+      clientId: clientBeta.id,
+      name: 'Beta Refactor',
+      currency: 'EUR',
+      startDate: new Date('2026-01-05'),
+      endDate: new Date('2026-08-31'),
+    },
+  })
+
+  const betaPhase = await prisma.phase.create({
+    data: { projectId: projectBeta.id, name: 'Realisation', sortOrder: 1 },
+  })
+
+  const betaTaskA = await prisma.task.create({
+    data: { phaseId: betaPhase.id, name: 'Task A — Core refactor', sortOrder: 1, status: 'active' },
+  })
+  const betaTaskB = await prisma.task.create({
+    data: { phaseId: betaPhase.id, name: 'Task B — API surface', sortOrder: 2, status: 'active' },
+  })
+  const betaTaskC = await prisma.task.create({
+    data: { phaseId: betaPhase.id, name: 'Task C — Reporting', sortOrder: 3, status: 'planned' },
+  })
+
+  // Baseline quote (January) — covers Task A + Task B, 20 days each.
+  const betaQuoteBaseline = await prisma.quote.create({
+    data: {
+      projectId: projectBeta.id,
+      title: 'Beta Refactor — Baseline',
+      status: 'VALIDATED',
+      sentAt: new Date('2025-12-18'),
+      validatedAt: new Date('2025-12-22'),
+      effectiveAt: new Date('2026-01-05'),
+    },
+  })
+  await prisma.quoteLine.createMany({
     data: [
-      // Period 1
-      { id: 'ts3_1', employeeId: 'e6', projectId: 'p3', periodId: 'p3-per1', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[0].startDate, days: 0.5, status: 'APPROVED', approvedAt: p3Periods[0].frozenAt, appliedCostRatePerDay: 540, appliedCostAmount: 270, appliedSellRatePerDay: 1100, appliedSellAmount: 550, notes: '' },
-      { id: 'ts3_2', employeeId: 'e7', projectId: 'p3', periodId: 'p3-per1', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[0].startDate, days: 0.5, status: 'APPROVED', approvedAt: p3Periods[0].frozenAt, appliedCostRatePerDay: 410, appliedCostAmount: 205, appliedSellRatePerDay: 1100, appliedSellAmount: 550, notes: '' },
-      { id: 'ts3_3', employeeId: 'e8', projectId: 'p3', periodId: 'p3-per1', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[0].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[0].frozenAt, appliedCostRatePerDay: 390, appliedCostAmount: 390, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      { id: 'ts3_4', employeeId: 'e9', projectId: 'p3', periodId: 'p3-per1', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[0].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[0].frozenAt, appliedCostRatePerDay: 420, appliedCostAmount: 420, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      { id: 'ts3_5', employeeId: 'e10', projectId: 'p3', periodId: 'p3-per1', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[0].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[0].frozenAt, appliedCostRatePerDay: 380, appliedCostAmount: 380, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      // Period 2
-      { id: 'ts3_6', employeeId: 'e6', projectId: 'p3', periodId: 'p3-per2', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[1].startDate, days: 0.5, status: 'APPROVED', approvedAt: p3Periods[1].frozenAt, appliedCostRatePerDay: 540, appliedCostAmount: 270, appliedSellRatePerDay: 1100, appliedSellAmount: 550, notes: '' },
-      { id: 'ts3_7', employeeId: 'e7', projectId: 'p3', periodId: 'p3-per2', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[1].startDate, days: 0.5, status: 'APPROVED', approvedAt: p3Periods[1].frozenAt, appliedCostRatePerDay: 410, appliedCostAmount: 205, appliedSellRatePerDay: 1100, appliedSellAmount: 550, notes: '' },
-      { id: 'ts3_8', employeeId: 'e8', projectId: 'p3', periodId: 'p3-per2', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[1].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[1].frozenAt, appliedCostRatePerDay: 390, appliedCostAmount: 585, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_9', employeeId: 'e9', projectId: 'p3', periodId: 'p3-per2', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[1].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[1].frozenAt, appliedCostRatePerDay: 420, appliedCostAmount: 630, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_10', employeeId: 'e10', projectId: 'p3', periodId: 'p3-per2', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[1].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[1].frozenAt, appliedCostRatePerDay: 380, appliedCostAmount: 380, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      { id: 'ts3_11', employeeId: 'e2', projectId: 'p3', periodId: 'p3-per2', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[1].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[1].frozenAt, appliedCostRatePerDay: 430, appliedCostAmount: 430, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      { id: 'ts3_12', employeeId: 'e3', projectId: 'p3', periodId: 'p3-per2', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[1].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[1].frozenAt, appliedCostRatePerDay: 310, appliedCostAmount: 310, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      // Period 3
-      { id: 'ts3_13', employeeId: 'e6', projectId: 'p3', periodId: 'p3-per3', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[2].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[2].frozenAt, appliedCostRatePerDay: 540, appliedCostAmount: 540, appliedSellRatePerDay: 1100, appliedSellAmount: 1100, notes: '' },
-      { id: 'ts3_14', employeeId: 'e7', projectId: 'p3', periodId: 'p3-per3', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[2].startDate, days: 0.5, status: 'APPROVED', approvedAt: p3Periods[2].frozenAt, appliedCostRatePerDay: 410, appliedCostAmount: 205, appliedSellRatePerDay: 1100, appliedSellAmount: 550, notes: '' },
-      { id: 'ts3_15', employeeId: 'e8', projectId: 'p3', periodId: 'p3-per3', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[2].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[2].frozenAt, appliedCostRatePerDay: 390, appliedCostAmount: 585, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_16', employeeId: 'e9', projectId: 'p3', periodId: 'p3-per3', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[2].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[2].frozenAt, appliedCostRatePerDay: 420, appliedCostAmount: 630, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_17', employeeId: 'e10', projectId: 'p3', periodId: 'p3-per3', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[2].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[2].frozenAt, appliedCostRatePerDay: 380, appliedCostAmount: 570, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_18', employeeId: 'e2', projectId: 'p3', periodId: 'p3-per3', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[2].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[2].frozenAt, appliedCostRatePerDay: 430, appliedCostAmount: 430, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      { id: 'ts3_19', employeeId: 'e3', projectId: 'p3', periodId: 'p3-per3', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[2].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[2].frozenAt, appliedCostRatePerDay: 310, appliedCostAmount: 310, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      // Period 4
-      { id: 'ts3_20', employeeId: 'e6', projectId: 'p3', periodId: 'p3-per4', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[3].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[3].frozenAt, appliedCostRatePerDay: 540, appliedCostAmount: 540, appliedSellRatePerDay: 1100, appliedSellAmount: 1100, notes: '' },
-      { id: 'ts3_21', employeeId: 'e7', projectId: 'p3', periodId: 'p3-per4', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[3].startDate, days: 0.5, status: 'APPROVED', approvedAt: p3Periods[3].frozenAt, appliedCostRatePerDay: 410, appliedCostAmount: 205, appliedSellRatePerDay: 1100, appliedSellAmount: 550, notes: '' },
-      { id: 'ts3_22', employeeId: 'e8', projectId: 'p3', periodId: 'p3-per4', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[3].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[3].frozenAt, appliedCostRatePerDay: 390, appliedCostAmount: 585, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_23', employeeId: 'e9', projectId: 'p3', periodId: 'p3-per4', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[3].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[3].frozenAt, appliedCostRatePerDay: 420, appliedCostAmount: 630, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_24', employeeId: 'e10', projectId: 'p3', periodId: 'p3-per4', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[3].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[3].frozenAt, appliedCostRatePerDay: 380, appliedCostAmount: 570, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_25', employeeId: 'e2', projectId: 'p3', periodId: 'p3-per4', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[3].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[3].frozenAt, appliedCostRatePerDay: 430, appliedCostAmount: 645, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_26', employeeId: 'e3', projectId: 'p3', periodId: 'p3-per4', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[3].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[3].frozenAt, appliedCostRatePerDay: 310, appliedCostAmount: 310, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      // Period 5
-      { id: 'ts3_27', employeeId: 'e6', projectId: 'p3', periodId: 'p3-per5', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[4].startDate, days: 0.5, status: 'APPROVED', approvedAt: p3Periods[4].frozenAt, appliedCostRatePerDay: 540, appliedCostAmount: 270, appliedSellRatePerDay: 1100, appliedSellAmount: 550, notes: '' },
-      { id: 'ts3_28', employeeId: 'e7', projectId: 'p3', periodId: 'p3-per5', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[4].startDate, days: 0.5, status: 'APPROVED', approvedAt: p3Periods[4].frozenAt, appliedCostRatePerDay: 410, appliedCostAmount: 205, appliedSellRatePerDay: 1100, appliedSellAmount: 550, notes: '' },
-      { id: 'ts3_29', employeeId: 'e8', projectId: 'p3', periodId: 'p3-per5', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[4].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[4].frozenAt, appliedCostRatePerDay: 390, appliedCostAmount: 585, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_30', employeeId: 'e9', projectId: 'p3', periodId: 'p3-per5', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[4].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[4].frozenAt, appliedCostRatePerDay: 420, appliedCostAmount: 630, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_31', employeeId: 'e10', projectId: 'p3', periodId: 'p3-per5', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[4].startDate, days: 1, status: 'APPROVED', approvedAt: p3Periods[4].frozenAt, appliedCostRatePerDay: 380, appliedCostAmount: 380, appliedSellRatePerDay: 950, appliedSellAmount: 950, notes: '' },
-      { id: 'ts3_32', employeeId: 'e2', projectId: 'p3', periodId: 'p3-per5', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[4].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[4].frozenAt, appliedCostRatePerDay: 430, appliedCostAmount: 645, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      { id: 'ts3_33', employeeId: 'e3', projectId: 'p3', periodId: 'p3-per5', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[4].startDate, days: 1.5, status: 'APPROVED', approvedAt: p3Periods[4].frozenAt, appliedCostRatePerDay: 310, appliedCostAmount: 465, appliedSellRatePerDay: 950, appliedSellAmount: 1425, notes: '' },
-      // Period 6 (ACTIVE)
-      { id: 'ts3_34', employeeId: 'e6', projectId: 'p3', periodId: 'p3-per6', taskId: 't3_1a', profileId: 'pr5', workDate: p3Periods[5].startDate, days: 0.5, status: 'DRAFT', approvedAt: null, appliedCostRatePerDay: null, appliedCostAmount: null, appliedSellRatePerDay: null, appliedSellAmount: null, notes: '' },
-      { id: 'ts3_35', employeeId: 'e8', projectId: 'p3', periodId: 'p3-per6', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[5].startDate, days: 1.5, status: 'SUBMITTED', approvedAt: null, appliedCostRatePerDay: null, appliedCostAmount: null, appliedSellRatePerDay: null, appliedSellAmount: null, notes: 'Sprint 6 dev work' },
-      { id: 'ts3_36', employeeId: 'e9', projectId: 'p3', periodId: 'p3-per6', taskId: 't3_1a', profileId: 'pr2', workDate: p3Periods[5].startDate, days: 1.5, status: 'DRAFT', approvedAt: null, appliedCostRatePerDay: null, appliedCostAmount: null, appliedSellRatePerDay: null, appliedSellAmount: null, notes: '' },
+      { quoteId: betaQuoteBaseline.id, taskId: betaTaskA.id, profileId: profileEngineer.id, days: 20, sellRatePerDay: 1000, costRateAssumptionPerDay: 500, revenueAmount: 20000, budgetCostAmount: 10000 },
+      { quoteId: betaQuoteBaseline.id, taskId: betaTaskB.id, profileId: profileEngineer.id, days: 20, sellRatePerDay: 1000, costRateAssumptionPerDay: 500, revenueAmount: 20000, budgetCostAmount: 10000 },
     ],
   })
 
-  // ── Snapshots — Project 1 ──
-  await prisma.snapshot.createMany({
-    data: [
-      { id: 'snap1', projectId: 'p1', periodId: 'p1-per1', periodNumber: 1, snapshotAt: '2026-01-13', frozenAt: '2026-01-13', closedBy: 'u1', notes: 'Period 1 closed — analysis on track' },
-      { id: 'snap2', projectId: 'p1', periodId: 'p1-per2', periodNumber: 2, snapshotAt: '2026-01-20', frozenAt: '2026-01-20', closedBy: 'u1', notes: 'Period 2 closed — requirements complete' },
-      { id: 'snap3', projectId: 'p1', periodId: 'p1-per3', periodNumber: 3, snapshotAt: '2026-01-27', frozenAt: '2026-01-27', closedBy: 'u1', notes: 'Period 3 closed — change order #1 validated, integration scope expanded' },
-      { id: 'snap4', projectId: 'p1', periodId: 'p1-per4', periodNumber: 4, snapshotAt: '2026-02-03', frozenAt: '2026-02-03', closedBy: 'u1', notes: 'Period 4 closed — design phase progressing, cost rate for Jean updated' },
-    ],
+  // Avenant (March) — extends Task B and adds Task C, 20 days each.
+  const betaQuoteAvenant = await prisma.quote.create({
+    data: {
+      projectId: projectBeta.id,
+      title: 'Beta Refactor — Avenant Reporting',
+      status: 'VALIDATED',
+      sentAt: new Date('2026-02-20'),
+      validatedAt: new Date('2026-02-27'),
+      effectiveAt: new Date('2026-03-02'),
+    },
   })
-  await prisma.snapshotMetrics.createMany({
+  await prisma.quoteLine.createMany({
     data: [
-      { snapshotId: 'snap1', contractValue: 117000, actualCostToDate: 1300, etcCost: 51920, eacCost: 53220, marginForecast: 63780, executedDaysPeriod: 3, producedExecutionValuePeriod: 3600, producedExecutionValueToDate: 3600, netBurnValuePeriod: 3600 },
-      { snapshotId: 'snap2', contractValue: 117000, actualCostToDate: 5565, etcCost: 49170, eacCost: 54735, marginForecast: 62265, executedDaysPeriod: 7, producedExecutionValuePeriod: 8050, producedExecutionValueToDate: 11650, netBurnValuePeriod: 8050 },
-      { snapshotId: 'snap3', contractValue: 127750, actualCostToDate: 8710, etcCost: 52250, eacCost: 60960, marginForecast: 66790, executedDaysPeriod: 6, producedExecutionValuePeriod: 6425, producedExecutionValueToDate: 18075, netBurnValuePeriod: 6425 },
-      { snapshotId: 'snap4', contractValue: 127750, actualCostToDate: 12680, etcCost: 49810, eacCost: 62490, marginForecast: 65260, executedDaysPeriod: 5.5, producedExecutionValuePeriod: 7350, producedExecutionValueToDate: 25425, netBurnValuePeriod: 7350 },
-    ],
-  })
-
-  // ── Snapshots — Project 3 ──
-  await prisma.snapshot.createMany({
-    data: [
-      { id: 'snap3_1', projectId: 'p3', periodId: 'p3-per1', periodNumber: 1, snapshotAt: '2026-01-27', frozenAt: '2026-01-27', closedBy: 'u1', notes: 'Period 1 closed — project kicked off' },
-      { id: 'snap3_2', projectId: 'p3', periodId: 'p3-per2', periodNumber: 2, snapshotAt: '2026-02-03', frozenAt: '2026-02-03', closedBy: 'u1', notes: 'Period 2 closed — full team onboarded' },
-      { id: 'snap3_3', projectId: 'p3', periodId: 'p3-per3', periodNumber: 3, snapshotAt: '2026-02-10', frozenAt: '2026-02-10', closedBy: 'u1', notes: 'Period 3 closed — development progressing well' },
-      { id: 'snap3_4', projectId: 'p3', periodId: 'p3-per4', periodNumber: 4, snapshotAt: '2026-02-17', frozenAt: '2026-02-17', closedBy: 'u1', notes: 'Period 4 closed — on track, peak velocity' },
-      { id: 'snap3_5', projectId: 'p3', periodId: 'p3-per5', periodNumber: 5, snapshotAt: '2026-02-24', frozenAt: '2026-02-24', closedBy: 'u1', notes: 'Period 5 closed — halfway through project' },
-    ],
-  })
-  await prisma.snapshotMetrics.createMany({
-    data: [
-      { snapshotId: 'snap3_1', contractValue: 68000, actualCostToDate: 1665, etcCost: 27550, eacCost: 29215, marginForecast: 38785, executedDaysPeriod: 4, producedExecutionValuePeriod: 3950, producedExecutionValueToDate: 3950, netBurnValuePeriod: 3950 },
-      { snapshotId: 'snap3_2', contractValue: 68000, actualCostToDate: 4475, etcCost: 24630, eacCost: 29105, marginForecast: 38895, executedDaysPeriod: 7, producedExecutionValuePeriod: 6800, producedExecutionValueToDate: 10750, netBurnValuePeriod: 6800 },
-      { snapshotId: 'snap3_3', contractValue: 68000, actualCostToDate: 7745, etcCost: 21250, eacCost: 28995, marginForecast: 39005, executedDaysPeriod: 8, producedExecutionValuePeriod: 7825, producedExecutionValueToDate: 18575, netBurnValuePeriod: 7825 },
-      { snapshotId: 'snap3_4', contractValue: 68000, actualCostToDate: 11230, etcCost: 17675, eacCost: 28905, marginForecast: 39095, executedDaysPeriod: 8.5, producedExecutionValuePeriod: 8300, producedExecutionValueToDate: 26875, netBurnValuePeriod: 8300 },
-      { snapshotId: 'snap3_5', contractValue: 68000, actualCostToDate: 14410, etcCost: 13770, eacCost: 28180, marginForecast: 39820, executedDaysPeriod: 8, producedExecutionValuePeriod: 7750, producedExecutionValueToDate: 34625, netBurnValuePeriod: 7750 },
+      { quoteId: betaQuoteAvenant.id, taskId: betaTaskB.id, profileId: profileEngineer.id, days: 20, sellRatePerDay: 1000, costRateAssumptionPerDay: 500, revenueAmount: 20000, budgetCostAmount: 10000 },
+      { quoteId: betaQuoteAvenant.id, taskId: betaTaskC.id, profileId: profileEngineer.id, days: 20, sellRatePerDay: 1000, costRateAssumptionPerDay: 500, revenueAmount: 20000, budgetCostAmount: 10000 },
     ],
   })
 
-  console.log('Seed complete!')
-  await prisma.$disconnect()
-  process.exit(0)
+  // One assignment slot per task — Eve only person on the project.
+  const slotEveA = await prisma.assignmentSlot.create({
+    data: { projectId: projectBeta.id, taskId: betaTaskA.id, profileId: profileEngineer.id, employeeId: empEve.id },
+  })
+  const slotEveB = await prisma.assignmentSlot.create({
+    data: { projectId: projectBeta.id, taskId: betaTaskB.id, profileId: profileEngineer.id, employeeId: empEve.id },
+  })
+  const slotEveC = await prisma.assignmentSlot.create({
+    data: { projectId: projectBeta.id, taskId: betaTaskC.id, profileId: profileEngineer.id, employeeId: empEve.id },
+  })
+
+  // ── Timesheet history for Beta (Jan → Apr) ───────────────────────────────
+  // One APPROVED bundle per week. Task A consumed Jan-early Feb, switch to
+  // Task B mid-Feb through April, Task C ramps in April after avenant kicks
+  // in. Roughly tracks the contract: A ≈ 17/20d, B ≈ 30/40d, C ≈ 10/20d.
+
+  type BetaEntry = { periodKey: string; workDate: string; slotId: string; days: number }
+  const betaEntries: BetaEntry[] = [
+    // ── January (Task A) ──
+    { periodKey: '2026M1__2026W2', workDate: '2026-01-06', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W2', workDate: '2026-01-07', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W2', workDate: '2026-01-08', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W3', workDate: '2026-01-12', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W3', workDate: '2026-01-13', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W3', workDate: '2026-01-14', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W3', workDate: '2026-01-15', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W4', workDate: '2026-01-19', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W4', workDate: '2026-01-20', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W4', workDate: '2026-01-21', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W4', workDate: '2026-01-22', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W4', workDate: '2026-01-23', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W5', workDate: '2026-01-26', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W5', workDate: '2026-01-27', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W5', workDate: '2026-01-28', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W5', workDate: '2026-01-29', slotId: slotEveA.id, days: 1 },
+    { periodKey: '2026M1__2026W5', workDate: '2026-01-30', slotId: slotEveA.id, days: 1 },
+
+    // ── February (finish Task A, start Task B) ──
+    { periodKey: '2026M2__2026W6', workDate: '2026-02-02', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W6', workDate: '2026-02-03', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W6', workDate: '2026-02-04', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W6', workDate: '2026-02-05', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W6', workDate: '2026-02-06', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W7', workDate: '2026-02-09', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W7', workDate: '2026-02-10', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W7', workDate: '2026-02-11', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W7', workDate: '2026-02-12', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W7', workDate: '2026-02-13', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W8', workDate: '2026-02-16', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W8', workDate: '2026-02-17', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W8', workDate: '2026-02-18', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W8', workDate: '2026-02-19', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W9', workDate: '2026-02-23', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W9', workDate: '2026-02-24', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W9', workDate: '2026-02-25', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M2__2026W9', workDate: '2026-02-26', slotId: slotEveB.id, days: 1 },
+
+    // ── March (Task B grinding, avenant kicks in Mar 2) ──
+    { periodKey: '2026M3__2026W11', workDate: '2026-03-09', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W11', workDate: '2026-03-10', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W11', workDate: '2026-03-11', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W11', workDate: '2026-03-12', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W11', workDate: '2026-03-13', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W12', workDate: '2026-03-16', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W12', workDate: '2026-03-17', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W12', workDate: '2026-03-18', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W12', workDate: '2026-03-19', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W13', workDate: '2026-03-23', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W13', workDate: '2026-03-24', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M3__2026W13', workDate: '2026-03-25', slotId: slotEveB.id, days: 1 },
+
+    // ── April (Task B wrap-up + start Task C) ──
+    { periodKey: '2026M4__2026W15', workDate: '2026-04-06', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M4__2026W15', workDate: '2026-04-07', slotId: slotEveB.id, days: 1 },
+    { periodKey: '2026M4__2026W15', workDate: '2026-04-09', slotId: slotEveC.id, days: 1 },
+    { periodKey: '2026M4__2026W15', workDate: '2026-04-10', slotId: slotEveC.id, days: 1 },
+    { periodKey: '2026M4__2026W16', workDate: '2026-04-13', slotId: slotEveC.id, days: 1 },
+    { periodKey: '2026M4__2026W16', workDate: '2026-04-14', slotId: slotEveC.id, days: 1 },
+    { periodKey: '2026M4__2026W16', workDate: '2026-04-15', slotId: slotEveC.id, days: 1 },
+    { periodKey: '2026M4__2026W16', workDate: '2026-04-16', slotId: slotEveC.id, days: 1 },
+    { periodKey: '2026M4__2026W17', workDate: '2026-04-20', slotId: slotEveC.id, days: 1 },
+    { periodKey: '2026M4__2026W17', workDate: '2026-04-21', slotId: slotEveC.id, days: 1 },
+    { periodKey: '2026M4__2026W17', workDate: '2026-04-22', slotId: slotEveC.id, days: 1 },
+  ]
+
+  const betaBundles = new Map<string, BetaEntry[]>()
+  for (const entry of betaEntries) {
+    const arr = betaBundles.get(entry.periodKey) ?? []
+    arr.push(entry)
+    betaBundles.set(entry.periodKey, arr)
+  }
+  for (const [periodKey, entries] of betaBundles) {
+    const approved = approvedDate(periodKey)
+    const ts = await prisma.timesheet.create({
+      data: {
+        employeeId: empEve.id,
+        periodKey,
+        status: 'APPROVED',
+        submittedAt: approved,
+        submittedById: adminUser.id,
+        approvedAt: approved,
+        approvedById: adminUser.id,
+      },
+    })
+    await prisma.taskTimesheet.createMany({
+      data: entries.map((entry) => ({
+        timesheetId: ts.id,
+        assignmentSlotId: entry.slotId,
+        workDate: new Date(entry.workDate),
+        days: entry.days,
+        appliedCostRatePerDay: 500,
+        appliedCostAmount: entry.days * 500,
+        appliedSellRatePerDay: 1000,
+        appliedSellAmount: entry.days * 1000,
+      })),
+    })
+  }
+
+  // ── Global state ────────────────────────────────────────────────────────
+  await prisma.globalTimesheetWindow.create({
+    data: {
+      id: 'global',
+      openPeriodKey: OPEN_PERIOD_KEY,
+    },
+  })
+
+  await prisma.auditLog.create({
+    data: {
+      entity: 'GlobalTimesheetWindow',
+      entityId: 'global',
+      action: 'CREATE',
+      actorId: adminUser.id,
+      after: { openPeriodKey: OPEN_PERIOD_KEY },
+      metadata: { reason: 'seed' },
+    },
+  })
+
+  console.log('✔ Seed done')
 }
 
-seed().catch(async (err) => {
-  console.error('Seed failed:', err)
-  await prisma.$disconnect()
-  process.exit(1)
-})
+main()
+  .then(() => prisma.$disconnect())
+  .catch((err) => {
+    console.error(err)
+    return prisma.$disconnect().finally(() => process.exit(1))
+  })
