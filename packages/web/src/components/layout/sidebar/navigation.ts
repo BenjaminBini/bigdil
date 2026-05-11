@@ -46,7 +46,7 @@ export function buildNavGroups(role: UserRole): NavGroup[] {
 
   const myWorkItems: NavItem[] = [{ label: 'Feuilles de temps', to: '/timesheets', icon: Clock }]
   if (role === 'PM' || role === 'ADMIN') {
-    myWorkItems.push({ label: 'Approbations', to: '/timesheets/approvals', icon: CheckSquare })
+    myWorkItems.push({ label: 'Approbations', to: '/approvals', icon: CheckSquare })
   }
   if (role === 'PM' || role === 'FINANCE' || role === 'EXEC' || role === 'ADMIN') {
     myWorkItems.push({ label: 'Rapports', to: '/reports', icon: BarChart3 })

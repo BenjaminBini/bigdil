@@ -1,4 +1,5 @@
-import { Check, CheckCheck, X } from 'lucide-react'
+import { Fragment, useState } from 'react'
+import { Check, CheckCheck, ChevronRight, Inbox, X } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -9,14 +10,17 @@ import {
 import { Card } from '@/components/ui/card'
 import { formatDaysWithUnit } from '@/lib/format'
 import { HeadCell } from '@/components/shared/head-cell'
-import { TdPrimary, TdNumeric, TdDetail, TdRight } from '@/components/shared/table-cells'
+import { TdPrimary, TdNumeric, TdDetail } from '@/components/shared/table-cells'
 import { SuccessButton, ApproveButton, RejectButton } from '@/components/shared/button-adapters'
-import { ColorValue } from '@/components/shared/color-value'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { CardTitleBar, CardFooterBar } from '@/components/shared/card-title-bar'
 import { FlexRow } from '@/components/shared/layouts'
 import { HintText } from '@/components/shared/hint-text'
 import { Separator } from '@/components/shared/separator'
+import { cn } from '@/lib/utils'
+import { formatPeriodSliceLabel } from '@/lib/period-utils'
+import { EmptyState } from '@/components/shared/empty-state'
+import { TimesheetDetail } from '../shared/timesheet-detail'
 import type { ApprovalRow } from './types'
 
 interface ApprovalsTableProps {
@@ -27,14 +31,39 @@ interface ApprovalsTableProps {
   onApprove: (id: string) => void
   onReject: (id: string) => void
   getEmployeeName: (id: string) => string
-  getTaskName: (id: string) => string
-  getProfileName: (id: string) => string
 }
 
-function formatDelta(delta: number): string {
-  if (delta === 0) return '—'
-  const sign = delta > 0 ? '+' : ''
-  return `${sign}${formatDaysWithUnit(delta)}`
+interface DetailRowsProps {
+  timesheet: import('@/api/types').Timesheet
+  colSpan: number
+}
+
+function DetailRows({ timesheet, colSpan, isOpen }: DetailRowsProps & { isOpen: boolean }) {
+  // Grid-rows trick: animate template rows 0fr → 1fr to slide the content open
+  // without measuring height. The inner div needs overflow:hidden so children
+  // don't poke out during the transition.
+  return (
+    <TableRow>
+      <TableCell
+        colSpan={colSpan}
+        className={cn(
+          'border-l-2 bg-muted/10 !p-0',
+          isOpen ? 'border-l-primary/60' : 'border-l-transparent',
+        )}
+      >
+        <div
+          className={cn(
+            'grid transition-[grid-template-rows] duration-200 ease-out',
+            isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+          )}
+        >
+          <div className="overflow-hidden">
+            <TimesheetDetail timesheet={timesheet} />
+          </div>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
 }
 
 export function ApprovalsTable({
@@ -45,12 +74,40 @@ export function ApprovalsTable({
   onApprove,
   onReject,
   getEmployeeName,
-  getTaskName,
-  getProfileName,
 }: ApprovalsTableProps) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+
+  function toggle(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const approvedCount = rows.filter((r) => r.status === 'APPROVED').length
   const submittedCount = rows.filter((r) => r.status === 'SUBMITTED').length
   const draftCount = rows.filter((r) => r.status === 'DRAFT').length
+
+  // 7 columns: chevron + employee + period + entries + total + status + actions
+  const colSpan = 6
+
+  if (rows.length === 0) {
+    return (
+      <Card variant="flush">
+        <CardTitleBar
+          title="Active period approvals"
+          subtitle="Review submitted timesheets and freeze costs"
+        />
+        <EmptyState
+          icon={Inbox}
+          title="No timesheets to review"
+          description="Submitted timesheets land here for approval. Once consultants submit their weekly bundles you'll be able to approve or reject them in one click."
+        />
+      </Card>
+    )
+  }
 
   return (
     <Card variant="flush">
@@ -71,12 +128,10 @@ export function ApprovalsTable({
       <Table variant="compact">
         <TableHeader>
           <TableRow variant="header">
+            <HeadCell label="" width="32px" />
             <HeadCell label="Employee" />
-            <HeadCell label="Task" />
-            <HeadCell label="Profile" />
-            <HeadCell label="Planned Days" align="right" width="112px" />
-            <HeadCell label="Submitted Days" align="right" width="112px" />
-            <HeadCell label="Delta" align="right" width="96px" />
+            <HeadCell label="Period" />
+            <HeadCell label="Total Days" align="right" width="112px" />
             <HeadCell label="Status" width="112px" />
             <HeadCell label="Actions" width="144px" />
           </TableRow>
@@ -84,46 +139,53 @@ export function ApprovalsTable({
 
         <TableBody>
           {rows.map((row) => {
-            const delta = row.submittedDays - row.plannedDays
+            const isOpen = expanded.has(row.id)
             return (
-              <TableRow key={row.id}>
-                <TdPrimary>{getEmployeeName(row.employeeId)}</TdPrimary>
-                <TdDetail>{getTaskName(row.taskId)}</TdDetail>
-                <TdDetail>{getProfileName(row.profileId)}</TdDetail>
-                <TdNumeric>{formatDaysWithUnit(row.plannedDays)}</TdNumeric>
-                <TdNumeric>{formatDaysWithUnit(row.submittedDays)}</TdNumeric>
-                <TdRight>
-                  <ColorValue
-                    value={formatDelta(delta)}
-                    sentiment={Math.abs(delta) === 0 ? 'neutral' : Math.abs(delta) < 1 ? 'warning' : 'negative'}
-                  />
-                </TdRight>
-                <TableCell>
-                  <StatusBadge status={row.status} />
-                </TableCell>
-                <TableCell>
-                  {row.status === 'SUBMITTED' ? (
-                    <FlexRow gap="sm">
-                      <ApproveButton onClick={() => onApprove(row.id)}>
-                        <Check size={14} />
-                        Approve
-                      </ApproveButton>
-                      <RejectButton onClick={() => onReject(row.id)}>
-                        <X size={14} />
-                        Reject
-                      </RejectButton>
-                    </FlexRow>
-                  ) : (
-                    <HintText>
-                      {row.status === 'APPROVED'
-                        ? 'Approved'
-                        : row.status === 'REJECTED'
-                          ? 'Rejected'
-                          : 'Awaiting submission'}
-                    </HintText>
-                  )}
-                </TableCell>
-              </TableRow>
+              <Fragment key={row.id}>
+                <TableRow
+                  className="cursor-pointer hover:bg-muted/40"
+                  onClick={() => toggle(row.id)}
+                >
+                  <TableCell className="w-8 pr-0">
+                    <ChevronRight
+                      size={14}
+                      className={cn(
+                        'transition-transform duration-200 ease-out',
+                        isOpen && 'rotate-90',
+                      )}
+                    />
+                  </TableCell>
+                  <TdPrimary>{getEmployeeName(row.employeeId)}</TdPrimary>
+                  <TdDetail>{formatPeriodSliceLabel(row.periodCode)}</TdDetail>
+                  <TdNumeric>{formatDaysWithUnit(row.totalDays)}</TdNumeric>
+                  <TableCell>
+                    <StatusBadge status={row.status} />
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {row.status === 'SUBMITTED' ? (
+                      <FlexRow gap="sm">
+                        <ApproveButton onClick={() => onApprove(row.id)}>
+                          <Check size={14} />
+                          Approve
+                        </ApproveButton>
+                        <RejectButton onClick={() => onReject(row.id)}>
+                          <X size={14} />
+                          Reject
+                        </RejectButton>
+                      </FlexRow>
+                    ) : (
+                      <HintText>
+                        {row.status === 'APPROVED'
+                          ? 'Approved'
+                          : row.status === 'REJECTED'
+                            ? 'Rejected'
+                            : 'Awaiting submission'}
+                      </HintText>
+                    )}
+                  </TableCell>
+                </TableRow>
+                <DetailRows timesheet={row.timesheet} colSpan={colSpan} isOpen={isOpen} />
+              </Fragment>
             )
           })}
         </TableBody>

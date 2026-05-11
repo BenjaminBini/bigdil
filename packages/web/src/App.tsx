@@ -64,7 +64,7 @@ export default function App() {
             <Route path="/employees" element={<EmployeesPage />} />
             <Route path="/employees/:id" element={<EmployeeDetailPage />} />
             <Route path="/timesheets" element={<TimesheetsPage />} />
-            <Route path="/timesheets/approvals" element={<ApprovalsPage />} />
+            <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
 
             {/* Projects list */}

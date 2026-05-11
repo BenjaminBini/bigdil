@@ -52,7 +52,7 @@ export function AlertsCard({ alerts }: AlertsCardProps) {
         {alerts.overdueApprovals > 0 && (
           <div>
             <SectionHeading><TextStrong>Approbations en attente</TextStrong></SectionHeading>
-            <CardLink to="/timesheets/approvals">
+            <CardLink to="/approvals">
               <span>{alerts.overdueApprovals} feuille{alerts.overdueApprovals > 1 ? 's' : ''} de temps en attente d'approbation</span>
               <Badge variant="outline">
                 Réviser

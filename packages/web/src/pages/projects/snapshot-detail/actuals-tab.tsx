@@ -14,6 +14,7 @@ import { VStack } from '@/components/shared/VStack'
 import { SectionTitle } from '@/components/shared/page-title'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { Snapshot, TimesheetEntry } from '@/api/types'
+import { comparePeriodSliceKeys } from '@/lib/period-utils'
 
 interface ActualsTabProps {
   snapshot: Snapshot
@@ -30,20 +31,19 @@ export function ActualsTab({
   getProfileName,
   getEmployeeName,
 }: ActualsTabProps) {
-  const periodId = snapshot.periodId
-  const asOfPeriodNumber = snapshot.periodNumber
+  const periodCode = snapshot.periodCode
 
   const periodActuals = allTimesheets.filter(
-    (t) => t.periodId === periodId && t.status === 'APPROVED',
+    (t) => t.periodCode === periodCode && t.status === 'APPROVED',
   )
 
-  const closedPeriodIds = new Set(
+  const closedPeriodCodes = new Set(
     snapshot.workTableRows
-      .filter(r => r.periodNumber <= asOfPeriodNumber)
-      .map(r => r.periodId),
+      .filter(r => comparePeriodSliceKeys(r.periodCode, periodCode) <= 0)
+      .map(r => r.periodCode),
   )
   const cumulativeActuals = allTimesheets.filter(
-    (t) => closedPeriodIds.has(t.periodId) && t.status === 'APPROVED',
+    (t) => closedPeriodCodes.has(t.periodCode) && t.status === 'APPROVED',
   )
 
   function renderRows(entries: TimesheetEntry[]) {
@@ -98,7 +98,7 @@ export function ActualsTab({
     <VStack gap="xl" pt="md">
       <VStack>
         <FlexBetween>
-          <SectionTitle>Period {snapshot.periodNumber} — Approved Timesheets</SectionTitle>
+          <SectionTitle>{snapshot.periodCode} — Approved Timesheets</SectionTitle>
           <MetricStrip items={[
             { label: 'Cost', value: <MetricValue>{formatCurrency(periodCost)}</MetricValue> },
             { label: 'Sell', value: <MetricValue>{formatCurrency(periodSell)}</MetricValue> },
@@ -114,7 +114,7 @@ export function ActualsTab({
 
       <VStack>
         <FlexBetween>
-          <SectionTitle>Cumulative — Periods 1–{snapshot.periodNumber}</SectionTitle>
+          <SectionTitle>Cumulative — up to {snapshot.periodCode}</SectionTitle>
           <MetricStrip items={[
             { label: 'Cost', value: <MetricValue>{formatCurrency(cumCost)}</MetricValue> },
             { label: 'Sell', value: <MetricValue>{formatCurrency(cumSell)}</MetricValue> },
