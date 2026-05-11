@@ -1,4 +1,4 @@
-import type { Quote, QuoteLine, Task } from '@/api/types'
+import type { Phase, Quote, QuoteLine } from '@/api/types'
 
 export type QuoteRowKind = 'phase' | 'task' | 'profile' | 'grand-total'
 
@@ -22,24 +22,22 @@ export interface QuoteGridRow {
 
 export function buildQuoteGrid(
   quote: Quote,
-  flatTasks: Task[],
+  phases: Phase[],
   getTaskName: (id: string) => string,
+  getPhaseName: (id: string) => string,
   getProfileName: (id: string) => string,
 ): QuoteGridRow[] {
-  function getPhase(taskId: string): Task | null {
-    const task = flatTasks.find(t => t.id === taskId)
-    if (!task) return null
-    if (!task.parentTaskId) return task
-    return flatTasks.find(t => t.id === task.parentTaskId) ?? null
+  const taskToPhase = new Map<string, string>()
+  for (const phase of phases) {
+    for (const task of phase.tasks) taskToPhase.set(task.id, phase.id)
   }
 
   const phaseOrder: string[] = []
   const phaseMap = new Map<string, Map<string, Map<string, QuoteLine[]>>>()
 
   for (const line of quote.lines) {
-    const phase = getPhase(line.taskId)
-    if (!phase) continue
-    const phaseId = phase.id
+    const phaseId = taskToPhase.get(line.taskId)
+    if (!phaseId) continue
 
     if (!phaseMap.has(phaseId)) {
       phaseMap.set(phaseId, new Map())
@@ -136,7 +134,7 @@ export function buildQuoteGrid(
       id: `phase-${phaseId}`,
       kind: 'phase',
       phaseId,
-      label: getTaskName(phaseId),
+      label: getPhaseName(phaseId),
       depth: 0,
       days: phaseDays,
       sellRatePerDay: null,

@@ -7,6 +7,7 @@ import { NullCell, NullText } from '@/components/shared/table-cells'
 import { DivideStack } from '@/components/shared/layouts'
 import { formatDate } from '@/lib/format'
 import type { ProjectDetail } from '@/api/types'
+import { deriveProjectLifecycle } from '@/lib/constants'
 
 interface ProjectDetailsCardProps {
   project: ProjectDetail
@@ -29,7 +30,7 @@ export function ProjectDetailsCard({ project, onEdit }: ProjectDetailsCardProps)
           <DetailRow label="Client" value={project.clientName ?? <NullCell />} />
           <DetailRow
             label="Statut"
-            value={<StatusBadge status={project.status} />}
+            value={<StatusBadge status={deriveProjectLifecycle(project)} />}
           />
           <DetailRow label="Date de début" value={project.startDate ? formatDate(project.startDate) : <NullText />} />
           <DetailRow label="Date de fin" value={project.endDate ? formatDate(project.endDate) : <NullText />} />

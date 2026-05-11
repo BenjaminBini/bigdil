@@ -1,3 +1,15 @@
+// Bigdil data model (post-refactor v2)
+// ─────────────────────────────────────
+// Conventions:
+//   - All instants use DateTime (TIMESTAMPTZ); plain calendar dates use DateTime @db.Date.
+//   - Period status is GLOBAL, derived at read time from `GlobalTimesheetWindow.openPeriodKey`.
+//     The `SnapshotPeriodStatus` enum exists only as immutable status frozen into snapshots.
+//   - Period codes: monthCode = "2026M5", weekCode = "2026W19", periodKey = monthCode | "monthCode__weekCode".
+//     PlannedDay/Timesheet store `periodKey` only — month/week derived in app.
+//   - Timesheet groups TaskTimesheets per (employee, period). Status + lifecycle
+//     live on the Timesheet aggregate; TaskTimesheet rows hold the per-slot work.
+//   - Audit: every mutating route should write to `AuditLog`. createdAt/updatedAt for quick lookups.
+
 generator client {
   provider            = "prisma-client"
   output              = "../generated/prisma"
@@ -8,7 +20,424 @@ datasource db {
   provider = "postgresql"
 }
 
-// ── Enums ──────────────────────────────────────────────────
+// ── Reference / People ──────────────────────────────────────────────────────────
+
+model Client {
+  id           String    @id @default(cuid())
+  name         String    @db.VarChar(255)
+  contactName  String    @map("contact_name") @db.VarChar(255)
+  contactEmail String    @map("contact_email") @db.VarChar(255)
+  addressLine1 String    @map("address_line1") @db.VarChar(255)
+  addressLine2 String?   @map("address_line2") @db.VarChar(255)
+  postalCode   String    @map("postal_code") @db.VarChar(32)
+  city         String    @db.VarChar(255)
+  country      String    @db.VarChar(2) // ISO-3166 alpha-2
+  projects     Project[]
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("clients")
+}
+
+model User {
+  id             String     @id @default(cuid())
+  email          String     @unique @db.VarChar(255)
+  role           UserRole
+  name           String     @db.VarChar(255)
+  employeeId     String?    @unique @map("employee_id")
+  employee       Employee?  @relation(fields: [employeeId], references: [id])
+  snapshotsClosed Snapshot[] @relation("ClosedByUser")
+  monthFreezes   MonthFreeze[]
+  timesheetsSubmitted Timesheet[]   @relation("TimesheetSubmittedBy")
+  timesheetsApproved  Timesheet[]   @relation("TimesheetApprovedBy")
+  timesheetsRejected  Timesheet[]   @relation("TimesheetRejectedBy")
+  auditLogs      AuditLog[]
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Employee {
+  id                    String             @id @default(cuid())
+  name                  String             @db.VarChar(255)
+  active                Boolean            @default(true)
+  currentCostRatePerDay Float              @map("current_cost_rate_per_day")
+  user                  User?
+  costRates             EmployeeCostRate[]
+  assignments           AssignmentSlot[]
+  timesheets            Timesheet[]
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+
+  @@map("employees")
+}
+
+model EmployeeCostRate {
+  id             String    @id @default(cuid())
+  employeeId     String    @map("employee_id")
+  validFrom      DateTime  @map("valid_from") @db.Date
+  validTo        DateTime? @map("valid_to") @db.Date
+  costRatePerDay Float     @map("cost_rate_per_day")
+  employee       Employee  @relation(fields: [employeeId], references: [id])
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@map("employee_cost_rates")
+}
+
+model Profile {
+  id                    String                   @id @default(cuid())
+  name                  String                   @db.VarChar(255)
+  defaultSellRatePerDay Float                    @map("default_sell_rate_per_day")
+  defaultCostRatePerDay Float                    @map("default_cost_rate_per_day")
+  assignments           AssignmentSlot[]
+  periodStarts          ProfileTaskPeriodStart[]
+  quoteLines            QuoteLine[]
+  snapshotScopeLines    SnapshotScopeLine[]
+  snapshotWorkRows      SnapshotWorkRow[]
+  createdAt             DateTime                 @default(now()) @map("created_at")
+  updatedAt             DateTime                 @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+// ── Project graph ───────────────────────────────────────────────────────────────
+
+// Project lifecycle is derived from startDate/endDate/closedAt — no explicit
+// status enum. A project is "active" when not closed and today falls within
+// its date range. See T009.
+model Project {
+  id          String           @id @default(cuid())
+  clientId    String           @map("client_id")
+  name        String           @db.VarChar(255)
+  currency    Currency         @default(EUR)
+  startDate   DateTime?        @map("start_date") @db.Date
+  endDate     DateTime?        @map("end_date") @db.Date
+  closedAt    DateTime?        @map("closed_at")
+  client      Client           @relation(fields: [clientId], references: [id])
+  phases      Phase[]
+  quotes      Quote[]
+  assignments AssignmentSlot[]
+  snapshots   Snapshot[]
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  @@map("projects")
+}
+
+// A Phase is a top-level grouping under a Project. Phases contain Tasks.
+// QuoteLines / AssignmentSlots / TaskTimesheets all hang off Task, never Phase.
+model Phase {
+  id        String   @id @default(cuid())
+  projectId String   @map("project_id")
+  name      String   @db.VarChar(255)
+  sortOrder Int      @map("sort_order")
+  project   Project  @relation(fields: [projectId], references: [id])
+  tasks     Task[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([projectId])
+  @@map("phases")
+}
+
+model Task {
+  id                 String                   @id @default(cuid())
+  phaseId            String                   @map("phase_id")
+  name               String                   @db.VarChar(255)
+  sortOrder          Int                      @map("sort_order")
+  status             TaskStatus
+  phase              Phase                    @relation(fields: [phaseId], references: [id])
+  assignments        AssignmentSlot[]
+  periodStarts       ProfileTaskPeriodStart[]
+  quoteLines         QuoteLine[]
+  snapshotScopeLines SnapshotScopeLine[]
+  snapshotWorkRows   SnapshotWorkRow[]
+  createdAt          DateTime                 @default(now()) @map("created_at")
+  updatedAt          DateTime                 @updatedAt @map("updated_at")
+
+  @@index([phaseId])
+  @@map("tasks")
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  projectId   String      @map("project_id")
+  title       String      @db.VarChar(255)
+  status      QuoteStatus
+  sentAt      DateTime?   @map("sent_at")
+  effectiveAt DateTime?   @map("effective_at")
+  validatedAt DateTime?   @map("validated_at")
+  rejectedAt  DateTime?   @map("rejected_at")
+  cancelledAt DateTime?   @map("cancelled_at")
+  lines       QuoteLine[]
+  project     Project     @relation(fields: [projectId], references: [id])
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@map("quotes")
+}
+
+model QuoteLine {
+  id                       String  @id @default(cuid())
+  quoteId                  String  @map("quote_id")
+  taskId                   String  @map("task_id")
+  profileId                String  @map("profile_id")
+  days                     Float
+  sellRatePerDay           Float   @map("sell_rate_per_day")
+  costRateAssumptionPerDay Float   @map("cost_rate_assumption_per_day")
+  revenueAmount            Float   @map("revenue_amount")
+  budgetCostAmount         Float   @map("budget_cost_amount")
+  profile                  Profile @relation(fields: [profileId], references: [id])
+  quote                    Quote   @relation(fields: [quoteId], references: [id])
+  task                     Task    @relation(fields: [taskId], references: [id])
+
+  @@map("quote_lines")
+}
+
+// ── Assignment / Planning / Timesheet ───────────────────────────────────────────
+
+// One slot = one tuple (project, task, profile, employee?) where work happens.
+// employee is nullable to model "unassigned" slots. Postgres uniqueness on the
+// (project,task,profile,employee) tuple is set up so two NULL employees collide
+// (NULLS NOT DISTINCT) — provisioned via raw SQL post-migration if ever needed,
+// app-level guard for now.
+model AssignmentSlot {
+  id          String        @id @default(cuid())
+  projectId   String        @map("project_id")
+  taskId      String        @map("task_id")
+  profileId   String        @map("profile_id")
+  employeeId  String?       @map("employee_id")
+  project     Project       @relation(fields: [projectId], references: [id])
+  task        Task          @relation(fields: [taskId], references: [id])
+  profile     Profile       @relation(fields: [profileId], references: [id])
+  employee    Employee?     @relation(fields: [employeeId], references: [id])
+  plannedDays    PlannedDay[]
+  taskTimesheets TaskTimesheet[]
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@unique([projectId, taskId, profileId, employeeId], name: "projectId_taskId_profileId_employeeId")
+  @@index([projectId])
+  @@map("assignment_slots")
+}
+
+model PlannedDay {
+  id               String         @id @default(cuid())
+  assignmentSlotId String         @map("assignment_slot_id")
+  periodKey        String         @map("period_key") // e.g., 2026M5__2026W19
+  days             Float
+  assignmentSlot   AssignmentSlot @relation(fields: [assignmentSlotId], references: [id])
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  @@unique([assignmentSlotId, periodKey], name: "assignmentSlotId_periodKey")
+  @@index([periodKey])
+  @@map("planned_days")
+}
+
+// One Timesheet per (employee, periodKey). Holds many TaskTimesheets.
+// Status and lifecycle (submitted/approved/rejected) live here — submit/approve
+// act on the whole bundle.
+model Timesheet {
+  id              String          @id @default(cuid())
+  employeeId      String          @map("employee_id")
+  periodKey       String          @map("period_key")
+  status          TimesheetStatus @default(DRAFT)
+  submittedAt     DateTime?       @map("submitted_at")
+  submittedById   String?         @map("submitted_by")
+  approvedAt      DateTime?       @map("approved_at")
+  approvedById    String?         @map("approved_by")
+  rejectedAt      DateTime?       @map("rejected_at")
+  rejectedById    String?         @map("rejected_by")
+  rejectionReason String?         @map("rejection_reason")
+  employee        Employee        @relation(fields: [employeeId], references: [id])
+  submittedBy     User?           @relation("TimesheetSubmittedBy", fields: [submittedById], references: [id])
+  approvedBy      User?           @relation("TimesheetApprovedBy", fields: [approvedById], references: [id])
+  rejectedBy      User?           @relation("TimesheetRejectedBy", fields: [rejectedById], references: [id])
+  taskTimesheets  TaskTimesheet[]
+  leaveDays       LeaveDay[]
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@unique([employeeId, periodKey], name: "employeeId_periodKey")
+  @@index([periodKey, status])
+  @@map("timesheets")
+}
+
+// Leave / "Congés" row on a Timesheet. One row per workday. `days` is restricted
+// at the API level to {0.5, 1.0}. Cascades with parent Timesheet.
+model LeaveDay {
+  id          String    @id @default(cuid())
+  timesheetId String    @map("timesheet_id")
+  workDate    DateTime  @map("work_date") @db.Date
+  days        Float
+  timesheet   Timesheet @relation(fields: [timesheetId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@unique([timesheetId, workDate], name: "timesheetId_workDate")
+  @@index([timesheetId])
+  @@map("leave_days")
+}
+
+// One TaskTimesheet = one slot's contribution within a Timesheet.
+// Frozen rates (applied*) are snapshotted per-row when the parent Timesheet
+// gets approved, so historical accounting survives later rate changes.
+model TaskTimesheet {
+  id                    String         @id @default(cuid())
+  timesheetId           String         @map("timesheet_id")
+  assignmentSlotId      String         @map("assignment_slot_id")
+  workDate              DateTime       @map("work_date") @db.Date
+  days                  Float
+  appliedCostRatePerDay Float?         @map("applied_cost_rate_per_day")
+  appliedCostAmount     Float?         @map("applied_cost_amount")
+  appliedSellRatePerDay Float?         @map("applied_sell_rate_per_day")
+  appliedSellAmount     Float?         @map("applied_sell_amount")
+  notes                 String         @default("")
+  timesheet             Timesheet      @relation(fields: [timesheetId], references: [id], onDelete: Cascade)
+  assignmentSlot        AssignmentSlot @relation(fields: [assignmentSlotId], references: [id])
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+
+  @@unique([timesheetId, assignmentSlotId, workDate], name: "timesheetId_assignmentSlotId_workDate")
+  @@index([timesheetId])
+  @@index([assignmentSlotId])
+  @@map("task_timesheets")
+}
+
+model ProfileTaskPeriodStart {
+  id               String    @id @default(cuid())
+  taskId           String    @map("task_id")
+  profileId        String    @map("profile_id")
+  periodKey        String    @map("period_key")
+  remainingAtStart Float     @map("remaining_at_start")
+  soldAtStart      Float     @map("sold_at_start")
+  profile          Profile   @relation(fields: [profileId], references: [id])
+  task             Task      @relation(fields: [taskId], references: [id])
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("profile_task_period_starts")
+}
+
+// ── Month freeze / Snapshot ─────────────────────────────────────────────────────
+
+// A MonthFreeze row is the immutable record of a global month-freeze event.
+// Snapshots taken at the freeze are linked back via `Snapshot.monthFreezeId`.
+model MonthFreeze {
+  monthCode   String     @id // e.g., 2026M5
+  frozenAt    DateTime   @default(now()) @map("frozen_at")
+  frozenById  String     @map("frozen_by")
+  notes       String     @default("")
+  frozenBy    User       @relation(fields: [frozenById], references: [id])
+  snapshots   Snapshot[]
+
+  @@map("month_freezes")
+}
+
+model Snapshot {
+  id            String              @id @default(cuid())
+  projectId     String              @map("project_id")
+  monthCode     String              @map("month_code") // snapshots are monthly by definition
+  monthFreezeId String?             @map("month_freeze_id") // null only for ad-hoc admin snapshots
+  snapshotAt    DateTime            @default(now()) @map("snapshot_at")
+  closedById    String              @map("closed_by")
+  notes         String              @default("")
+  metrics       SnapshotMetrics?
+  scopeLines    SnapshotScopeLine[]
+  workRows      SnapshotWorkRow[]
+  closedBy      User                @relation("ClosedByUser", fields: [closedById], references: [id])
+  monthFreeze   MonthFreeze?        @relation(fields: [monthFreezeId], references: [monthCode])
+  project       Project             @relation(fields: [projectId], references: [id])
+
+  @@unique([projectId, monthCode], name: "projectId_monthCode")
+  @@map("snapshots")
+}
+
+model SnapshotMetrics {
+  snapshotId                   String   @id @map("snapshot_id")
+  contractValue                Float    @map("contract_value")
+  actualCostToDate             Float    @map("actual_cost_to_date")
+  etcCost                      Float    @map("etc_cost")
+  eacCost                      Float    @map("eac_cost")
+  marginForecast               Float    @map("margin_forecast")
+  executedDaysPeriod           Float    @map("executed_days_period")
+  producedExecutionValuePeriod Float    @map("produced_execution_value_period")
+  producedExecutionValueToDate Float    @map("produced_execution_value_to_date")
+  netBurnValuePeriod           Float    @map("net_burn_value_period")
+  snapshot                     Snapshot @relation(fields: [snapshotId], references: [id])
+
+  @@map("snapshot_metrics")
+}
+
+model SnapshotScopeLine {
+  id                            String   @id @default(cuid())
+  snapshotId                    String   @map("snapshot_id")
+  taskId                        String   @map("task_id")
+  profileId                     String   @map("profile_id")
+  baselineDaysTotalAsofSnapshot Float    @map("baseline_days_total_asof_snapshot")
+  sellRatePerDay                Float    @map("sell_rate_per_day")
+  costRateAssumptionPerDay      Float    @map("cost_rate_assumption_per_day")
+  baselineRevenueTotal          Float    @map("baseline_revenue_total")
+  baselineBudgetCostTotal       Float    @map("baseline_budget_cost_total")
+  profile                       Profile  @relation(fields: [profileId], references: [id])
+  snapshot                      Snapshot @relation(fields: [snapshotId], references: [id])
+  task                          Task     @relation(fields: [taskId], references: [id])
+
+  @@map("snapshot_scope_lines")
+}
+
+model SnapshotWorkRow {
+  id           String                @id @default(cuid())
+  snapshotId   String                @map("snapshot_id")
+  periodKey    String                @map("period_key")
+  periodStatus SnapshotPeriodStatus  @map("period_status")
+  taskId       String                @map("task_id")
+  profileId    String                @map("profile_id")
+  employeeId   String?               @map("employee_id")
+  plannedDays  Float                 @map("planned_days")
+  actualDays   Float?                @map("actual_days")
+  profile      Profile               @relation(fields: [profileId], references: [id])
+  snapshot     Snapshot              @relation(fields: [snapshotId], references: [id])
+  task         Task                  @relation(fields: [taskId], references: [id])
+
+  @@map("snapshot_work_rows")
+}
+
+// ── Global state ────────────────────────────────────────────────────────────────
+
+model GlobalTimesheetWindow {
+  id            String   @id // singleton — always 'global'
+  openPeriodKey String   @map("open_period_key")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("global_timesheet_window")
+}
+
+// ── Audit log ───────────────────────────────────────────────────────────────────
+
+// Generic audit trail: one row per CREATE/UPDATE/DELETE on any tracked entity.
+// Wiring (when to write rows) is app-level; the table only enforces shape.
+model AuditLog {
+  id        String       @id @default(cuid())
+  entity    String       @db.VarChar(100) // e.g., "Project", "Timesheet", "TaskTimesheet"
+  entityId  String       @map("entity_id")
+  action    AuditAction
+  actorId   String?      @map("actor_id")
+  actor     User?        @relation(fields: [actorId], references: [id])
+  at        DateTime     @default(now())
+  before    Json?        // snapshot of pre-change row (UPDATE/DELETE)
+  after     Json?        // snapshot of post-change row (CREATE/UPDATE)
+  metadata  Json?        // free-form context (request id, route, etc.)
+
+  @@index([entity, entityId])
+  @@index([actorId])
+  @@index([at])
+  @@map("audit_logs")
+}
+
+// ── Enums ───────────────────────────────────────────────────────────────────────
 
 enum UserRole {
   ADMIN
@@ -20,24 +449,16 @@ enum UserRole {
   @@map("user_role")
 }
 
-enum ProjectStatus {
-  DRAFT
-  WAITING_APPROVAL
-  TO_PLAN
-  PLANNING
-  IN_PROGRESS
-  COMPLETED
-
-  @@map("project_status")
-}
-
-enum PeriodStatus {
+// Frozen-into-snapshot status. Live status is GLOBAL and derived
+// (see deriveTimesheetWindowStatus); this enum exists only for
+// SnapshotWorkRow to capture the period state at snapshot time.
+enum SnapshotPeriodStatus {
   FUTURE
   OPEN
   CONSOLIDATION
   FROZEN
 
-  @@map("period_status")
+  @@map("snapshot_period_status")
 }
 
 enum QuoteStatus {
@@ -45,6 +466,7 @@ enum QuoteStatus {
   SENT
   VALIDATED
   REJECTED
+  CANCELLED
 
   @@map("quote_status")
 }
@@ -66,283 +488,20 @@ enum TimesheetStatus {
   @@map("timesheet_status")
 }
 
-// ── Models ─────────────────────────────────────────────────
+enum Currency {
+  EUR
+  USD
+  GBP
+  CHF
+  CAD
 
-model Client {
-  id           String    @id
-  name         String    @db.VarChar(255)
-  contactName  String    @map("contact_name") @db.VarChar(255)
-  contactEmail String    @map("contact_email") @db.VarChar(255)
-  address      String
-  projects     Project[]
-
-  @@map("clients")
+  @@map("currency")
 }
 
-model User {
-  id         String    @id
-  email      String    @unique @db.VarChar(255)
-  role       UserRole
-  name       String    @db.VarChar(255)
-  employeeId String?   @map("employee_id")
-  employee   Employee? @relation(fields: [employeeId], references: [id])
-  snapshots  Snapshot[] @relation("ClosedByUser")
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
 
-  @@map("users")
-}
-
-model Profile {
-  id                    String                   @id
-  name                  String                   @db.VarChar(255)
-  defaultSellRatePerDay Float                    @map("default_sell_rate_per_day") @db.DoublePrecision
-  defaultCostRatePerDay Float                    @map("default_cost_rate_per_day") @db.DoublePrecision
-  quoteLines            QuoteLine[]
-  plannedDays           PlannedDay[]
-  timesheetEntries      TimesheetEntry[]
-  periodStarts          ProfileTaskPeriodStart[]
-  snapshotScopeLines    SnapshotScopeLine[]
-  snapshotWorkRows      SnapshotWorkRow[]
-
-  @@map("profiles")
-}
-
-model Employee {
-  id                    String              @id
-  name                  String              @db.VarChar(255)
-  active                Boolean             @default(true)
-  currentCostRatePerDay Float               @map("current_cost_rate_per_day") @db.DoublePrecision
-  costRates             EmployeeCostRate[]
-  users                 User[]
-  timesheetEntries      TimesheetEntry[]
-  plannedDays           PlannedDay[]
-  snapshotWorkRows      SnapshotWorkRow[]
-
-  @@map("employees")
-}
-
-model EmployeeCostRate {
-  id             String   @id
-  employeeId     String   @map("employee_id")
-  validFrom      String   @map("valid_from")
-  validTo        String?  @map("valid_to")
-  costRatePerDay Float    @map("cost_rate_per_day") @db.DoublePrecision
-  employee       Employee @relation(fields: [employeeId], references: [id])
-
-  @@map("employee_cost_rates")
-}
-
-model Project {
-  id               String           @id
-  clientId         String           @map("client_id")
-  name             String           @db.VarChar(255)
-  currency         String           @default("EUR") @db.VarChar(3)
-  status           ProjectStatus
-  startDate        String?          @map("start_date")
-  endDate          String?          @map("end_date")
-  client           Client           @relation(fields: [clientId], references: [id])
-  tasks            Task[]
-  periods          Period[]
-  quotes           Quote[]
-  plannedDays      PlannedDay[]
-  snapshots        Snapshot[]
-  timesheetEntries TimesheetEntry[]
-
-  @@map("projects")
-}
-
-model Task {
-  id                 String              @id
-  projectId          String              @map("project_id")
-  parentTaskId       String?             @map("parent_task_id")
-  name               String              @db.VarChar(255)
-  sortOrder          Int                 @map("sort_order")
-  status             TaskStatus
-  project            Project             @relation(fields: [projectId], references: [id])
-  parent             Task?               @relation("TaskParent", fields: [parentTaskId], references: [id])
-  children           Task[]              @relation("TaskParent")
-  quoteLines         QuoteLine[]
-  plannedDays        PlannedDay[]
-  timesheetEntries   TimesheetEntry[]
-  periodStarts       ProfileTaskPeriodStart[]
-  snapshotScopeLines SnapshotScopeLine[]
-  snapshotWorkRows   SnapshotWorkRow[]
-
-  @@map("tasks")
-}
-
-model Period {
-  id               String           @id
-  projectId        String           @map("project_id")
-  periodNumber     Int              @map("period_number")
-  startDate        String           @map("start_date")
-  endDate          String           @map("end_date")
-  status           PeriodStatus     @default(FUTURE)
-  frozenAt         String?          @map("frozen_at")
-  project          Project          @relation(fields: [projectId], references: [id])
-  plannedDays      PlannedDay[]
-  timesheetEntries TimesheetEntry[]
-  snapshots        Snapshot[]
-  snapshotWorkRows SnapshotWorkRow[]
-  periodStarts     ProfileTaskPeriodStart[]
-
-  @@map("periods")
-}
-
-model Quote {
-  id          String      @id
-  projectId   String      @map("project_id")
-  title       String      @db.VarChar(255)
-  status      QuoteStatus
-  effectiveAt String?     @map("effective_at")
-  validatedAt String?     @map("validated_at")
-  project     Project     @relation(fields: [projectId], references: [id])
-  lines       QuoteLine[]
-
-  @@map("quotes")
-}
-
-model QuoteLine {
-  id                       String  @id
-  quoteId                  String  @map("quote_id")
-  taskId                   String  @map("task_id")
-  profileId                String  @map("profile_id")
-  days                     Float   @db.DoublePrecision
-  sellRatePerDay           Float   @map("sell_rate_per_day") @db.DoublePrecision
-  costRateAssumptionPerDay Float   @map("cost_rate_assumption_per_day") @db.DoublePrecision
-  revenueAmount            Float   @map("revenue_amount") @db.DoublePrecision
-  budgetCostAmount         Float   @map("budget_cost_amount") @db.DoublePrecision
-  quote                    Quote   @relation(fields: [quoteId], references: [id])
-  task                     Task    @relation(fields: [taskId], references: [id])
-  profile                  Profile @relation(fields: [profileId], references: [id])
-
-  @@map("quote_lines")
-}
-
-model PlannedDay {
-  id         String    @id
-  projectId  String    @map("project_id")
-  periodId   String    @map("period_id")
-  taskId     String    @map("task_id")
-  profileId  String    @map("profile_id")
-  employeeId String?   @map("employee_id")
-  days       Float     @db.DoublePrecision
-  project    Project   @relation(fields: [projectId], references: [id])
-  period     Period    @relation(fields: [periodId], references: [id])
-  task       Task      @relation(fields: [taskId], references: [id])
-  profile    Profile   @relation(fields: [profileId], references: [id])
-  employee   Employee? @relation(fields: [employeeId], references: [id])
-
-  @@unique([projectId, periodId, taskId, profileId, employeeId])
-  @@map("planned_days")
-}
-
-model TimesheetEntry {
-  id                    String          @id
-  employeeId            String          @map("employee_id")
-  projectId             String          @map("project_id")
-  periodId              String          @map("period_id")
-  taskId                String          @map("task_id")
-  profileId             String          @map("profile_id")
-  workDate              String          @map("work_date")
-  days                  Float           @db.DoublePrecision
-  status                TimesheetStatus @default(DRAFT)
-  approvedAt            String?         @map("approved_at")
-  appliedCostRatePerDay Float?          @map("applied_cost_rate_per_day") @db.DoublePrecision
-  appliedCostAmount     Float?          @map("applied_cost_amount") @db.DoublePrecision
-  appliedSellRatePerDay Float?          @map("applied_sell_rate_per_day") @db.DoublePrecision
-  appliedSellAmount     Float?          @map("applied_sell_amount") @db.DoublePrecision
-  notes                 String          @default("")
-  employee              Employee        @relation(fields: [employeeId], references: [id])
-  project               Project         @relation(fields: [projectId], references: [id])
-  period                Period          @relation(fields: [periodId], references: [id])
-  task                  Task            @relation(fields: [taskId], references: [id])
-  profile               Profile         @relation(fields: [profileId], references: [id])
-
-  @@map("timesheet_entries")
-}
-
-model ProfileTaskPeriodStart {
-  id               String  @id
-  taskId           String  @map("task_id")
-  profileId        String  @map("profile_id")
-  periodId         String  @map("period_id")
-  remainingAtStart Float   @map("remaining_at_start") @db.DoublePrecision
-  soldAtStart      Float   @map("sold_at_start") @db.DoublePrecision
-  task             Task    @relation(fields: [taskId], references: [id])
-  profile          Profile @relation(fields: [profileId], references: [id])
-  period           Period  @relation(fields: [periodId], references: [id])
-
-  @@map("profile_task_period_starts")
-}
-
-model Snapshot {
-  id           String           @id
-  projectId    String           @map("project_id")
-  periodId     String           @map("period_id")
-  periodNumber Int              @map("period_number")
-  snapshotAt   String           @map("snapshot_at")
-  frozenAt     String           @map("frozen_at")
-  closedBy     String           @map("closed_by")
-  notes        String           @default("")
-  project      Project          @relation(fields: [projectId], references: [id])
-  period       Period           @relation(fields: [periodId], references: [id])
-  closedByUser User             @relation("ClosedByUser", fields: [closedBy], references: [id])
-  metrics      SnapshotMetrics?
-  scopeLines   SnapshotScopeLine[]
-  workRows     SnapshotWorkRow[]
-
-  @@map("snapshots")
-}
-
-model SnapshotMetrics {
-  snapshotId                    String   @id @map("snapshot_id")
-  contractValue                 Float    @map("contract_value") @db.DoublePrecision
-  actualCostToDate              Float    @map("actual_cost_to_date") @db.DoublePrecision
-  etcCost                       Float    @map("etc_cost") @db.DoublePrecision
-  eacCost                       Float    @map("eac_cost") @db.DoublePrecision
-  marginForecast                Float    @map("margin_forecast") @db.DoublePrecision
-  executedDaysPeriod            Float    @map("executed_days_period") @db.DoublePrecision
-  producedExecutionValuePeriod  Float    @map("produced_execution_value_period") @db.DoublePrecision
-  producedExecutionValueToDate  Float    @map("produced_execution_value_to_date") @db.DoublePrecision
-  netBurnValuePeriod            Float    @map("net_burn_value_period") @db.DoublePrecision
-  snapshot                      Snapshot @relation(fields: [snapshotId], references: [id])
-
-  @@map("snapshot_metrics")
-}
-
-model SnapshotScopeLine {
-  id                             String   @id
-  snapshotId                     String   @map("snapshot_id")
-  taskId                         String   @map("task_id")
-  profileId                      String   @map("profile_id")
-  baselineDaysTotalAsofSnapshot  Float    @map("baseline_days_total_asof_snapshot") @db.DoublePrecision
-  sellRatePerDay                 Float    @map("sell_rate_per_day") @db.DoublePrecision
-  costRateAssumptionPerDay       Float    @map("cost_rate_assumption_per_day") @db.DoublePrecision
-  baselineRevenueTotal           Float    @map("baseline_revenue_total") @db.DoublePrecision
-  baselineBudgetCostTotal        Float    @map("baseline_budget_cost_total") @db.DoublePrecision
-  snapshot                       Snapshot @relation(fields: [snapshotId], references: [id])
-  task                           Task     @relation(fields: [taskId], references: [id])
-  profile                        Profile  @relation(fields: [profileId], references: [id])
-
-  @@map("snapshot_scope_lines")
-}
-
-model SnapshotWorkRow {
-  id           String       @id
-  snapshotId   String       @map("snapshot_id")
-  periodId     String       @map("period_id")
-  periodNumber Int          @map("period_number")
-  periodStatus PeriodStatus @map("period_status")
-  taskId       String       @map("task_id")
-  profileId    String       @map("profile_id")
-  employeeId   String?      @map("employee_id")
-  plannedDays  Float        @map("planned_days") @db.DoublePrecision
-  actualDays   Float?       @map("actual_days") @db.DoublePrecision
-  snapshot     Snapshot     @relation(fields: [snapshotId], references: [id])
-  period       Period       @relation(fields: [periodId], references: [id])
-  task         Task         @relation(fields: [taskId], references: [id])
-  profile      Profile      @relation(fields: [profileId], references: [id])
-  employee     Employee?    @relation(fields: [employeeId], references: [id])
-
-  @@map("snapshot_work_rows")
+  @@map("audit_action")
 }

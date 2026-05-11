@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import type { Employee, Period, Profile, ProfileTaskPeriodStart, Quote, Task, WorkTableCell } from '@/api/types'
+import type { Employee, Phase, PeriodInfo, Profile, ProfileTaskPeriodStart, Quote, WorkTableCell } from '@/api/types'
 import { PanelLayout, ScrollPane } from '@/components/ui/panel-layout'
 import { Separator } from '@/components/ui/separator'
 import { ConsolidationTable } from './view/consolidation-table'
+import { ConsolidationQuoteBanner } from './view/consolidation-quote-banner'
 import { MarginInsightPanel } from './view/margin-insight-panel'
 import { SummaryBar } from './view/summary-bar'
 import { WorkGridTable } from './view/work-grid-table'
@@ -15,14 +16,14 @@ import { buildMarginInsight } from './margin-insight-builder'
 interface ProjectWorkTableProps {
   projectId: string
   project: { name: string }
-  periods: Period[]
+  periods: PeriodInfo[]
   workTable: WorkTableCell[]
-  flatTasks: Task[]
+  phases: Phase[]
   quotes: Quote[]
   periodStartData: ProfileTaskPeriodStart[]
   profiles: Profile[]
   employees: Employee[]
-  onSaveCell?: (params: { taskId: string; profileId: string; employeeId?: string; periodId: string; days: number }) => void
+  onSaveCell?: (params: { taskId: string; profileId: string; employeeId?: string; periodCode: string; days: number }) => void
   onAssignEmployee?: (params: { taskId: string; profileId: string; employeeId: string }) => void
 }
 
@@ -31,7 +32,7 @@ export function ProjectWorkTable({
   project,
   periods,
   workTable,
-  flatTasks,
+  phases,
   quotes,
   periodStartData,
   profiles,
@@ -40,8 +41,8 @@ export function ProjectWorkTable({
   onAssignEmployee,
 }: ProjectWorkTableProps) {
   const allRows = useMemo(
-    () => buildGridRows(workTable, periods, flatTasks, quotes, profiles, employees),
-    [workTable, periods, flatTasks, quotes, profiles, employees],
+    () => buildGridRows(workTable, periods, phases, quotes, profiles, employees),
+    [workTable, periods, phases, quotes, profiles, employees],
   )
 
   const marginInsight = useMemo(
@@ -54,7 +55,7 @@ export function ProjectWorkTable({
   const consolidationPeriod = periods.find((p) => p.status === 'CONSOLIDATION')
 
   const consolidationFrozenData = useMemo(() => {
-    return consolidationPeriod ? computeFrozenData(allRows, periods, consolidationPeriod.id) : frozenData
+    return consolidationPeriod ? computeFrozenData(allRows, periods, consolidationPeriod.code) : frozenData
   }, [allRows, periods, frozenData, consolidationPeriod])
 
   const totalToPlan = useMemo(
@@ -66,15 +67,29 @@ export function ProjectWorkTable({
   )
 
   const periodStartMap = useMemo(() => {
-    const activePeriodId = periods.find((p) => p.status === 'OPEN')?.id ?? ''
+    const activePeriodCode = periods.find((p) => p.status === 'OPEN')?.monthCode ?? ''
     const map = new Map<string, ProfileTaskPeriodStart>()
     for (const ps of periodStartData) {
-      if (ps.periodId === activePeriodId) {
+      if (ps.periodCode === activePeriodCode) {
         map.set(`${ps.taskId}:${ps.profileId}`, ps)
       }
     }
     return map
   }, [periods, periodStartData])
+
+  // For each (task, profile), the set of already-assigned named employee ids.
+  // Used to filter the multi-employee picker on profile rows so we don't offer
+  // an employee already attached to the same slot.
+  const assignedEmployeesByProfile = useMemo(() => {
+    const map = new Map<string, Set<string>>()
+    for (const row of allRows) {
+      if (row.kind !== 'employee' || !row.taskId || !row.profileId || !row.employeeId) continue
+      const key = `${row.taskId}:${row.profileId}`
+      if (!map.has(key)) map.set(key, new Set())
+      map.get(key)!.add(row.employeeId)
+    }
+    return map
+  }, [allRows])
 
   const [collapsedPhases, setCollapsedPhases] = useState<Set<string>>(new Set())
   const [collapsedTasks, setCollapsedTasks] = useState<Set<string>>(new Set())
@@ -106,6 +121,7 @@ export function ProjectWorkTable({
   return (
     <PanelLayout>
       <WorkTableHeader projectName={project.name} periodCount={periods.length} />
+      <ConsolidationQuoteBanner periods={periods} quotes={quotes} />
       <ScrollPane>
         <WorkGridTable
           projectId={projectId}
@@ -120,6 +136,7 @@ export function ProjectWorkTable({
           frozenData={frozenData}
           periodStartMap={periodStartMap}
           employees={employees}
+          assignedEmployeesByProfile={assignedEmployeesByProfile}
           onSaveCell={onSaveCell}
           onAssignEmployee={onAssignEmployee}
         />

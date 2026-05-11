@@ -37,12 +37,14 @@ interface TaskDialogProps {
   onSave: () => void
   onClose: () => void
   isPending?: boolean
+  hideStatus?: boolean
 }
 
-export function TaskDialog({ open, title, form, onChange, onSave, onClose, isPending }: TaskDialogProps) {
+export function TaskDialog({ open, title, form, onChange, onSave, onClose, isPending, hideStatus }: TaskDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <DialogContent size="sm">
+        <form onSubmit={(e) => { e.preventDefault(); if (form.name.trim() && !isPending) onSave() }}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -67,31 +69,34 @@ export function TaskDialog({ open, title, form, onChange, onSave, onClose, isPen
             />
           </FormField>
 
-          <FormField label="Status" htmlFor="task-status">
-            <Select
-              value={form.status}
-              onValueChange={(v) => onChange({ ...form, status: v as TaskStatus })}
-            >
-              <SelectTrigger id="task-status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="planned">Planned</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
+          {!hideStatus && (
+            <FormField label="Status" htmlFor="task-status">
+              <Select
+                value={form.status}
+                onValueChange={(v) => onChange({ ...form, status: v as TaskStatus })}
+              >
+                <SelectTrigger id="task-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="planned">Planned</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
         </DialogBody>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={onSave} disabled={!form.name.trim() || isPending}>
+          <Button type="submit" disabled={!form.name.trim() || isPending}>
             {isPending ? 'Saving…' : 'Save'}
           </Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

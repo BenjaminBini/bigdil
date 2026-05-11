@@ -1,7 +1,6 @@
 import { SearchInput } from '@/components/shared/search-input'
 import { FlexRow } from '@/components/shared/layouts'
 import { FilterWrapper } from '@/components/shared/filter-wrapper'
-import type { ProjectStatus } from '@/api/types'
 import {
   Select,
   SelectContent,
@@ -9,14 +8,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { projectStatusLabels } from '@/lib/constants'
+import { projectLifecycleLabels, type ProjectLifecycle } from '@/lib/constants'
 
 interface ProjectsFiltersProps {
   search: string
   clientFilter: string
   statusFilter: string
   clients: string[]
-  statuses: ProjectStatus[]
+  statuses: ProjectLifecycle[]
   onSearchChange: (next: string) => void
   onClientFilterChange: (next: string) => void
   onStatusFilterChange: (next: string) => void
@@ -60,7 +59,7 @@ export function ProjectsFilters({
           <SelectContent>
             <SelectItem value="all-statuses">Tous les statuts</SelectItem>
             {statuses.map((status) => (
-              <SelectItem key={status} value={status}>{projectStatusLabels[status]}</SelectItem>
+              <SelectItem key={status} value={status}>{projectLifecycleLabels[status]}</SelectItem>
             ))}
           </SelectContent>
         </Select>

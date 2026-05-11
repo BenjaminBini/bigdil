@@ -22,7 +22,16 @@ export default function ProjectsPage() {
   if (error || !projects) return <ErrorState message="Erreur lors du chargement des projets" />
 
   const uniqueClients = [...new Set(projects.map((project) => project.clientName).filter(Boolean) as string[])]
-  const uniqueStatuses = [...new Set(projects.map((project) => project.status))]
+  // Lifecycle filter: derive a coarse label per project so the user can scope
+  // the list to active / upcoming / closed without surfacing the old enum.
+  function projectLifecycle(p: typeof projects[number]): 'ACTIVE' | 'UPCOMING' | 'CLOSED' {
+    if (p.closedAt) return 'CLOSED'
+    if (p.isActive) return 'ACTIVE'
+    const today = new Date().toISOString().slice(0, 10)
+    if (p.startDate && today < p.startDate) return 'UPCOMING'
+    return 'CLOSED'
+  }
+  const uniqueStatuses = [...new Set(projects.map(projectLifecycle))]
 
   const filteredRows = projects.filter((row) => {
     if (
@@ -31,7 +40,7 @@ export default function ProjectsPage() {
       !(row.clientName ?? '').toLowerCase().includes(search.toLowerCase())
     ) return false
     if (clientFilter !== ALL_CLIENTS && row.clientName !== clientFilter) return false
-    if (statusFilter !== ALL_STATUSES && row.status !== statusFilter) return false
+    if (statusFilter !== ALL_STATUSES && projectLifecycle(row) !== statusFilter) return false
     return true
   })
 

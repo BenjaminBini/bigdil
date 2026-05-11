@@ -48,9 +48,14 @@ export default function ClientProjectsPage() {
       case "name":
         cmp = a.project.name.localeCompare(b.project.name);
         break;
-      case "status":
-        cmp = a.project.status.localeCompare(b.project.status);
+      case "status": {
+        // Closed projects sort last; otherwise by startDate.
+        const aClosed = a.project.closedAt ? 1 : 0;
+        const bClosed = b.project.closedAt ? 1 : 0;
+        cmp = aClosed - bClosed;
+        if (cmp === 0) cmp = (a.project.startDate ?? '').localeCompare(b.project.startDate ?? '');
         break;
+      }
       case "contractValue":
         cmp = a.contractValue - b.contractValue;
         break;

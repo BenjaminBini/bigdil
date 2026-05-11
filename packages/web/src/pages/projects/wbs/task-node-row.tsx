@@ -2,10 +2,9 @@ import { Archive, ChevronDown, ChevronRight, GripVertical, Pencil, Plus } from '
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { ReactNode } from 'react'
-import type { Task } from '@/api/types'
+import type { TaskStatus } from '@/api/types'
 import { TaskStatusBadge } from './status-badge'
 
-// Page-local layout components for the WBS task node structure
 function TaskNodeLayout({ children }: { children: ReactNode }) {
   return (
     <div className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-50">
@@ -39,17 +38,19 @@ function TaskNodeLabel({ isPhase, children }: { isPhase: boolean; children: Reac
 }
 
 interface TaskNodeRowProps {
-  task: Task
+  name: string
+  status?: TaskStatus
   isPhase: boolean
   isExpanded?: boolean
   onToggle?: () => void
-  onAddSubTask: (task: Task) => void
-  onEdit: (task: Task) => void
-  onDelete: (task: Task) => void
+  onAddSubTask?: () => void
+  onEdit: () => void
+  onDelete: () => void
 }
 
 export function TaskNodeRow({
-  task,
+  name,
+  status,
   isPhase,
   isExpanded,
   onToggle,
@@ -74,19 +75,19 @@ export function TaskNodeRow({
         <TaskNodeSpacer />
       )}
 
-      <TaskNodeLabel isPhase={isPhase}>{task.name}</TaskNodeLabel>
-      <TaskStatusBadge status={task.status} />
+      <TaskNodeLabel isPhase={isPhase}>{name}</TaskNodeLabel>
+      {status && <TaskStatusBadge status={status} />}
 
       <TaskNodeActions>
-        {isPhase && (
-          <Button variant="ghost" size="icon-sm" onClick={() => onAddSubTask(task)} aria-label="Add sub-task" title="Add Sub-task">
+        {isPhase && onAddSubTask && (
+          <Button variant="ghost" size="icon-sm" onClick={onAddSubTask} aria-label="Add sub-task" title="Add Sub-task">
             <Plus size={14} />
           </Button>
         )}
-        <Button variant="ghost" size="icon-sm" onClick={() => onEdit(task)} aria-label="Edit task" title="Edit">
+        <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label="Edit task" title="Edit">
           <Pencil size={14} />
         </Button>
-        <Button variant="ghost-destructive" size="icon-sm" onClick={() => onDelete(task)} aria-label="Delete task" title="Supprimer">
+        <Button variant="ghost-destructive" size="icon-sm" onClick={onDelete} aria-label="Delete task" title="Supprimer">
           <Archive size={14} />
         </Button>
       </TaskNodeActions>

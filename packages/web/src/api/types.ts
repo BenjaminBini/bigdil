@@ -1,9 +1,8 @@
 // API response types — mirrors mock.ts interfaces with numbers (API converts numerics)
 
 export type UserRole = 'ADMIN' | 'PM' | 'CONSULTANT' | 'FINANCE' | 'EXEC'
-export type ProjectStatus = 'DRAFT' | 'WAITING_APPROVAL' | 'TO_PLAN' | 'PLANNING' | 'IN_PROGRESS' | 'COMPLETED'
 export type PeriodStatus = 'FUTURE' | 'OPEN' | 'CONSOLIDATION' | 'FROZEN'
-export type QuoteStatus = 'DRAFT' | 'SENT' | 'VALIDATED' | 'REJECTED'
+export type QuoteStatus = 'DRAFT' | 'SENT' | 'VALIDATED' | 'REJECTED' | 'CANCELLED'
 export type TaskStatus = 'planned' | 'active' | 'done'
 export type TimesheetStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED'
 
@@ -13,6 +12,12 @@ export interface User {
   role: UserRole
   name: string
   employeeId: string | null
+}
+
+export interface CurrentUserSession {
+  user: User
+  realUser: User
+  isImpersonating: boolean
 }
 
 export interface Client {
@@ -44,9 +49,10 @@ export interface Project {
   clientId: string
   name: string
   currency: string
-  status: ProjectStatus
   startDate: string | null
   endDate: string | null
+  closedAt: string | null
+  isActive: boolean
 }
 
 export interface ProjectListItem extends Project {
@@ -56,20 +62,30 @@ export interface ProjectListItem extends Project {
 
 export interface Task {
   id: string
-  projectId: string
-  parentTaskId: string | null
+  phaseId: string
   name: string
   sortOrder: number
   status: TaskStatus
-  children?: Task[]
 }
 
-export interface Period {
+export interface Phase {
   id: string
   projectId: string
-  periodNumber: number
+  name: string
+  sortOrder: number
+  tasks: Task[]
+}
+
+export interface PeriodInfo {
+  code: string
+  periodKey: string
+  monthCode: string
+  weekCode: string | null
   startDate: string
   endDate: string
+  label: string
+  groupCode: string
+  groupLabel: string
   status: PeriodStatus
   frozenAt: string | null
 }
@@ -91,8 +107,11 @@ export interface Quote {
   projectId: string
   title: string
   status: QuoteStatus
+  sentAt: string | null
   effectiveAt: string | null
   validatedAt: string | null
+  rejectedAt: string | null
+  cancelledAt: string | null
   lines: QuoteLine[]
 }
 
@@ -100,7 +119,10 @@ export interface WorkTableCell {
   taskId: string
   profileId: string
   employeeId: string | null
-  periodId: string
+  periodCode: string
+  periodKey: string
+  monthCode: string
+  weekCode: string | null
   days: number
   isActual: boolean
 }
@@ -108,28 +130,90 @@ export interface WorkTableCell {
 export interface ProfileTaskPeriodStart {
   taskId: string
   profileId: string
-  periodId: string
+  periodCode: string
   remainingAtStart: number
   soldAtStart: number
 }
 
-export interface TimesheetEntry {
+export interface AssignmentSlotRef {
   id: string
-  employeeId: string
   projectId: string
-  periodId: string
   taskId: string
   profileId: string
+  employeeId: string | null
+  task?: { id: string; name: string }
+  project?: { id: string; name: string }
+}
+
+export interface TaskTimesheet {
+  id: string
+  timesheetId: string
+  assignmentSlotId: string
   workDate: string
   days: number
-  status: TimesheetStatus
-  approvedAt: string | null
+  notes: string
   appliedCostRatePerDay: number | null
   appliedCostAmount: number | null
   appliedSellRatePerDay: number | null
   appliedSellAmount: number | null
-  notes: string
+  assignmentSlot?: AssignmentSlotRef
 }
+
+export interface LeaveDay {
+  id: string
+  timesheetId: string
+  workDate: string
+  days: number
+}
+
+export interface Timesheet {
+  id: string
+  employeeId: string
+  periodKey: string
+  status: TimesheetStatus
+  submittedAt: string | null
+  approvedAt: string | null
+  rejectedAt: string | null
+  rejectionReason: string | null
+  taskTimesheets: TaskTimesheet[]
+  leaveDays: LeaveDay[]
+  windowStatus?: 'OPEN' | 'CONSOLIDATION' | 'FROZEN' | 'FUTURE'
+}
+
+// Flattened denormalized shape — TaskTimesheet rows merged with their parent
+// Timesheet's status/period/lifecycle fields. Used by project-level views,
+// employee detail, snapshots, and the period-close checklist where callers
+// want a single flat row instead of the (Timesheet, TaskTimesheet) pair.
+export interface ProjectTaskTimesheet {
+  id: string
+  timesheetId: string
+  employeeId: string
+  assignmentSlotId: string
+  projectId: string
+  taskId: string
+  profileId: string
+  periodCode: string
+  periodKey: string
+  workDate: string
+  days: number
+  notes: string
+  status: TimesheetStatus
+  submittedAt: string | null
+  approvedAt: string | null
+  rejectedAt: string | null
+  appliedCostRatePerDay?: number | null
+  appliedCostAmount?: number | null
+  appliedSellRatePerDay?: number | null
+  appliedSellAmount?: number | null
+  monthCode?: string
+  weekCode?: string | null
+  windowStatus?: 'OPEN' | 'CONSOLIDATION' | 'FROZEN' | 'FUTURE'
+}
+
+// Legacy alias — most pages still import `TimesheetEntry` and expect the
+// flattened shape. New code should prefer `Timesheet` + `TaskTimesheet`
+// for the aggregate model.
+export type TimesheetEntry = ProjectTaskTimesheet
 
 export interface SnapshotMetrics {
   contractValue: number
@@ -146,8 +230,7 @@ export interface SnapshotMetrics {
 export interface Snapshot {
   id: string
   projectId: string
-  periodId: string
-  periodNumber: number
+  periodCode: string
   snapshotAt: string
   frozenAt: string
   closedBy: string
@@ -170,8 +253,7 @@ export interface SnapshotScopeLine {
 
 export interface SnapshotWorkTableRow {
   snapshotId: string
-  periodId: string
-  periodNumber: number
+  periodCode: string
   periodStatus: PeriodStatus
   taskId: string
   profileId: string
@@ -184,14 +266,15 @@ export interface SnapshotWorkTableRow {
 export interface ProjectDetail extends Project {
   clientName: string | null
   contractValue: number
-  tasks: Task[]
+  phases: Phase[]
   flatTasks: Task[]
-  periods: Period[]
+  periods: PeriodInfo[]
   quotes: Quote[]
 }
 
 export interface WorkTableData {
-  periods: Period[]
+  periods: PeriodInfo[]
+  phases: Phase[]
   tasks: Task[]
   cells: WorkTableCell[]
   quotes: Quote[]
@@ -214,7 +297,7 @@ export interface DashboardData {
   activeProjectsList: Array<{
     id: string
     name: string
-    status: ProjectStatus
+    isActive: boolean
     clientName: string | null
   }>
   recentActivity: Array<{
@@ -243,8 +326,7 @@ export interface EmployeeDetail extends Employee {
     taskName: string
     profileId: string
     profileName: string
-    periodId: string
-    periodNumber: number
+    periodCode: string
     days: number
   }>
   timesheets: TimesheetEntry[]
@@ -294,4 +376,10 @@ export interface UtilizationReportRow {
     days: number
     utilization: number
   }>
+}
+
+export interface GlobalTimesheetWindow {
+  id: string
+  openPeriodKey: string
+  updatedAt: string
 }

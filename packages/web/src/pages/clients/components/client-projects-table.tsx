@@ -6,7 +6,8 @@ import { SortableHead } from '@/components/shared/sortable-head'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { TextCaption } from '@/components/shared/text-caption'
 import { formatCurrency, formatDate } from '@/lib/format'
-import type { ProjectListItem, ProjectStatus } from '@/api/types'
+import type { ProjectListItem } from '@/api/types'
+import { deriveProjectLifecycle } from '@/lib/constants'
 import {
   type ClientProjectSortKey,
   type SortDir,
@@ -52,7 +53,7 @@ export function ClientProjectsTable({ rows, sortKey, sortDir, onSort }: ClientPr
                 )}
               </TdPrimary>
               <TableCell>
-                <StatusBadge status={project.status as ProjectStatus} />
+                <StatusBadge status={deriveProjectLifecycle(project)} />
               </TableCell>
               <TdNumericPrimary>{formatCurrency(contractValue)}</TdNumericPrimary>
               <TdNumeric>

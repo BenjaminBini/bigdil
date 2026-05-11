@@ -2,9 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '../client'
 import type {
   ProjectListItem, ProjectDetail, WorkTableData, Snapshot, Quote, QuoteLine,
-  TimesheetEntry, ReferenceData, DashboardData,
-  EmployeeDetail, ProfileDetail, Profile, Task, Client, Employee,
-  FinancialReportRow, UtilizationReportRow,
+  TimesheetEntry, Timesheet, ReferenceData, DashboardData,
+  EmployeeDetail, ProfileDetail, Profile, Phase, Task, Client, Employee,
+  FinancialReportRow, UtilizationReportRow, GlobalTimesheetWindow,
+  User, UserRole, CurrentUserSession,
 } from '../types'
 
 // ── Query Keys ─────────────────────────────────
@@ -18,12 +19,15 @@ export const queryKeys = {
   projectTimesheets: (projectId: string) => ['projects', projectId, 'timesheets'] as const,
   myTimesheets: ['timesheets', 'me'] as const,
   approvals: ['timesheets', 'approvals'] as const,
+  allTimesheets: ['timesheets', 'all'] as const,
   referenceData: ['reference-data'] as const,
   dashboard: ['dashboard'] as const,
   employee: (id: string) => ['employees', id] as const,
   profile: (id: string) => ['profiles', id] as const,
   financialReport: ['reports', 'financial'] as const,
   utilizationReport: ['reports', 'utilization'] as const,
+  users: ['users'] as const,
+  currentUser: ['auth', 'me'] as const,
 }
 
 // ── Hooks ──────────────────────────────────────
@@ -59,6 +63,21 @@ export function useSnapshots(projectId: string) {
   })
 }
 
+export function useCreateSnapshot(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (monthCode: string) =>
+      apiFetch<Snapshot>(`/api/projects/${projectId}/snapshots`, {
+        method: 'POST',
+        body: JSON.stringify({ monthCode }),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.snapshots(projectId) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
+    },
+  })
+}
+
 export function useSnapshot(projectId: string, snapshotId: string) {
   return useQuery({
     queryKey: queryKeys.snapshot(projectId, snapshotId),
@@ -70,7 +89,7 @@ export function useSnapshot(projectId: string, snapshotId: string) {
 export function useProjectTimesheets(projectId: string) {
   return useQuery({
     queryKey: queryKeys.projectTimesheets(projectId),
-    queryFn: () => apiFetch<TimesheetEntry[]>(`/api/projects/${projectId}/timesheets`),
+    queryFn: () => apiFetch<Timesheet[]>(`/api/projects/${projectId}/timesheets`),
     enabled: !!projectId,
   })
 }
@@ -78,14 +97,24 @@ export function useProjectTimesheets(projectId: string) {
 export function useMyTimesheets() {
   return useQuery({
     queryKey: queryKeys.myTimesheets,
-    queryFn: () => apiFetch<TimesheetEntry[]>('/api/timesheets/me'),
+    queryFn: () => apiFetch<Timesheet[]>('/api/timesheets/me'),
   })
 }
 
 export function useApprovals() {
   return useQuery({
     queryKey: queryKeys.approvals,
-    queryFn: () => apiFetch<TimesheetEntry[]>('/api/timesheets/approvals'),
+    queryFn: () => apiFetch<Timesheet[]>('/api/timesheets/approvals'),
+  })
+}
+
+// All timesheets across employees, regardless of status — used by approvals
+// page to render the "past approvals" section (everything before the open
+// week, any status).
+export function useAllTimesheets() {
+  return useQuery({
+    queryKey: queryKeys.allTimesheets,
+    queryFn: () => apiFetch<Timesheet[]>('/api/timesheets/all'),
   })
 }
 
@@ -156,6 +185,17 @@ export function useUpdateProject(projectId: string) {
   })
 }
 
+export function useDeleteEmployee() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (employeeId: string) =>
+      apiFetch(`/api/employees/${employeeId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData })
+    },
+  })
+}
+
 export function useAddEmployeeRate(employeeId: string) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -183,11 +223,38 @@ export function useUpdateProfile() {
   })
 }
 
+export function useCreatePhase(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { name: string }) =>
+      apiFetch<Phase>(`/api/projects/${projectId}/phases`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useUpdatePhase(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ phaseId, ...data }: { phaseId: string; name?: string }) =>
+      apiFetch<Phase>(`/api/projects/${projectId}/phases/${phaseId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useDeletePhase(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (phaseId: string) =>
+      apiFetch(`/api/projects/${projectId}/phases/${phaseId}`, { method: 'DELETE' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
 export function useCreateTask(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name: string; status?: string; parentTaskId?: string | null }) =>
-      apiFetch<Task>(`/api/projects/${projectId}/tasks`, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: ({ phaseId, ...data }: { phaseId: string; name: string; status?: string }) =>
+      apiFetch<Task>(`/api/projects/${projectId}/phases/${phaseId}/tasks`, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
   })
 }
@@ -222,17 +289,30 @@ export function useDeleteTask(projectId: string) {
 export function useValidateQuote(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (quoteId: string) =>
-      apiFetch(`/api/projects/${projectId}/quotes/${quoteId}/validate`, { method: 'POST' }),
+    mutationFn: ({ quoteId, validatedAt, effectiveAt }: { quoteId: string; validatedAt: string; effectiveAt: string }) =>
+      apiFetch<Quote>(`/api/projects/${projectId}/quotes/${quoteId}/validate`, {
+        method: 'POST',
+        body: JSON.stringify({ validatedAt, effectiveAt }),
+      }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
   })
 }
 
-export function useUpdateProjectStatus(projectId: string) {
+export function useCloseProject(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (status: string) =>
-      apiFetch(`/api/projects/${projectId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+    mutationFn: () => apiFetch(`/api/projects/${projectId}/close`, { method: 'POST' }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.projects })
+    },
+  })
+}
+
+export function useReopenProject(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => apiFetch(`/api/projects/${projectId}/reopen`, { method: 'POST' }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
       void queryClient.invalidateQueries({ queryKey: queryKeys.projects })
@@ -261,7 +341,7 @@ export function useUpdateClient() {
 export function useCreateQuote(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { title: string; effectiveAt?: string | null }) =>
+    mutationFn: (data: { title: string }) =>
       apiFetch<Quote>(`/api/projects/${projectId}/quotes`, { method: 'POST', body: JSON.stringify({ ...data, lines: [] }) }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
   })
@@ -316,6 +396,51 @@ export function useDuplicateQuote(projectId: string) {
   })
 }
 
+export function useDeleteQuote(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (quoteId: string) =>
+      apiFetch<{ ok: boolean }>(`/api/projects/${projectId}/quotes/${quoteId}`, { method: 'DELETE' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useCancelQuote(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (quoteId: string) =>
+      apiFetch<Quote>(`/api/projects/${projectId}/quotes/${quoteId}/cancel`, { method: 'POST' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useSendQuote(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (quoteId: string) =>
+      apiFetch<Quote>(`/api/projects/${projectId}/quotes/${quoteId}/send`, { method: 'POST' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useReopenQuote(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (quoteId: string) =>
+      apiFetch<Quote>(`/api/projects/${projectId}/quotes/${quoteId}/reopen`, { method: 'POST' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useRejectQuote(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (quoteId: string) =>
+      apiFetch<Quote>(`/api/projects/${projectId}/quotes/${quoteId}/reject`, { method: 'POST' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
 export function useCreateEmployee() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -328,7 +453,7 @@ export function useCreateEmployee() {
 export function useUpdateCell(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { taskId: string; profileId: string; employeeId?: string; periodId: string; days: number }) =>
+    mutationFn: (data: { taskId: string; profileId: string; employeeId?: string; periodCode: string; days: number }) =>
       apiFetch(`/api/projects/${projectId}/work-table`, { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.workTable(projectId) })
@@ -336,37 +461,81 @@ export function useUpdateCell(projectId: string) {
   })
 }
 
-export function useCreateTimesheet() {
+// Add a TaskTimesheet to an editable Timesheet (DRAFT/REJECTED).
+export function useAddTaskTimesheet() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: {
-      employeeId: string; projectId: string; periodId: string;
-      taskId: string; profileId: string; workDate: string; days: number; notes?: string
+    mutationFn: ({ timesheetId, ...data }: {
+      timesheetId: string
+      assignmentSlotId: string
+      workDate: string
+      days: number
+      notes?: string
     }) =>
-      apiFetch('/api/timesheets', { method: 'POST', body: JSON.stringify(data) }),
+      apiFetch(`/api/timesheets/${timesheetId}/entries`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.myTimesheets })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.approvals })
     },
   })
 }
 
-export function useUpdateTimesheet() {
+// Update a single TaskTimesheet's days/notes.
+export function useUpdateTaskTimesheet() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; days?: number; notes?: string }) =>
-      apiFetch(`/api/timesheets/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    mutationFn: ({ timesheetId, entryId, ...data }: {
+      timesheetId: string
+      entryId: string
+      days?: number
+      notes?: string
+    }) =>
+      apiFetch(`/api/timesheets/${timesheetId}/entries/${entryId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.myTimesheets })
     },
   })
 }
 
+// Remove a TaskTimesheet from an editable Timesheet.
+export function useDeleteTaskTimesheet() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ timesheetId, entryId }: { timesheetId: string; entryId: string }) =>
+      apiFetch(`/api/timesheets/${timesheetId}/entries/${entryId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myTimesheets })
+    },
+  })
+}
+
+// Upsert the Congés row for a given workDate inside a Timesheet.
+// `days` must be 0 (clear), 0.5 (half day) or 1 (full day).
+export function useUpsertLeaveDay() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ timesheetId, workDate, days }: { timesheetId: string; workDate: string; days: number }) =>
+      apiFetch(`/api/timesheets/${timesheetId}/leave`, {
+        method: 'POST',
+        body: JSON.stringify({ workDate, days }),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myTimesheets })
+    },
+  })
+}
+
+// Submit the whole Timesheet (DRAFT/REJECTED → SUBMITTED).
 export function useSubmitTimesheet() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/api/timesheets/${id}/submit`, { method: 'POST' }),
+    mutationFn: (timesheetId: string) =>
+      apiFetch(`/api/timesheets/${timesheetId}/submit`, { method: 'POST' }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.myTimesheets })
       void queryClient.invalidateQueries({ queryKey: queryKeys.approvals })
@@ -374,11 +543,12 @@ export function useSubmitTimesheet() {
   })
 }
 
+// Approve the whole Timesheet (SUBMITTED → APPROVED, freezes per-entry rates).
 export function useApproveTimesheet() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/api/timesheets/${id}/approve`, { method: 'POST' }),
+    mutationFn: (timesheetId: string) =>
+      apiFetch(`/api/timesheets/${timesheetId}/approve`, { method: 'POST' }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.approvals })
       void queryClient.invalidateQueries({ queryKey: queryKeys.myTimesheets })
@@ -386,48 +556,106 @@ export function useApproveTimesheet() {
   })
 }
 
+// Reject the whole Timesheet (SUBMITTED → REJECTED).
 export function useRejectTimesheet() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/api/timesheets/${id}/reject`, { method: 'POST' }),
+    mutationFn: ({ timesheetId, reason }: { timesheetId: string; reason?: string }) =>
+      apiFetch(`/api/timesheets/${timesheetId}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason }),
+      }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.approvals })
     },
   })
 }
 
-export function useOpenPeriod(projectId: string) {
+interface AdvanceWindowResponse {
+  window: GlobalTimesheetWindow
+  from: string
+  to: string
+  sameMonth: boolean
+  timesheetsCreated: number
+  taskTimesheetsCreated: number
+}
+
+export function useAdvanceTimesheetWindow() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (periodId: string) =>
-      apiFetch(`/api/projects/${projectId}/periods/${periodId}/open`, { method: 'POST' }),
+    mutationFn: () =>
+      apiFetch<AdvanceWindowResponse>('/api/timesheet-window/advance', { method: 'POST' }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
+      // Window shift affects every period-derived view in the app.
+      void queryClient.invalidateQueries()
     },
   })
 }
 
-export function useStartConsolidation(projectId: string) {
+export function useTimesheetWindow() {
+  return useQuery<GlobalTimesheetWindow>({
+    queryKey: ['timesheetWindow'],
+    queryFn: () => apiFetch<GlobalTimesheetWindow>('/api/timesheet-window'),
+  })
+}
+
+// ── Users + Auth ────────────────────────────────
+
+export function useUsers() {
+  return useQuery({
+    queryKey: queryKeys.users,
+    queryFn: () => apiFetch<User[]>('/api/users'),
+  })
+}
+
+export function useCurrentUser() {
+  return useQuery({
+    queryKey: queryKeys.currentUser,
+    queryFn: () => apiFetch<CurrentUserSession>('/api/auth/me'),
+    staleTime: 30_000,
+  })
+}
+
+export function useCreateUser() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (periodId: string) =>
-      apiFetch(`/api/projects/${projectId}/periods/${periodId}/start-consolidation`, { method: 'POST' }),
+    mutationFn: (data: { name: string; email: string; role: UserRole; employeeId: string | null }) =>
+      apiFetch<User>('/api/users', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.users }) },
+  })
+}
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string; name?: string; email?: string; role?: UserRole; employeeId?: string | null }) =>
+      apiFetch<User>(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.users }) },
+  })
+}
+
+export function useImpersonate() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (userId: string) =>
+      apiFetch<CurrentUserSession>('/api/auth/impersonate', {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+      }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
+      // Effective user changed — invalidate everything so the whole UI refetches under the new identity.
+      void queryClient.invalidateQueries()
     },
   })
 }
 
-export function useFreezePeriod(projectId: string) {
+export function useStopImpersonating() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (periodId: string) =>
-      apiFetch(`/api/projects/${projectId}/periods/${periodId}/freeze`, { method: 'POST' }),
+    mutationFn: () =>
+      apiFetch<CurrentUserSession>('/api/auth/impersonate', { method: 'DELETE' }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.snapshots(projectId) })
-      void queryClient.invalidateQueries({ queryKey: queryKeys.workTable(projectId) })
+      void queryClient.invalidateQueries()
     },
   })
 }

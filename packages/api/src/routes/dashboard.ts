@@ -5,7 +5,7 @@ export const dashboardRouter = new Hono()
 
 // GET /api/dashboard — cross-project KPIs, alerts, recent activity
 dashboardRouter.get('/', async (c) => {
-  const [allProjectsRaw, contractResult, latestSnapshots, overdueApprovals, recentActivity, consolidationPeriodsRaw] = await Promise.all([
+  const [allProjectsRaw, contractResult, latestSnapshots, overdueApprovals, recentActivity] = await Promise.all([
     prisma.project.findMany({ include: { client: true } }),
     prisma.quoteLine.aggregate({
       _sum: { revenueAmount: true },
@@ -13,29 +13,32 @@ dashboardRouter.get('/', async (c) => {
     }),
     prisma.snapshot.findMany({
       include: { metrics: true },
-      orderBy: { periodNumber: 'desc' },
+      orderBy: { monthCode: 'desc' },
     }),
-    prisma.timesheetEntry.count({ where: { status: 'SUBMITTED' } }),
+    prisma.timesheet.count({ where: { status: 'SUBMITTED' } }),
     prisma.snapshot.findMany({
       orderBy: { snapshotAt: 'desc' },
       take: 10,
     }),
-    prisma.period.findMany({
-      where: { status: 'CONSOLIDATION' },
-      include: { project: true },
-    }),
   ])
+
+  const todayIso = new Date().toISOString().slice(0, 10)
+  function isActive(p: { startDate: Date | null; endDate: Date | null; closedAt: Date | null }): boolean {
+    if (p.closedAt) return false
+    if (p.startDate && todayIso < p.startDate.toISOString().slice(0, 10)) return false
+    if (p.endDate && todayIso > p.endDate.toISOString().slice(0, 10)) return false
+    return true
+  }
 
   const allProjects = allProjectsRaw.map(p => ({
     id: p.id,
     name: p.name,
-    status: p.status,
     clientName: p.client.name,
+    isActive: isActive(p),
   }))
 
   const totalContractValue = contractResult._sum.revenueAmount ?? 0
 
-  // Deduplicate to get latest snapshot per project
   const latestByProject = new Map<string, number>()
   for (const s of latestSnapshots) {
     if (!latestByProject.has(s.projectId)) {
@@ -44,14 +47,12 @@ dashboardRouter.get('/', async (c) => {
   }
   const totalMarginForecast = Array.from(latestByProject.values()).reduce((sum, v) => sum + v, 0)
 
-  const activeProjects = allProjects.filter(p => p.status === 'IN_PROGRESS').length
+  const activeProjects = allProjects.filter(p => p.isActive).length
 
-  const periodsNeedingClosure = consolidationPeriodsRaw.map(p => ({
-    periodId: p.id,
-    periodNumber: p.periodNumber,
-    projectId: p.projectId,
-    projectName: p.project.name,
-  }))
+  // Period status is now derived globally from GlobalTimesheetWindow; no per-project
+  // closure list. (See period-utils.deriveTimesheetWindowStatus.) Future: surface the
+  // current open month here once a global month-freeze workflow exists.
+  const periodsNeedingClosure: Array<{ periodCode: string; projectId: string; projectName: string }> = []
 
   return c.json({
     kpis: {
@@ -60,7 +61,7 @@ dashboardRouter.get('/', async (c) => {
       activeProjects,
       overdueApprovals,
     },
-    activeProjectsList: allProjects.filter(p => p.status === 'IN_PROGRESS'),
+    activeProjectsList: allProjects.filter(p => p.isActive),
     recentActivity,
     alerts: {
       periodsNeedingClosure,

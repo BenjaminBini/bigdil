@@ -1,17 +1,18 @@
 import { cn } from '@/lib/utils'
 import {
-  projectStatusColors,
+  projectLifecycleColors,
   periodStatusColors,
   quoteStatusColors,
   timesheetStatusColors,
   roleColors,
   taskStatusColors,
   miscStatusColors,
+  type ProjectLifecycle,
 } from '@/lib/constants'
-import type { ProjectStatus, PeriodStatus, QuoteStatus, TimesheetStatus, UserRole, TaskStatus } from '@/api/types'
+import type { PeriodStatus, QuoteStatus, TimesheetStatus, UserRole, TaskStatus } from '@/api/types'
 
 type KnownStatus =
-  | ProjectStatus
+  | ProjectLifecycle
   | PeriodStatus
   | QuoteStatus
   | TimesheetStatus
@@ -19,13 +20,8 @@ type KnownStatus =
   | TaskStatus
 
 const STATUS_LABEL: Record<string, string> = {
-  // ProjectStatus
-  DRAFT: 'Brouillon',
-  WAITING_APPROVAL: 'En attente',
-  TO_PLAN: 'À planifier',
-  PLANNING: 'Planification',
-  IN_PROGRESS: 'En cours',
-  COMPLETED: 'Terminé',
+  // ProjectLifecycle
+  UPCOMING: 'À venir',
   // PeriodStatus
   FUTURE: 'Future',
   OPEN: 'Ouverte',
@@ -43,11 +39,11 @@ const STATUS_LABEL: Record<string, string> = {
   active: 'Actif',
   done: 'Terminé',
   // Misc
-  ACTIVE: 'Actif',
+  ACTIVE: 'En cours',
   INACTIVE: 'Inactif',
   ACTUAL: 'Réel',
   PLANNED: 'Prévu',
-  CLOSED: 'Fermé',
+  CLOSED: 'Clos',
 }
 
 /**
@@ -56,7 +52,7 @@ const STATUS_LABEL: Record<string, string> = {
  */
 function resolveColors(status: string): string {
   const allMaps = [
-    projectStatusColors as Record<string, string>,
+    projectLifecycleColors as Record<string, string>,
     periodStatusColors as Record<string, string>,
     quoteStatusColors as Record<string, string>,
     timesheetStatusColors as Record<string, string>,

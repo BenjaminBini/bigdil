@@ -36,7 +36,7 @@ export function ActiveProjectsCard({ projects }: ActiveProjectsCardProps) {
                 <TextStrong>{project.name}</TextStrong>
                 <MutedText>{project.clientName}</MutedText>
               </div>
-              <StatusBadge status={project.status} />
+              <StatusBadge status="ACTIVE" />
             </CardLink>
           ))}
           {projects.length === 0 && <MutedText>Aucun projet en cours</MutedText>}

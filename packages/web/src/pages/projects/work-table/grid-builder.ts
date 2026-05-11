@@ -1,23 +1,40 @@
-import type { Employee, Period, Profile, Quote, Task, WorkTableCell } from '@/api/types'
+import type { Employee, Phase, PeriodInfo, Profile, Quote, Task, WorkTableCell } from '@/api/types'
 import type { GridRow } from '@/lib/work-table/types'
 
-function getClosedPeriodIds(periods: Period[]): Set<string> {
-  return new Set(
-    periods.filter((p) => p.status === 'FROZEN' || p.status === 'CONSOLIDATION').map((p) => p.id),
-  )
+interface PeriodStatusIndex {
+  frozen: Set<string>
+  consolidation: Set<string>
 }
 
-function splitActualRemaining(
-  cells: Record<string, number>,
-  closedPeriodIds: Set<string>,
-): { actual: number; remaining: number } {
-  let actual = 0
-  let remaining = 0
-  for (const [periodId, days] of Object.entries(cells)) {
-    if (closedPeriodIds.has(periodId)) actual += days
-    else remaining += days
+function indexPeriodStatuses(periods: PeriodInfo[]): PeriodStatusIndex {
+  const frozen = new Set<string>()
+  const consolidation = new Set<string>()
+  for (const p of periods) {
+    if (p.status === 'FROZEN') frozen.add(p.periodKey)
+    else if (p.status === 'CONSOLIDATION') consolidation.add(p.periodKey)
   }
-  return { actual, remaining }
+  return { frozen, consolidation }
+}
+
+interface CellSplit {
+  validatedDaysSpent: number  // FROZEN
+  daysInConsolidation: number // CONSOLIDATION
+  totalRemaining: number      // OPEN + FUTURE
+}
+
+function splitCellsByStatus(
+  cells: Record<string, number>,
+  index: PeriodStatusIndex,
+): CellSplit {
+  let validatedDaysSpent = 0
+  let daysInConsolidation = 0
+  let totalRemaining = 0
+  for (const [periodKey, days] of Object.entries(cells)) {
+    if (index.frozen.has(periodKey)) validatedDaysSpent += days
+    else if (index.consolidation.has(periodKey)) daysInConsolidation += days
+    else totalRemaining += days
+  }
+  return { validatedDaysSpent, daysInConsolidation, totalRemaining }
 }
 
 function indexById<T extends { id: string }>(items: T[]): Map<string, T> {
@@ -45,11 +62,44 @@ function findValidatedQuoteLines(
   return { totalDays, sellRatePerDay }
 }
 
+interface QuoteContribution {
+  quoteId: string
+  quoteTitle: string
+  days: number
+  revenue: number
+  cost: number
+}
+
+function buildQuoteContributionsForTask(taskId: string, quotes: Quote[]): QuoteContribution[] {
+  const byQuote = new Map<string, QuoteContribution>()
+  for (const quote of quotes) {
+    if (quote.status !== 'VALIDATED') continue
+    for (const line of quote.lines) {
+      if (line.taskId !== taskId) continue
+      const existing = byQuote.get(quote.id)
+      if (existing) {
+        existing.days += line.days
+        existing.revenue += line.revenueAmount
+        existing.cost += line.budgetCostAmount
+      } else {
+        byQuote.set(quote.id, {
+          quoteId: quote.id,
+          quoteTitle: quote.title,
+          days: line.days,
+          revenue: line.revenueAmount,
+          cost: line.budgetCostAmount,
+        })
+      }
+    }
+  }
+  return [...byQuote.values()]
+}
+
 function mergeCells(...cellMaps: Record<string, number>[]): Record<string, number> {
   const result: Record<string, number> = {}
   for (const map of cellMaps) {
-    for (const [periodId, days] of Object.entries(map)) {
-      result[periodId] = (result[periodId] ?? 0) + days
+    for (const [periodKey, days] of Object.entries(map)) {
+      result[periodKey] = (result[periodKey] ?? 0) + days
     }
   }
   return result
@@ -57,22 +107,21 @@ function mergeCells(...cellMaps: Record<string, number>[]): Record<string, numbe
 
 export function buildGridRows(
   workTable: WorkTableCell[],
-  periods: Period[],
-  flatTasks: Task[],
+  periods: PeriodInfo[],
+  phases: Phase[],
   quotes: Quote[],
   profiles: Profile[],
   employees: Employee[],
 ): GridRow[] {
-  const closedPeriodIds = getClosedPeriodIds(periods)
+  const periodStatusIndex = indexPeriodStatuses(periods)
+  const flatTasks: Task[] = phases.flatMap(p => p.tasks)
   const taskMap = indexById(flatTasks)
+  const phaseMap = indexById(phases)
   const profileMap = indexById(profiles)
   const employeeMap = indexById(employees)
 
-  function getPhase(taskId: string): Task | null {
-    const task = taskMap.get(taskId)
-    if (!task) return null
-    if (!task.parentTaskId) return task
-    return taskMap.get(task.parentTaskId) ?? null
+  function getPhaseId(taskId: string): string | null {
+    return taskMap.get(taskId)?.phaseId ?? null
   }
 
   type EmployeeKey = string
@@ -97,9 +146,8 @@ export function buildGridRows(
   >()
 
   for (const cell of workTable) {
-    const phase = getPhase(cell.taskId)
-    if (!phase) continue
-    const phaseId = phase.id
+    const phaseId = getPhaseId(cell.taskId)
+    if (!phaseId) continue
 
     if (!phaseGrouping.has(phaseId)) {
       phaseGrouping.set(phaseId, { task: new Map() })
@@ -122,26 +170,17 @@ export function buildGridRows(
       profileEntry.employeeMap.set(empKey, {})
     }
     const empCells = profileEntry.employeeMap.get(empKey)!
-    empCells[cell.periodId] = (empCells[cell.periodId] ?? 0) + cell.days
+    empCells[cell.periodKey] = (empCells[cell.periodKey] ?? 0) + cell.days
   }
 
-  // Seed all phases and tasks from flatTasks so they appear even with no quote lines or cells.
-  for (const task of flatTasks) {
-    if (!task.parentTaskId) {
-      // Phase-level task
-      if (!phaseGrouping.has(task.id)) {
-        phaseGrouping.set(task.id, { task: new Map() })
-        phaseOrder.push(task.id)
-      }
-    } else {
-      // Sub-task — ensure its phase and itself are in the grouping
-      const phase = taskMap.get(task.parentTaskId)
-      if (!phase) continue
-      if (!phaseGrouping.has(phase.id)) {
-        phaseGrouping.set(phase.id, { task: new Map() })
-        phaseOrder.push(phase.id)
-      }
-      const phaseEntry = phaseGrouping.get(phase.id)!
+  // Seed all phases and their tasks so they appear even with no quote lines or cells.
+  for (const phase of phases) {
+    if (!phaseGrouping.has(phase.id)) {
+      phaseGrouping.set(phase.id, { task: new Map() })
+      phaseOrder.push(phase.id)
+    }
+    const phaseEntry = phaseGrouping.get(phase.id)!
+    for (const task of phase.tasks) {
       if (!phaseEntry.task.has(task.id)) {
         phaseEntry.task.set(task.id, { profileMap: new Map() })
       }
@@ -154,9 +193,8 @@ export function buildGridRows(
     if (quote.status !== 'VALIDATED') continue
     for (const line of quote.lines) {
       const { taskId, profileId } = line
-      const phase = getPhase(taskId)
-      if (!phase) continue
-      const phaseId = phase.id
+      const phaseId = getPhaseId(taskId)
+      if (!phaseId) continue
 
       if (!phaseGrouping.has(phaseId)) {
         phaseGrouping.set(phaseId, { task: new Map() })
@@ -189,10 +227,9 @@ export function buildGridRows(
     profileId: string | undefined,
     employeeId: string | null | undefined,
   ) {
-    const { actual: totalActual, remaining: totalRemaining } = splitActualRemaining(
-      cells,
-      closedPeriodIds,
-    )
+    const split = splitCellsByStatus(cells, periodStatusIndex)
+    const { validatedDaysSpent, daysInConsolidation, totalRemaining } = split
+    const totalActual = validatedDaysSpent + daysInConsolidation
     const total = totalActual + totalRemaining
 
     const isEmployeeLevel = employeeId !== undefined
@@ -204,6 +241,10 @@ export function buildGridRows(
       forecastSellRate = ql.sellRatePerDay
     }
     const variance = !isEmployeeLevel ? total - quotedDays : 0
+    // Days quoted but not yet allocated into period cells. Surfaces newly
+    // validated quotes mid-project: their days inflate quotedDays without
+    // touching cells, so toPlan rises until the planner redistributes them.
+    const toPlan = !isEmployeeLevel ? Math.max(0, quotedDays - total) : 0
 
     let forecastCostRate: number | null = null
     if (employeeId !== undefined) {
@@ -222,8 +263,11 @@ export function buildGridRows(
       totalActual,
       totalRemaining,
       total,
+      validatedDaysSpent,
+      daysInConsolidation,
       quotedDays,
       variance,
+      toPlan,
       forecastCostRate,
       forecastSellRate,
       etcCost,
@@ -235,7 +279,7 @@ export function buildGridRows(
 
   for (const phaseId of phaseOrder) {
     const phaseEntry = phaseGrouping.get(phaseId)!
-    const phaseDef = taskMap.get(phaseId)
+    const phaseDef = phaseMap.get(phaseId)
     const phaseCellsList: Record<string, number>[] = []
 
     for (const [taskId, taskEntry] of phaseEntry.task) {
@@ -296,6 +340,36 @@ export function buildGridRows(
         cells: taskCells,
         ...taskSummary,
       })
+
+      // Quote contribution sub-rows: one per validated quote that touches this task.
+      // They sit between the task row and its profile rows in the rendered order.
+      // No period cells (commercial layer, not planning).
+      for (const contrib of buildQuoteContributionsForTask(taskId, quotes)) {
+        rows.push({
+          id: `quote-${phaseId}-${taskId}-${contrib.quoteId}`,
+          kind: 'quote',
+          phaseId,
+          taskId,
+          quoteId: contrib.quoteId,
+          label: contrib.quoteTitle,
+          depth: 2,
+          cells: {},
+          totalActual: 0,
+          totalRemaining: 0,
+          total: 0,
+          validatedDaysSpent: 0,
+          daysInConsolidation: 0,
+          quotedDays: contrib.days,
+          variance: 0,
+          toPlan: 0,
+          forecastCostRate: null,
+          forecastSellRate: null,
+          etcCost: null,
+          quoteRevenue: contrib.revenue,
+          quoteCost: contrib.cost,
+        })
+      }
+
       phaseCellsList.push(taskCells)
     }
 
@@ -312,8 +386,8 @@ export function buildGridRows(
       ...phaseSummary,
     })
 
-    for (const [periodId, days] of Object.entries(phaseCells)) {
-      grandTotalCells[periodId] = (grandTotalCells[periodId] ?? 0) + days
+    for (const [periodKey, days] of Object.entries(phaseCells)) {
+      grandTotalCells[periodKey] = (grandTotalCells[periodKey] ?? 0) + days
     }
   }
 
@@ -338,6 +412,13 @@ export function buildGridRows(
       const taskRow = rowById.get(`task-${phaseId}-${taskId}`)
       if (taskRow) orderedRows.push(taskRow)
 
+      // Emit quote contribution rows for this task before the profile rows.
+      for (const r of rows) {
+        if (r.kind === 'quote' && r.phaseId === phaseId && r.taskId === taskId) {
+          orderedRows.push(r)
+        }
+      }
+
       const taskEntry = phaseEntry.task.get(taskId)!
       for (const profileId of taskEntry.profileMap.keys()) {
         const profileRow = rowById.get(`prof-${phaseId}-${taskId}-${profileId}`)
@@ -352,10 +433,8 @@ export function buildGridRows(
     }
   }
 
-  const { actual: grandTotalActual, remaining: grandTotalRemaining } = splitActualRemaining(
-    grandTotalCells,
-    closedPeriodIds,
-  )
+  const grandSplit = splitCellsByStatus(grandTotalCells, periodStatusIndex)
+  const grandTotalActual = grandSplit.validatedDaysSpent + grandSplit.daysInConsolidation
 
   orderedRows.push({
     id: 'grand-total',
@@ -365,10 +444,13 @@ export function buildGridRows(
     depth: 0,
     cells: grandTotalCells,
     totalActual: grandTotalActual,
-    totalRemaining: grandTotalRemaining,
-    total: grandTotalActual + grandTotalRemaining,
+    totalRemaining: grandSplit.totalRemaining,
+    total: grandTotalActual + grandSplit.totalRemaining,
+    validatedDaysSpent: grandSplit.validatedDaysSpent,
+    daysInConsolidation: grandSplit.daysInConsolidation,
     quotedDays: 0,
     variance: 0,
+    toPlan: 0,
     forecastCostRate: null,
     forecastSellRate: null,
     etcCost: null,

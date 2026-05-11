@@ -1,7 +1,7 @@
 export { prisma } from './client.js'
 export type { PrismaClient } from '../generated/prisma/client.js'
 
-// Re-export generated types
+// Re-export generated model types
 export type {
   Client,
   User,
@@ -10,23 +10,30 @@ export type {
   EmployeeCostRate,
   Project,
   Task,
-  Period,
   Quote,
   QuoteLine,
+  AssignmentSlot,
   PlannedDay,
-  TimesheetEntry,
+  Timesheet,
+  TaskTimesheet,
+  LeaveDay,
   ProfileTaskPeriodStart,
   Snapshot,
   SnapshotMetrics,
   SnapshotScopeLine,
   SnapshotWorkRow,
+  GlobalTimesheetWindow,
+  MonthFreeze,
+  AuditLog,
 } from '../generated/prisma/client.js'
 
+// Re-export generated enums
 export type {
   UserRole,
-  ProjectStatus,
-  PeriodStatus,
+  SnapshotPeriodStatus,
   QuoteStatus,
   TaskStatus,
   TimesheetStatus,
+  Currency,
+  AuditAction,
 } from '../generated/prisma/enums.js'

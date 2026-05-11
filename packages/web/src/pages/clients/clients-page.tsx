@@ -28,7 +28,7 @@ function buildClientRows(clients: Client[], projects: ProjectListItem[]): Client
 
     return {
       client,
-      activeProjects: clientProjects.filter((project) => project.status === 'IN_PROGRESS').length,
+      activeProjects: clientProjects.filter((project) => project.isActive).length,
       totalProjects: clientProjects.length,
       contractValue,
       marginForecast: null,

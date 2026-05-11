@@ -1,47 +1,113 @@
 import { Hono } from 'hono'
 import { prisma } from '@bigdil/db'
+import type { Currency } from '@bigdil/db'
+import {
+  getPeriodDates,
+  getPeriodLabel,
+  getPeriodSlicesForDateRange,
+  getPeriodsForDateRange,
+  comparePeriodCodes,
+  comparePeriodSliceKeys,
+  deriveTimesheetWindowStatus,
+  parsePeriodSliceKey,
+} from '../lib/period-utils.js'
+import { requireGlobalTimesheetWindow } from '../lib/timesheet-window.js'
+import { auditLog } from '../lib/audit.js'
+import { fromIsoDate, toIsoDate, toIsoDateOrNull } from '../lib/dates.js'
+import { requireCurrentUser } from '../lib/current-user.js'
+import {
+  buildScopeLines,
+  buildWorkRows,
+  computeSnapshotMetrics,
+  loadSnapshotInputs,
+  periodKeyMatchesMonth,
+} from '../lib/snapshot-builder.js'
 
 export const projectsRouter = new Hono()
 
-function buildWeeklyPeriods(
-  projectId: string,
-  startDate: string,
-  endDate: string,
-  openFirst: boolean,
-): Array<{ id: string; projectId: string; periodNumber: number; startDate: string; endDate: string; status: 'FUTURE' | 'OPEN' }> {
-  const periods = []
-  const end = new Date(endDate)
-  let current = new Date(startDate)
-  let num = 1
-  while (current <= end) {
-    const pEnd = new Date(current)
-    pEnd.setDate(pEnd.getDate() + 6)
-    if (pEnd > end) pEnd.setTime(end.getTime())
-    periods.push({
-      id: crypto.randomUUID(),
-      projectId,
-      periodNumber: num,
-      startDate: current.toISOString().split('T')[0],
-      endDate: pEnd.toISOString().split('T')[0],
-      status: (openFirst && num === 1 ? 'OPEN' : 'FUTURE') as 'FUTURE' | 'OPEN',
-    })
-    current.setDate(current.getDate() + 7)
-    num++
+const VALID_CURRENCIES = new Set<Currency>(['EUR', 'USD', 'GBP', 'CHF', 'CAD'])
+
+function asCurrency(input: string | undefined): Currency | undefined {
+  if (!input) return undefined
+  const upper = input.trim().toUpperCase() as Currency
+  return VALID_CURRENCIES.has(upper) ? upper : undefined
+}
+
+// Project is "active" when not closed and today falls inside its date range
+// (or when one/both bounds are missing — in that case the present side acts
+// as half-open). Used by dashboards, filters, and the project header.
+function isProjectActive(p: { startDate: Date | null; endDate: Date | null; closedAt: Date | null }): boolean {
+  if (p.closedAt) return false
+  const todayIso = new Date().toISOString().slice(0, 10)
+  const startIso = toIsoDateOrNull(p.startDate)
+  const endIso = toIsoDateOrNull(p.endDate)
+  if (startIso && todayIso < startIso) return false
+  if (endIso && todayIso > endIso) return false
+  return true
+}
+
+function projectShape(p: {
+  id: string
+  clientId: string
+  client: { name: string }
+  name: string
+  currency: Currency
+  startDate: Date | null
+  endDate: Date | null
+  closedAt: Date | null
+}) {
+  return {
+    id: p.id,
+    clientId: p.clientId,
+    clientName: p.client.name,
+    name: p.name,
+    currency: p.currency,
+    startDate: toIsoDateOrNull(p.startDate),
+    endDate: toIsoDateOrNull(p.endDate),
+    closedAt: p.closedAt ? p.closedAt.toISOString() : null,
+    isActive: isProjectActive(p),
   }
-  return periods
 }
 
-function projectShape(p: { id: string; clientId: string; client: { name: string }; name: string; currency: string; status: string; startDate: string | null; endDate: string | null }) {
-  return { id: p.id, clientId: p.clientId, clientName: p.client.name, name: p.name, currency: p.currency, status: p.status, startDate: p.startDate, endDate: p.endDate }
+function quoteShape<T extends {
+  sentAt: Date | null
+  effectiveAt: Date | null
+  validatedAt: Date | null
+  rejectedAt: Date | null
+  cancelledAt: Date | null
+}>(q: T) {
+  return {
+    ...q,
+    sentAt: toIsoDateOrNull(q.sentAt),
+    effectiveAt: toIsoDateOrNull(q.effectiveAt),
+    validatedAt: toIsoDateOrNull(q.validatedAt),
+    rejectedAt: toIsoDateOrNull(q.rejectedAt),
+    cancelledAt: toIsoDateOrNull(q.cancelledAt),
+  }
 }
 
-// GET /api/projects — list all projects with client info
+// Enrich monthly period codes with dates/labels/status (used by GET /:id).
+// All projects now operate on weekly slices; this helper produces a monthly
+// rollup view for the project header / summary screens.
+function enrichPeriods(codes: string[], openPeriodKey: string) {
+  return [...codes].sort(comparePeriodCodes).map(code => ({
+    code,
+    periodKey: code,
+    monthCode: code,
+    weekCode: null as string | null,
+    ...getPeriodDates(code),
+    label: getPeriodLabel(code),
+    groupCode: code,
+    groupLabel: getPeriodLabel(code),
+    status: deriveTimesheetWindowStatus(code, openPeriodKey),
+    frozenAt: null as string | null,
+  }))
+}
+
+// GET /api/projects — list all projects with client info and contract value
 projectsRouter.get('/', async (c) => {
   const [rows, contractValues] = await Promise.all([
-    prisma.project.findMany({
-      include: { client: true },
-      orderBy: { name: 'asc' },
-    }),
+    prisma.project.findMany({ include: { client: true }, orderBy: { name: 'asc' } }),
     prisma.quoteLine.groupBy({
       by: ['quoteId'],
       _sum: { revenueAmount: true },
@@ -49,7 +115,6 @@ projectsRouter.get('/', async (c) => {
     }),
   ])
 
-  // Build projectId → contract value map via a single quotes lookup
   const validatedQuotes = await prisma.quote.findMany({
     where: { status: 'VALIDATED' },
     select: { id: true, projectId: true },
@@ -64,21 +129,22 @@ projectsRouter.get('/', async (c) => {
   }
 
   return c.json(
-    rows.map((project) => ({
+    rows.map(project => ({
       id: project.id,
       clientId: project.clientId,
       clientName: project.client.name,
       name: project.name,
       currency: project.currency,
-      status: project.status,
-      startDate: project.startDate,
-      endDate: project.endDate,
+      startDate: toIsoDateOrNull(project.startDate),
+      endDate: toIsoDateOrNull(project.endDate),
+      closedAt: project.closedAt ? project.closedAt.toISOString() : null,
+      isActive: isProjectActive(project),
       contractValue: contractByProject.get(project.id) ?? 0,
-    }))
+    })),
   )
 })
 
-// GET /api/projects/:id — project + periods + tasks (hierarchical)
+// GET /api/projects/:id — project detail with accounting periods, tasks, quotes
 projectsRouter.get('/:id', async (c) => {
   const projectId = c.req.param('id')
 
@@ -86,41 +152,33 @@ projectsRouter.get('/:id', async (c) => {
     where: { id: projectId },
     include: { client: true },
   })
-
   if (!project) return c.json({ error: 'Project not found' }, 404)
 
-  const [projectTasks, projectPeriods, projectQuotes] = await Promise.all([
-    prisma.task.findMany({
+  const [projectPhases, projectQuotes, globalWindow] = await Promise.all([
+    prisma.phase.findMany({
       where: { projectId },
       orderBy: { sortOrder: 'asc' },
+      include: { tasks: { orderBy: { sortOrder: 'asc' } } },
     }),
-    prisma.period.findMany({
-      where: { projectId },
-      orderBy: { periodNumber: 'asc' },
-    }),
-    prisma.quote.findMany({
-      where: { projectId },
-      include: { lines: true },
-    }),
+    prisma.quote.findMany({ where: { projectId }, include: { lines: true } }),
+    requireGlobalTimesheetWindow(),
   ])
 
-  // Build hierarchical tasks
-  type TaskWithChildren = typeof projectTasks[0] & { children: typeof projectTasks }
-  const taskMap = new Map(projectTasks.map(t => [t.id, { ...t, children: [] as typeof projectTasks }]))
-  const rootTasks: TaskWithChildren[] = []
-  for (const task of taskMap.values()) {
-    if (task.parentTaskId && taskMap.has(task.parentTaskId)) {
-      taskMap.get(task.parentTaskId)!.children.push(task)
-    } else {
-      rootTasks.push(task)
-    }
-  }
+  const flatTasks = projectPhases.flatMap(p => p.tasks)
 
-  // Contract value
-  const validatedLines = projectQuotes
+  const contractValue = projectQuotes
     .filter(q => q.status === 'VALIDATED')
     .flatMap(q => q.lines)
-  const contractValue = validatedLines.reduce((sum, l) => sum + l.revenueAmount, 0)
+    .reduce((sum, l) => sum + l.revenueAmount, 0)
+
+  // Project-level summary periods are monthly accounting periods.
+  const periodCodeSet = new Set<string>()
+  if (project.startDate && project.endDate) {
+    for (const code of getPeriodsForDateRange(toIsoDate(project.startDate), toIsoDate(project.endDate), 'MONTHLY')) {
+      periodCodeSet.add(code)
+    }
+  }
+  const periods = enrichPeriods([...periodCodeSet], globalWindow.openPeriodKey)
 
   return c.json({
     id: project.id,
@@ -128,17 +186,15 @@ projectsRouter.get('/:id', async (c) => {
     clientName: project.client.name,
     name: project.name,
     currency: project.currency,
-    status: project.status,
-    startDate: project.startDate,
-    endDate: project.endDate,
+    startDate: toIsoDateOrNull(project.startDate),
+    endDate: toIsoDateOrNull(project.endDate),
+    closedAt: project.closedAt ? project.closedAt.toISOString() : null,
+    isActive: isProjectActive(project),
     contractValue,
-    tasks: rootTasks,
-    flatTasks: projectTasks,
-    periods: projectPeriods,
-    quotes: projectQuotes.map(q => ({
-      ...q,
-      lines: q.lines,
-    })),
+    phases: projectPhases,
+    flatTasks,
+    periods,
+    quotes: projectQuotes.map(quoteShape),
   })
 })
 
@@ -146,53 +202,117 @@ projectsRouter.get('/:id', async (c) => {
 projectsRouter.get('/:id/work-table', async (c) => {
   const projectId = c.req.param('id')
 
-  const [projectPeriods, projectTasks, projectPlannedDays, projectTimesheets, periodStartRows, projectQuotes] = await Promise.all([
-    prisma.period.findMany({ where: { projectId }, orderBy: { periodNumber: 'asc' } }),
-    prisma.task.findMany({ where: { projectId }, orderBy: { sortOrder: 'asc' } }),
-    prisma.plannedDay.findMany({ where: { projectId } }),
-    prisma.timesheetEntry.findMany({ where: { projectId } }),
-    prisma.profileTaskPeriodStart.findMany({
-      where: { period: { projectId } },
+  const project = await prisma.project.findUnique({ where: { id: projectId } })
+  if (!project) return c.json({ error: 'Project not found' }, 404)
+
+  // PlannedDays/Timesheets join via assignmentSlot now.
+  const slotInclude = {
+    assignmentSlot: { select: { projectId: true, taskId: true, profileId: true, employeeId: true } },
+  } as const
+
+  const [projectPhases, projectPlannedDays, projectTimesheets, periodStartRows, projectQuotes, globalWindow] = await Promise.all([
+    prisma.phase.findMany({
+      where: { projectId },
+      orderBy: { sortOrder: 'asc' },
+      include: { tasks: { orderBy: { sortOrder: 'asc' } } },
     }),
+    prisma.plannedDay.findMany({ where: { assignmentSlot: { projectId } }, include: slotInclude }),
+    prisma.taskTimesheet.findMany({
+      where: { assignmentSlot: { projectId } },
+      include: { ...slotInclude, timesheet: { select: { periodKey: true, status: true } } },
+    }),
+    prisma.profileTaskPeriodStart.findMany({ where: { task: { phase: { projectId } } } }),
     prisma.quote.findMany({ where: { projectId }, include: { lines: true } }),
+    requireGlobalTimesheetWindow(),
   ])
 
-  // Build work table cells from planned days + actuals from approved timesheets
-  const frozenPeriodIds = new Set(
-    projectPeriods.filter(p => p.status === 'FROZEN' || p.status === 'CONSOLIDATION').map(p => p.id)
-  )
+  const projectTasks = projectPhases.flatMap(p => p.tasks)
 
-  // For frozen/consolidation periods, use actual timesheet data; for others, use planned days
+  // Build weekly period slices from project date range, planned days, and timesheets.
+  const periodSliceMap = new Map<string, ReturnType<typeof getPeriodSlicesForDateRange>[number]>()
+  if (project.startDate && project.endDate) {
+    for (const slice of getPeriodSlicesForDateRange(toIsoDate(project.startDate), toIsoDate(project.endDate), 'WEEKLY')) {
+      periodSliceMap.set(slice.code, slice)
+    }
+  }
+  const remember = (periodKey: string) => {
+    if (periodSliceMap.has(periodKey)) return
+    const parsed = parsePeriodSliceKey(periodKey)
+    const refCode = parsed.weekCode ?? parsed.monthCode
+    periodSliceMap.set(periodKey, {
+      code: periodKey,
+      periodKey,
+      monthCode: parsed.monthCode,
+      weekCode: parsed.weekCode,
+      ...getPeriodDates(refCode),
+      label: getPeriodLabel(refCode),
+      groupCode: parsed.monthCode,
+      groupLabel: getPeriodLabel(parsed.monthCode),
+    })
+  }
+  for (const pd of projectPlannedDays) remember(pd.periodKey)
+  for (const ts of projectTimesheets) remember(ts.timesheet.periodKey)
+
+  // Single source of truth for period status: derived from the global timesheet window.
+  const periods = [...periodSliceMap.values()]
+    .sort((a, b) => comparePeriodSliceKeys(a.periodKey, b.periodKey))
+    .map(slice => ({
+      ...slice,
+      status: deriveTimesheetWindowStatus(slice.periodKey, globalWindow.openPeriodKey),
+      frozenAt: null as string | null,
+    }))
+
+  // Settled month: snapshot taken, cells must come from approved timesheets.
+  const frozenMonthCodes = new Set(periods.filter(p => p.status === 'FROZEN').map(p => p.monthCode))
+
   const cells = [
-    // Actuals from approved timesheets for closed periods
     ...projectTimesheets
-      .filter(ts => frozenPeriodIds.has(ts.periodId) && ts.status === 'APPROVED')
-      .map(ts => ({
-        taskId: ts.taskId,
-        profileId: ts.profileId,
-        employeeId: ts.employeeId,
-        periodId: ts.periodId,
-        days: ts.days,
-        isActual: true,
-      })),
-    // Planned days for non-frozen periods
+      .filter(ts => {
+        const monthCode = parsePeriodSliceKey(ts.timesheet.periodKey).monthCode
+        return frozenMonthCodes.has(monthCode) && ts.timesheet.status === 'APPROVED'
+      })
+      .map(ts => {
+        const periodKey = ts.timesheet.periodKey
+        const parsed = parsePeriodSliceKey(periodKey)
+        return {
+          taskId: ts.assignmentSlot.taskId,
+          profileId: ts.assignmentSlot.profileId,
+          employeeId: ts.assignmentSlot.employeeId,
+          periodCode: periodKey,
+          periodKey,
+          weekCode: parsed.weekCode,
+          monthCode: parsed.monthCode,
+          days: ts.days,
+          isActual: true,
+        }
+      }),
     ...projectPlannedDays
-      .filter(pd => !frozenPeriodIds.has(pd.periodId))
-      .map(pd => ({
-        taskId: pd.taskId,
-        profileId: pd.profileId,
-        employeeId: pd.employeeId,
-        periodId: pd.periodId,
-        days: pd.days,
-        isActual: false,
-      })),
+      .filter(pd => {
+        const monthCode = parsePeriodSliceKey(pd.periodKey).monthCode
+        return !frozenMonthCodes.has(monthCode)
+      })
+      .map(pd => {
+        const parsed = parsePeriodSliceKey(pd.periodKey)
+        return {
+          taskId: pd.assignmentSlot.taskId,
+          profileId: pd.assignmentSlot.profileId,
+          employeeId: pd.assignmentSlot.employeeId,
+          periodCode: pd.periodKey,
+          periodKey: pd.periodKey,
+          weekCode: parsed.weekCode,
+          monthCode: parsed.monthCode,
+          days: pd.days,
+          isActual: false,
+        }
+      }),
   ]
 
   return c.json({
-    periods: projectPeriods,
+    periods,
+    phases: projectPhases,
     tasks: projectTasks,
     cells,
-    quotes: projectQuotes,
+    quotes: projectQuotes.map(quoteShape),
     periodStarts: periodStartRows,
   })
 })
@@ -204,16 +324,18 @@ projectsRouter.get('/:id/snapshots', async (c) => {
   const rows = await prisma.snapshot.findMany({
     where: { projectId },
     include: { metrics: true },
-    orderBy: { periodNumber: 'asc' },
+    orderBy: { monthCode: 'asc' },
   })
 
   return c.json(
     rows.map(r => ({
       ...r,
+      periodCode: r.monthCode,
+      snapshotAt: toIsoDate(r.snapshotAt),
       metrics: r.metrics ?? null,
       scopeLines: [],
       workTableRows: [],
-    }))
+    })),
   )
 })
 
@@ -223,108 +345,210 @@ projectsRouter.get('/:id/snapshots/:sid', async (c) => {
 
   const row = await prisma.snapshot.findUnique({
     where: { id: snapshotId },
-    include: { metrics: true },
+    include: { metrics: true, scopeLines: true, workRows: true },
   })
-
   if (!row) return c.json({ error: 'Snapshot not found' }, 404)
 
   return c.json({
     ...row,
+    periodCode: row.monthCode,
+    snapshotAt: toIsoDate(row.snapshotAt),
     metrics: row.metrics ?? null,
-    scopeLines: [],
-    workTableRows: [],
+    scopeLines: row.scopeLines,
+    workTableRows: row.workRows.map(w => ({
+      snapshotId: w.snapshotId,
+      periodCode: w.periodKey,
+      periodKey: w.periodKey,
+      periodStatus: w.periodStatus,
+      taskId: w.taskId,
+      profileId: w.profileId,
+      employeeId: w.employeeId,
+      plannedDays: w.plannedDays,
+      actualDays: w.actualDays,
+    })),
   })
+})
+
+// POST /api/projects/:id/snapshots — freeze a month into a snapshot
+projectsRouter.post('/:id/snapshots', async (c) => {
+  const projectId = c.req.param('id')
+  const raw = await c.req.json().catch(() => ({}))
+  const monthCode = typeof raw?.monthCode === 'string' ? raw.monthCode : null
+  if (!monthCode || !/^\d{4}M\d{1,2}$/.test(monthCode)) {
+    return c.json({ error: 'monthCode is required (format: 2026M5)' }, 400)
+  }
+
+  const project = await prisma.project.findUnique({ where: { id: projectId } })
+  if (!project) return c.json({ error: 'Project not found' }, 404)
+
+  const window = await requireGlobalTimesheetWindow()
+  const openMonth = parsePeriodSliceKey(window.openPeriodKey).monthCode
+  if (comparePeriodCodes(monthCode, openMonth) >= 0) {
+    return c.json({ error: 'Month must be strictly before the current open month' }, 400)
+  }
+
+  const existing = await prisma.snapshot.findUnique({
+    where: { projectId_monthCode: { projectId, monthCode } },
+  })
+  if (existing) return c.json({ error: 'Snapshot already exists for this month' }, 409)
+
+  // All Timesheets touching any of this project's slots for this month must
+  // be APPROVED. Distinct timesheets via the slot reverse relation.
+  const monthTimesheets = await prisma.timesheet.findMany({
+    where: {
+      taskTimesheets: { some: { assignmentSlot: { projectId } } },
+    },
+    select: { id: true, status: true, periodKey: true, employeeId: true },
+  })
+  const offenders = monthTimesheets.filter((t) =>
+    periodKeyMatchesMonth(t.periodKey, monthCode) && t.status !== 'APPROVED',
+  )
+  if (offenders.length > 0) {
+    return c.json(
+      {
+        error: 'All timesheets in this month must be APPROVED before snapshot',
+        offenders: offenders.map((t) => ({
+          timesheetId: t.id,
+          employeeId: t.employeeId,
+          periodKey: t.periodKey,
+          status: t.status,
+        })),
+      },
+      409,
+    )
+  }
+
+  const actor = await requireCurrentUser()
+  const inputs = await loadSnapshotInputs(projectId, monthCode)
+  const metrics = computeSnapshotMetrics(inputs)
+  const scopeLines = buildScopeLines(inputs)
+  const workRows = buildWorkRows(inputs, (periodKey) =>
+    deriveTimesheetWindowStatus(periodKey, window.openPeriodKey),
+  )
+
+  const snapshot = await prisma.$transaction(async (tx) => {
+    // Global month-freeze record. Idempotent across projects: many snapshots
+    // can attach to the same MonthFreeze.
+    await tx.monthFreeze.upsert({
+      where: { monthCode },
+      update: {},
+      create: {
+        monthCode,
+        frozenById: actor.id,
+        notes: '',
+      },
+    })
+
+    return tx.snapshot.create({
+      data: {
+        projectId,
+        monthCode,
+        monthFreezeId: monthCode,
+        closedById: actor.id,
+        notes: '',
+        metrics: { create: metrics },
+        scopeLines: {
+          create: scopeLines.map((s) => ({
+            taskId: s.taskId,
+            profileId: s.profileId,
+            baselineDaysTotalAsofSnapshot: s.baselineDaysTotalAsofSnapshot,
+            sellRatePerDay: s.sellRatePerDay,
+            costRateAssumptionPerDay: s.costRateAssumptionPerDay,
+            baselineRevenueTotal: s.baselineRevenueTotal,
+            baselineBudgetCostTotal: s.baselineBudgetCostTotal,
+          })),
+        },
+        workRows: {
+          create: workRows.map((w) => ({
+            periodKey: w.periodKey,
+            periodStatus: w.periodStatus,
+            taskId: w.taskId,
+            profileId: w.profileId,
+            employeeId: w.employeeId,
+            plannedDays: w.plannedDays,
+            actualDays: w.actualDays,
+          })),
+        },
+      },
+      include: { metrics: true, scopeLines: true, workRows: true },
+    })
+  })
+  await auditLog({ entity: 'Snapshot', entityId: snapshot.id, action: 'CREATE', after: { projectId, monthCode } })
+
+  return c.json({
+    ...snapshot,
+    periodCode: snapshot.monthCode,
+    snapshotAt: toIsoDate(snapshot.snapshotAt),
+    metrics: snapshot.metrics ?? null,
+    scopeLines: snapshot.scopeLines,
+    workTableRows: snapshot.workRows,
+  }, 201)
 })
 
 // PATCH /api/projects/:id — update project metadata (name, dates, currency)
 projectsRouter.patch('/:id', async (c) => {
   const projectId = c.req.param('id')
-  const body = await c.req.json<{ name?: string; currency?: string; startDate?: string | null; endDate?: string | null }>()
+  const body = await c.req.json<{
+    name?: string
+    currency?: string
+    startDate?: string | null
+    endDate?: string | null
+  }>()
 
   const project = await prisma.project.findUnique({ where: { id: projectId } })
   if (!project) return c.json({ error: 'Project not found' }, 404)
 
+  const data: {
+    name?: string
+    currency?: Currency
+    startDate?: Date | null
+    endDate?: Date | null
+  } = {}
+  if (body.name?.trim()) data.name = body.name.trim()
+  const currency = asCurrency(body.currency)
+  if (currency) data.currency = currency
+  if (body.startDate !== undefined) data.startDate = body.startDate ? fromIsoDate(body.startDate) : null
+  if (body.endDate !== undefined) data.endDate = body.endDate ? fromIsoDate(body.endDate) : null
+
   const updated = await prisma.project.update({
     where: { id: projectId },
     include: { client: true },
-    data: {
-      ...(body.name?.trim() ? { name: body.name.trim() } : {}),
-      ...(body.currency?.trim() ? { currency: body.currency.trim() } : {}),
-      ...(body.startDate !== undefined ? { startDate: body.startDate } : {}),
-      ...(body.endDate !== undefined ? { endDate: body.endDate } : {}),
-    },
+    data,
   })
-
-  return c.json({
-    id: updated.id,
-    clientId: updated.clientId,
-    clientName: updated.client.name,
-    name: updated.name,
-    currency: updated.currency,
-    status: updated.status,
-    startDate: updated.startDate,
-    endDate: updated.endDate,
-  })
+  await auditLog({ entity: 'Project', entityId: projectId, action: 'UPDATE', before: project, after: updated })
+  return c.json(projectShape(updated))
 })
 
-// PATCH /api/projects/:id/status — transition project status
-projectsRouter.patch('/:id/status', async (c) => {
+// POST /api/projects/:id/close — close a project (explicit early closure or
+// formal end-of-engagement). Sets closedAt to now. Idempotent: closing an
+// already-closed project just refreshes the timestamp.
+projectsRouter.post('/:id/close', async (c) => {
   const projectId = c.req.param('id')
-  const body = await c.req.json<{ status: string }>()
-
-  const validTransitions: Record<string, string[]> = {
-    DRAFT: ['TO_PLAN'],
-    TO_PLAN: ['PLANNING', 'IN_PROGRESS'],
-    PLANNING: ['IN_PROGRESS'],
-    IN_PROGRESS: ['COMPLETED'],
-  }
-
   const project = await prisma.project.findUnique({ where: { id: projectId } })
   if (!project) return c.json({ error: 'Project not found' }, 404)
-
-  const allowed = validTransitions[project.status] ?? []
-  if (!allowed.includes(body.status)) {
-    return c.json({ error: `Cannot transition from ${project.status} to ${body.status}` }, 400)
-  }
-
-  // TO_PLAN → PLANNING: generate all periods as FUTURE (no week opened yet)
-  if (project.status === 'TO_PLAN' && body.status === 'PLANNING') {
-    if (!project.startDate || !project.endDate) {
-      return c.json({ error: 'Project must have start and end dates before planning' }, 400)
-    }
-    const periods = buildWeeklyPeriods(projectId, project.startDate, project.endDate, false)
-    const updated = await prisma.$transaction(async (tx) => {
-      await tx.period.createMany({ data: periods })
-      return tx.project.update({ where: { id: projectId }, include: { client: true }, data: { status: 'PLANNING' } })
-    })
-    return c.json(projectShape(updated))
-  }
-
-  // TO_PLAN → IN_PROGRESS (legacy direct path) or PLANNING → IN_PROGRESS: open the first period
-  if (body.status === 'IN_PROGRESS') {
-    if (!project.startDate || !project.endDate) {
-      return c.json({ error: 'Project must have start and end dates before starting' }, 400)
-    }
-    const updated = await prisma.$transaction(async (tx) => {
-      // Generate periods only if coming from TO_PLAN (PLANNING already has them)
-      if (project.status === 'TO_PLAN') {
-        const periods = buildWeeklyPeriods(projectId, project.startDate!, project.endDate!, false)
-        await tx.period.createMany({ data: periods })
-      }
-      // Open the first FUTURE period
-      const first = await tx.period.findFirst({ where: { projectId, status: 'FUTURE' }, orderBy: { periodNumber: 'asc' } })
-      if (first) await tx.period.update({ where: { id: first.id }, data: { status: 'OPEN' } })
-      return tx.project.update({ where: { id: projectId }, include: { client: true }, data: { status: 'IN_PROGRESS' } })
-    })
-    return c.json(projectShape(updated))
-  }
 
   const updated = await prisma.project.update({
     where: { id: projectId },
     include: { client: true },
-    data: { status: body.status as 'DRAFT' | 'TO_PLAN' | 'PLANNING' | 'IN_PROGRESS' | 'COMPLETED' },
+    data: { closedAt: new Date() },
   })
+  await auditLog({ entity: 'Project', entityId: projectId, action: 'UPDATE', before: project, after: updated, metadata: { transition: 'CLOSE' } })
+  return c.json(projectShape(updated))
+})
 
+// POST /api/projects/:id/reopen — clear closedAt. Project's active status
+// then derives purely from its date range.
+projectsRouter.post('/:id/reopen', async (c) => {
+  const projectId = c.req.param('id')
+  const project = await prisma.project.findUnique({ where: { id: projectId } })
+  if (!project) return c.json({ error: 'Project not found' }, 404)
+
+  const updated = await prisma.project.update({
+    where: { id: projectId },
+    include: { client: true },
+    data: { closedAt: null },
+  })
+  await auditLog({ entity: 'Project', entityId: projectId, action: 'UPDATE', before: project, after: updated, metadata: { transition: 'REOPEN' } })
   return c.json(projectShape(updated))
 })
 
@@ -341,31 +565,22 @@ projectsRouter.post('/', async (c) => {
   if (!body.clientId?.trim() || !body.name?.trim() || !body.currency?.trim()) {
     return c.json({ error: 'clientId, name and currency are required' }, 400)
   }
+  const currency = asCurrency(body.currency)
+  if (!currency) return c.json({ error: 'currency must be one of: EUR, USD, GBP, CHF, CAD' }, 400)
 
   const project = await prisma.project.create({
     data: {
-      id: crypto.randomUUID(),
       clientId: body.clientId,
       name: body.name.trim(),
-      currency: body.currency.trim(),
-      status: 'DRAFT',
-      startDate: body.startDate ?? null,
-      endDate: body.endDate ?? null,
+      currency,
+      startDate: body.startDate ? fromIsoDate(body.startDate) : null,
+      endDate: body.endDate ? fromIsoDate(body.endDate) : null,
     },
     include: { client: true },
   })
+  await auditLog({ entity: 'Project', entityId: project.id, action: 'CREATE', after: project })
 
-  return c.json({
-    id: project.id,
-    clientId: project.clientId,
-    clientName: project.client.name,
-    name: project.name,
-    currency: project.currency,
-    status: project.status,
-    startDate: project.startDate,
-    endDate: project.endDate,
-    contractValue: 0,
-  }, 201)
+  return c.json({ ...projectShape(project), contractValue: 0 }, 201)
 })
 
 // POST /api/projects/:id/quotes — create a new quote with lines
@@ -383,24 +598,20 @@ projectsRouter.post('/:id/quotes', async (c) => {
   const project = await prisma.project.findUnique({ where: { id: projectId } })
   if (!project) return c.json({ error: 'Project not found' }, 404)
 
-  const quoteId = crypto.randomUUID()
   const quote = await prisma.$transaction(async (tx) => {
-    await tx.quote.create({
+    const created = await tx.quote.create({
       data: {
-        id: quoteId,
         projectId,
         title: body.title.trim(),
         status: 'DRAFT',
-        effectiveAt: body.effectiveAt ?? null,
-        validatedAt: null,
+        effectiveAt: body.effectiveAt ? fromIsoDate(body.effectiveAt) : null,
       },
     })
 
     if (body.lines.length > 0) {
       await tx.quoteLine.createMany({
-        data: body.lines.map((line) => ({
-          id: crypto.randomUUID(),
-          quoteId,
+        data: body.lines.map(line => ({
+          quoteId: created.id,
           taskId: line.taskId,
           profileId: line.profileId,
           days: line.days,
@@ -412,13 +623,10 @@ projectsRouter.post('/:id/quotes', async (c) => {
       })
     }
 
-    return tx.quote.findUnique({
-      where: { id: quoteId },
-      include: { lines: true },
-    })
+    return tx.quote.findUnique({ where: { id: created.id }, include: { lines: true } })
   })
-
-  return c.json(quote, 201)
+  if (quote) await auditLog({ entity: 'Quote', entityId: quote.id, action: 'CREATE', after: quote })
+  return c.json(quote ? quoteShape(quote) : null, 201)
 })
 
 // POST /api/projects/:id/quotes/:quoteId/duplicate — copy quote as new DRAFT
@@ -432,24 +640,20 @@ projectsRouter.post('/:id/quotes/:quoteId/duplicate', async (c) => {
   })
   if (!source) return c.json({ error: 'Quote not found' }, 404)
 
-  const newQuoteId = crypto.randomUUID()
   const duplicate = await prisma.$transaction(async (tx) => {
-    await tx.quote.create({
+    const created = await tx.quote.create({
       data: {
-        id: newQuoteId,
         projectId,
         title: `${source.title} (copy)`,
         status: 'DRAFT',
         effectiveAt: source.effectiveAt,
-        validatedAt: null,
       },
     })
 
     if (source.lines.length > 0) {
       await tx.quoteLine.createMany({
-        data: source.lines.map((line) => ({
-          id: crypto.randomUUID(),
-          quoteId: newQuoteId,
+        data: source.lines.map(line => ({
+          quoteId: created.id,
           taskId: line.taskId,
           profileId: line.profileId,
           days: line.days,
@@ -461,46 +665,103 @@ projectsRouter.post('/:id/quotes/:quoteId/duplicate', async (c) => {
       })
     }
 
-    return tx.quote.findUnique({ where: { id: newQuoteId }, include: { lines: true } })
+    return tx.quote.findUnique({ where: { id: created.id }, include: { lines: true } })
   })
 
-  return c.json(duplicate, 201)
+  return c.json(duplicate ? quoteShape(duplicate) : null, 201)
 })
 
-// POST /api/projects/:id/tasks — create a task or phase
-projectsRouter.post('/:id/tasks', async (c) => {
+// POST /api/projects/:id/phases — create a phase
+projectsRouter.post('/:id/phases', async (c) => {
   const projectId = c.req.param('id')
-  const body = await c.req.json<{ name: string; status?: string; parentTaskId?: string | null }>()
+  const body = await c.req.json<{ name: string }>()
+  if (!body.name?.trim()) return c.json({ error: 'name is required' }, 400)
+
+  const siblings = await prisma.phase.findMany({ where: { projectId }, select: { sortOrder: true } })
+  const maxSort = siblings.reduce((max, p) => Math.max(max, p.sortOrder), -1)
+
+  const phase = await prisma.phase.create({
+    data: { projectId, name: body.name.trim(), sortOrder: maxSort + 1 },
+  })
+  await auditLog({ entity: 'Phase', entityId: phase.id, action: 'CREATE', after: phase })
+  return c.json(phase, 201)
+})
+
+// PATCH /api/projects/:id/phases/:phaseId — rename a phase
+projectsRouter.patch('/:id/phases/:phaseId', async (c) => {
+  const projectId = c.req.param('id')
+  const phaseId = c.req.param('phaseId')
+  const body = await c.req.json<{ name?: string }>()
+
+  const existing = await prisma.phase.findFirst({ where: { id: phaseId, projectId } })
+  if (!existing) return c.json({ error: 'Phase not found' }, 404)
+
+  const phase = await prisma.phase.update({
+    where: { id: phaseId },
+    data: { ...(body.name?.trim() ? { name: body.name.trim() } : {}) },
+  })
+  await auditLog({ entity: 'Phase', entityId: phase.id, action: 'UPDATE', before: existing, after: phase })
+  return c.json(phase)
+})
+
+// DELETE /api/projects/:id/phases/:phaseId — delete a phase and all its tasks
+projectsRouter.delete('/:id/phases/:phaseId', async (c) => {
+  const projectId = c.req.param('id')
+  const phaseId = c.req.param('phaseId')
+
+  const phase = await prisma.phase.findFirst({ where: { id: phaseId, projectId }, include: { tasks: { select: { id: true } } } })
+  if (!phase) return c.json({ error: 'Phase not found' }, 404)
+
+  const taskIds = phase.tasks.map(t => t.id)
+
+  await prisma.$transaction([
+    prisma.snapshotWorkRow.deleteMany({ where: { taskId: { in: taskIds } } }),
+    prisma.snapshotScopeLine.deleteMany({ where: { taskId: { in: taskIds } } }),
+    prisma.profileTaskPeriodStart.deleteMany({ where: { taskId: { in: taskIds } } }),
+    prisma.taskTimesheet.deleteMany({ where: { assignmentSlot: { taskId: { in: taskIds } } } }),
+    prisma.plannedDay.deleteMany({ where: { assignmentSlot: { taskId: { in: taskIds } } } }),
+    prisma.assignmentSlot.deleteMany({ where: { taskId: { in: taskIds } } }),
+    prisma.quoteLine.deleteMany({ where: { taskId: { in: taskIds } } }),
+    prisma.task.deleteMany({ where: { id: { in: taskIds } } }),
+    prisma.phase.delete({ where: { id: phaseId } }),
+  ])
+  await auditLog({ entity: 'Phase', entityId: phaseId, action: 'DELETE', before: phase })
+  return c.json({ ok: true })
+})
+
+// POST /api/projects/:id/phases/:phaseId/tasks — create a task in a phase
+projectsRouter.post('/:id/phases/:phaseId/tasks', async (c) => {
+  const projectId = c.req.param('id')
+  const phaseId = c.req.param('phaseId')
+  const body = await c.req.json<{ name: string; status?: string }>()
 
   if (!body.name?.trim()) return c.json({ error: 'name is required' }, 400)
 
-  const siblings = await prisma.task.findMany({
-    where: { projectId, parentTaskId: body.parentTaskId ?? null },
-    select: { sortOrder: true },
-  })
+  const phase = await prisma.phase.findFirst({ where: { id: phaseId, projectId } })
+  if (!phase) return c.json({ error: 'Phase not found' }, 404)
+
+  const siblings = await prisma.task.findMany({ where: { phaseId }, select: { sortOrder: true } })
   const maxSort = siblings.reduce((max, t) => Math.max(max, t.sortOrder), -1)
 
   const task = await prisma.task.create({
     data: {
-      id: crypto.randomUUID(),
-      projectId,
-      parentTaskId: body.parentTaskId ?? null,
+      phaseId,
       name: body.name.trim(),
       sortOrder: maxSort + 1,
       status: (body.status as 'planned' | 'active' | 'done') ?? 'planned',
     },
   })
-
+  await auditLog({ entity: 'Task', entityId: task.id, action: 'CREATE', after: task })
   return c.json(task, 201)
 })
 
-// PATCH /api/projects/:id/tasks/:taskId — update a task
+// PATCH /api/projects/:id/tasks/:taskId — update a task (rename / status)
 projectsRouter.patch('/:id/tasks/:taskId', async (c) => {
   const projectId = c.req.param('id')
   const taskId = c.req.param('taskId')
   const body = await c.req.json<{ name?: string; status?: string }>()
 
-  const existing = await prisma.task.findFirst({ where: { id: taskId, projectId } })
+  const existing = await prisma.task.findFirst({ where: { id: taskId, phase: { projectId } } })
   if (!existing) return c.json({ error: 'Task not found' }, 404)
 
   const task = await prisma.task.update({
@@ -510,47 +771,44 @@ projectsRouter.patch('/:id/tasks/:taskId', async (c) => {
       ...(body.status ? { status: body.status as 'planned' | 'active' | 'done' } : {}),
     },
   })
-
+  await auditLog({ entity: 'Task', entityId: task.id, action: 'UPDATE', before: existing, after: task })
   return c.json(task)
 })
 
-// DELETE /api/projects/:id/tasks/:taskId — delete a task or phase (and all descendants)
+// DELETE /api/projects/:id/tasks/:taskId — delete a task and all its dependents
 projectsRouter.delete('/:id/tasks/:taskId', async (c) => {
   const projectId = c.req.param('id')
   const taskId = c.req.param('taskId')
 
-  const task = await prisma.task.findFirst({ where: { id: taskId, projectId } })
+  const task = await prisma.task.findFirst({ where: { id: taskId, phase: { projectId } } })
   if (!task) return c.json({ error: 'Task not found' }, 404)
 
-  // Collect all descendant task IDs (BFS)
-  const allIds: string[] = []
-  const queue = [taskId]
-  while (queue.length > 0) {
-    const current = queue.shift()!
-    allIds.push(current)
-    const children = await prisma.task.findMany({ where: { parentTaskId: current }, select: { id: true } })
-    queue.push(...children.map(c => c.id))
-  }
-
   await prisma.$transaction([
-    prisma.snapshotWorkRow.deleteMany({ where: { taskId: { in: allIds } } }),
-    prisma.snapshotScopeLine.deleteMany({ where: { taskId: { in: allIds } } }),
-    prisma.profileTaskPeriodStart.deleteMany({ where: { taskId: { in: allIds } } }),
-    prisma.timesheetEntry.deleteMany({ where: { taskId: { in: allIds } } }),
-    prisma.plannedDay.deleteMany({ where: { taskId: { in: allIds } } }),
-    prisma.quoteLine.deleteMany({ where: { taskId: { in: allIds } } }),
-    // Delete children first (deepest last in allIds, so reverse)
-    ...([...allIds].reverse().map(id => prisma.task.delete({ where: { id } }))),
+    prisma.snapshotWorkRow.deleteMany({ where: { taskId } }),
+    prisma.snapshotScopeLine.deleteMany({ where: { taskId } }),
+    prisma.profileTaskPeriodStart.deleteMany({ where: { taskId } }),
+    prisma.taskTimesheet.deleteMany({ where: { assignmentSlot: { taskId } } }),
+    prisma.plannedDay.deleteMany({ where: { assignmentSlot: { taskId } } }),
+    prisma.assignmentSlot.deleteMany({ where: { taskId } }),
+    prisma.quoteLine.deleteMany({ where: { taskId } }),
+    prisma.task.delete({ where: { id: taskId } }),
   ])
+  await auditLog({ entity: 'Task', entityId: taskId, action: 'DELETE', before: task })
 
   return c.json({ ok: true })
 })
 
-// POST /api/projects/:id/quotes/:quoteId/lines — add a line to a draft quote
+// POST /api/projects/:id/quotes/:quoteId/lines — add a line to a DRAFT quote
 projectsRouter.post('/:id/quotes/:quoteId/lines', async (c) => {
   const projectId = c.req.param('id')
   const quoteId = c.req.param('quoteId')
-  const body = await c.req.json<{ taskId: string; profileId: string; days: number; sellRatePerDay: number; costRateAssumptionPerDay: number }>()
+  const body = await c.req.json<{
+    taskId: string
+    profileId: string
+    days: number
+    sellRatePerDay: number
+    costRateAssumptionPerDay: number
+  }>()
 
   const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
   if (!quote) return c.json({ error: 'Quote not found' }, 404)
@@ -558,7 +816,6 @@ projectsRouter.post('/:id/quotes/:quoteId/lines', async (c) => {
 
   const line = await prisma.quoteLine.create({
     data: {
-      id: crypto.randomUUID(),
       quoteId,
       taskId: body.taskId,
       profileId: body.profileId,
@@ -569,6 +826,7 @@ projectsRouter.post('/:id/quotes/:quoteId/lines', async (c) => {
       budgetCostAmount: body.days * body.costRateAssumptionPerDay,
     },
   })
+  await auditLog({ entity: 'QuoteLine', entityId: line.id, action: 'CREATE', after: line })
   return c.json(line, 201)
 })
 
@@ -600,6 +858,7 @@ projectsRouter.patch('/:id/quotes/:quoteId/lines/:lineId', async (c) => {
       budgetCostAmount: days * costRate,
     },
   })
+  await auditLog({ entity: 'QuoteLine', entityId: lineId, action: 'UPDATE', before: current, after: updated })
   return c.json(updated)
 })
 
@@ -617,37 +876,162 @@ projectsRouter.delete('/:id/quotes/:quoteId/lines/:lineId', async (c) => {
   if (!line) return c.json({ error: 'Line not found' }, 404)
 
   await prisma.quoteLine.delete({ where: { id: lineId } })
+  await auditLog({ entity: 'QuoteLine', entityId: lineId, action: 'DELETE', before: line })
   return c.json({ ok: true })
 })
 
-// POST /api/projects/:id/quotes/:quoteId/validate — validate a quote
+// Quote workflow state machine (see ADR / docs):
+//   DRAFT --send--> SENT --validate--> VALIDATED (terminal)
+//                       \--reject----> REJECTED --reopen--> DRAFT
+//                                              \--cancel--> CANCELLED (terminal)
+//   DRAFT --cancel--> CANCELLED (terminal)
+//
+// Transitions are enforced server-side; UI must mirror.
+
+// POST /api/projects/:id/quotes/:quoteId/send — DRAFT → SENT
+projectsRouter.post('/:id/quotes/:quoteId/send', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+
+  const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId }, include: { lines: true } })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+  if (quote.status !== 'DRAFT') {
+    return c.json({ error: `Cannot send a quote with status ${quote.status}` }, 400)
+  }
+  if (quote.lines.length === 0) {
+    return c.json({ error: 'Cannot send an empty quote' }, 400)
+  }
+
+  const updated = await prisma.quote.update({
+    where: { id: quoteId },
+    data: { status: 'SENT', sentAt: new Date() },
+    include: { lines: true },
+  })
+  await auditLog({ entity: 'Quote', entityId: quoteId, action: 'UPDATE', before: quote, after: updated, metadata: { transition: 'SEND' } })
+  return c.json(quoteShape(updated))
+})
+
+// POST /api/projects/:id/quotes/:quoteId/validate — SENT → VALIDATED
 projectsRouter.post('/:id/quotes/:quoteId/validate', async (c) => {
   const projectId = c.req.param('id')
   const quoteId = c.req.param('quoteId')
 
   const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
   if (!quote) return c.json({ error: 'Quote not found' }, 404)
-  if (quote.status !== 'DRAFT' && quote.status !== 'SENT') {
-    return c.json({ error: `Cannot validate a quote with status ${quote.status}` }, 400)
+  if (quote.status !== 'SENT') {
+    return c.json({ error: `Cannot validate a quote with status ${quote.status} (must be SENT)` }, 400)
   }
 
-  const today = new Date().toISOString().split('T')[0]
   const updated = await prisma.quote.update({
     where: { id: quoteId },
-    data: { status: 'VALIDATED', validatedAt: today },
+    data: { status: 'VALIDATED', validatedAt: new Date() },
+    include: { lines: true },
   })
-
-  return c.json(updated)
+  await auditLog({ entity: 'Quote', entityId: quoteId, action: 'UPDATE', before: quote, after: updated, metadata: { transition: 'VALIDATE' } })
+  return c.json(quoteShape(updated))
 })
 
-// GET /api/projects/:id/timesheets — project-level timesheet view
+// POST /api/projects/:id/quotes/:quoteId/reject — SENT → REJECTED
+projectsRouter.post('/:id/quotes/:quoteId/reject', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+
+  const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+  if (quote.status !== 'SENT') {
+    return c.json({ error: `Cannot reject a quote with status ${quote.status} (must be SENT)` }, 400)
+  }
+
+  const updated = await prisma.quote.update({
+    where: { id: quoteId },
+    data: { status: 'REJECTED', rejectedAt: new Date() },
+    include: { lines: true },
+  })
+  await auditLog({ entity: 'Quote', entityId: quoteId, action: 'UPDATE', before: quote, after: updated, metadata: { transition: 'REJECT' } })
+  return c.json(quoteShape(updated))
+})
+
+// POST /api/projects/:id/quotes/:quoteId/cancel — DRAFT or REJECTED → CANCELLED
+projectsRouter.post('/:id/quotes/:quoteId/cancel', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+
+  const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+
+  const cancellable: string[] = ['DRAFT', 'REJECTED']
+  if (!cancellable.includes(quote.status)) {
+    return c.json({ error: `Cannot cancel a quote with status ${quote.status} (must be DRAFT or REJECTED)` }, 400)
+  }
+
+  const updated = await prisma.quote.update({
+    where: { id: quoteId },
+    data: { status: 'CANCELLED', cancelledAt: new Date() },
+    include: { lines: true },
+  })
+  await auditLog({ entity: 'Quote', entityId: quoteId, action: 'UPDATE', before: quote, after: updated, metadata: { transition: 'CANCEL' } })
+  return c.json(quoteShape(updated))
+})
+
+// POST /api/projects/:id/quotes/:quoteId/reopen — REJECTED → DRAFT
+projectsRouter.post('/:id/quotes/:quoteId/reopen', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+
+  const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+
+  if (quote.status !== 'REJECTED') {
+    return c.json({ error: `Cannot reopen a quote with status ${quote.status} (must be REJECTED)` }, 400)
+  }
+
+  const updated = await prisma.quote.update({
+    where: { id: quoteId },
+    data: { status: 'DRAFT', sentAt: null, rejectedAt: null },
+    include: { lines: true },
+  })
+  await auditLog({ entity: 'Quote', entityId: quoteId, action: 'UPDATE', before: quote, after: updated, metadata: { transition: 'REOPEN' } })
+  return c.json(quoteShape(updated))
+})
+
+// GET /api/projects/:id/timesheets — one Timesheet bundle per (employee,
+// period) that touches this project. taskTimesheets are pre-filtered to the
+// project so PMs of project A don't see entries from project B inside the
+// same employee's week. Leave rows are not project-scoped → omitted.
 projectsRouter.get('/:id/timesheets', async (c) => {
   const projectId = c.req.param('id')
 
-  const rows = await prisma.timesheetEntry.findMany({
-    where: { projectId },
-    orderBy: { workDate: 'desc' },
+  const rows = await prisma.timesheet.findMany({
+    where: { taskTimesheets: { some: { assignmentSlot: { projectId } } } },
+    include: {
+      taskTimesheets: {
+        where: { assignmentSlot: { projectId } },
+        include: {
+          assignmentSlot: {
+            include: {
+              task: { select: { id: true, name: true } },
+              project: { select: { id: true, name: true } },
+            },
+          },
+        },
+        orderBy: { workDate: 'asc' },
+      },
+    },
+    orderBy: { periodKey: 'desc' },
   })
 
-  return c.json(rows)
+  return c.json(
+    rows.map((r) => ({
+      ...r,
+      submittedAt: toIsoDateOrNull(r.submittedAt),
+      approvedAt: toIsoDateOrNull(r.approvedAt),
+      rejectedAt: toIsoDateOrNull(r.rejectedAt),
+      taskTimesheets: r.taskTimesheets.map((t) => ({
+        ...t,
+        workDate: toIsoDate(t.workDate),
+      })),
+      // Leave is per-employee, not project-scoped — omit from the project view.
+      leaveDays: [],
+    })),
+  )
 })

@@ -1,23 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/format'
-import { useAddQuoteLine, useUpdateQuoteLine, useDeleteQuoteLine } from '@/api/hooks'
-import type { Task, Profile, QuoteLine } from '@/api/types'
+import { useAddQuoteLine, useUpdateQuoteLine, useDeleteQuoteLine, useCreateTask, useCreatePhase } from '@/api/hooks'
+import type { Phase, Task, Profile, QuoteLine } from '@/api/types'
 import { GridTable, StickyThead } from '@/components/shared/grid-table'
 import { QuoteTh, QuoteGroupTh, QuoteTd } from '@/components/shared/quote-grid-cells'
-import { TreeRowLabel } from '@/components/shared/tree-row-label'
 import { CompactInput } from '@/components/shared/compact-input'
 import { ColorValue } from '@/components/shared/color-value'
 import { NullCell } from '@/components/shared/table-cells'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -38,27 +30,27 @@ function sentiment(margin: number, pct: number | null) {
 
 // ── cells ────────────────────────────────────────────────────────────────────
 
-function LabelTd({ children, depth, className }: { children: React.ReactNode; depth: number; className?: string }) {
-  return (
-    <td className={cn('whitespace-nowrap px-3 py-2', className)}>
-      <TreeRowLabel label="" depth={depth} indentPx={20} className="hidden" />
-      <div style={{ paddingLeft: depth * 20 }}>{children}</div>
-    </td>
-  )
-}
-
-function AggregateTd({ label, className }: { label: string; className?: string }) {
-  return <td className={cn('whitespace-nowrap px-3 py-2', className)}>{label}</td>
-}
-
 // ── aggregate rows ────────────────────────────────────────────────────────────
 
-function PhaseRow({ phase, lines, colCount }: { phase: Task; lines: QuoteLine[]; colCount: number }) {
+function PhaseRow({ phase, lines, colCount, onAddTask }: { phase: Phase; lines: QuoteLine[]; colCount: number; onAddTask?: () => void }) {
   const { days, revenue, cost, margin, marginPct } = sumLines(lines)
   const s = sentiment(margin, marginPct)
   return (
-    <tr className="border-b border-border/70 bg-muted/60">
-      <AggregateTd label={phase.name} className="text-sm font-bold text-foreground" />
+    <tr className="group border-b border-border/70 bg-muted/60">
+      <td className="whitespace-nowrap px-3 py-2">
+        <span className="flex items-center gap-1 text-sm font-bold text-foreground">
+          {phase.name}
+          {onAddTask && (
+            <button
+              onClick={onAddTask}
+              className="ml-1 inline-flex items-center justify-center rounded p-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-border hover:text-foreground"
+              title="Ajouter une tâche"
+            >
+              <Plus size={11} />
+            </button>
+          )}
+        </span>
+      </td>
       <QuoteTd className="font-semibold text-foreground">{days || '—'}</QuoteTd>
       <QuoteTd className="border-l border-border/50 text-muted-foreground"><NullCell /></QuoteTd>
       <QuoteTd className="border-r border-border/50 font-medium text-foreground">{revenue ? formatCurrency(revenue) : '—'}</QuoteTd>
@@ -134,7 +126,7 @@ function ProfileRow({ line, profileName, projectId, quoteId }: ProfileRowProps) 
       <td className="whitespace-nowrap px-3 py-1.5">
         <div style={{ paddingLeft: 40 }} className="text-xs text-muted-foreground">{profileName}</div>
       </td>
-      <QuoteTd className="bg-sky-50/40 dark:bg-sky-950/20">
+      <QuoteTd className="cursor-text bg-sky-100/70 focus-within:bg-sky-200/80 dark:bg-sky-900/40 dark:focus-within:bg-sky-800/60" onClick={e => (e.currentTarget.querySelector('input') as HTMLInputElement)?.focus()}>
         <CompactInput
           key={`days-${line.id}`}
           type="number"
@@ -145,7 +137,7 @@ function ProfileRow({ line, profileName, projectId, quoteId }: ProfileRowProps) 
           onBlur={e => save('days', e.target.value)}
         />
       </QuoteTd>
-      <QuoteTd className="border-l border-border/50 bg-sky-50/40 dark:bg-sky-950/20">
+      <QuoteTd className="cursor-text border-l border-border/50 bg-sky-100/70 focus-within:bg-sky-200/80 dark:bg-sky-900/40 dark:focus-within:bg-sky-800/60" onClick={e => (e.currentTarget.querySelector('input') as HTMLInputElement)?.focus()}>
         <CompactInput
           key={`sell-${line.id}`}
           type="number"
@@ -159,7 +151,7 @@ function ProfileRow({ line, profileName, projectId, quoteId }: ProfileRowProps) 
       <QuoteTd className="border-r border-border/50 font-medium text-foreground/90 tabular-nums">
         {formatCurrency(revenue)}
       </QuoteTd>
-      <QuoteTd className="bg-sky-50/40 dark:bg-sky-950/20">
+      <QuoteTd className="cursor-text bg-sky-100/70 focus-within:bg-sky-200/80 dark:bg-sky-900/40 dark:focus-within:bg-sky-800/60" onClick={e => (e.currentTarget.querySelector('input') as HTMLInputElement)?.focus()}>
         <CompactInput
           key={`cost-${line.id}`}
           type="number"
@@ -209,12 +201,10 @@ function AddProfileRow({ taskId, profiles, usedProfileIds, projectId, quoteId }:
   const available = profiles.filter(p => !usedProfileIds.has(p.id))
   if (available.length === 0) return null
 
-  function handleSelect(profileId: string) {
-    const profile = profiles.find(p => p.id === profileId)
-    if (!profile) return
+  function handleSelect(profile: Profile) {
     addLine.mutate({
       taskId,
-      profileId,
+      profileId: profile.id,
       days: 0,
       sellRatePerDay: profile.defaultSellRatePerDay,
       costRateAssumptionPerDay: profile.defaultCostRatePerDay,
@@ -228,25 +218,29 @@ function AddProfileRow({ taskId, profiles, usedProfileIds, projectId, quoteId }:
     <tr className="border-b border-border/50 bg-card/50">
       <td className="px-3 py-1" colSpan={9}>
         <div style={{ paddingLeft: 40 }}>
-          {open ? (
-            <Select onValueChange={handleSelect}>
-              <SelectTrigger className="h-7 w-44 text-xs">
-                <SelectValue placeholder="Choisir un profil…" />
-              </SelectTrigger>
-              <SelectContent>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <button className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-border hover:text-foreground">
+                <Plus size={11} /> Ajouter un profil
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-1" align="start">
+              <div className="flex flex-col">
                 {available.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  <button
+                    key={p.id}
+                    onClick={() => handleSelect(p)}
+                    className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left transition-colors hover:bg-muted"
+                  >
+                    <span className="text-xs font-medium text-foreground">{p.name}</span>
+                    <span className="ml-3 text-[11px] tabular-nums text-muted-foreground">
+                      {formatCurrency(p.defaultSellRatePerDay)}/j
+                    </span>
+                  </button>
                 ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <button
-              onClick={() => setOpen(true)}
-              className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-border hover:text-foreground"
-            >
-              <Plus size={11} /> Ajouter un profil
-            </button>
-          )}
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </td>
     </tr>
@@ -276,6 +270,139 @@ function GrandTotalRow({ lines }: { lines: QuoteLine[] }) {
       <QuoteTd bold><ColorValue value={margin} sentiment={s} format="currency" /></QuoteTd>
       <QuoteTd>{marginPct !== null ? <ColorValue value={marginPct} sentiment={s} format="percent" /> : '—'}</QuoteTd>
       <td />
+    </tr>
+  )
+}
+
+// ── add task / add phase inline rows ─────────────────────────────────────────
+
+interface PhaseSectionProps {
+  phase: Phase
+  phaseTasks: Task[]
+  linesByTask: Map<string, QuoteLine[]>
+  profileMap: Map<string, Profile>
+  projectId: string
+  quoteId: string
+  profiles: Profile[]
+}
+
+function PhaseSection({ phase, phaseTasks, linesByTask, profileMap, projectId, quoteId, profiles }: PhaseSectionProps) {
+  const createTask = useCreateTask(projectId)
+  const [addingTask, setAddingTask] = useState(false)
+  const [newTaskName, setNewTaskName] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+  const phaseLines = phaseTasks.flatMap(t => linesByTask.get(t.id) ?? [])
+
+  function commitAddTask() {
+    const trimmed = newTaskName.trim()
+    if (trimmed) {
+      createTask.mutate({ phaseId: phase.id, name: trimmed }, {
+        onSuccess: () => toast.success(`Tâche "${trimmed}" créée`),
+        onError: () => toast.error('Échec de la création'),
+      })
+    }
+    setNewTaskName('')
+    setAddingTask(false)
+  }
+
+  return (
+    <>
+      <PhaseRow phase={phase} lines={phaseLines} colCount={1} onAddTask={() => setAddingTask(true)} />
+      {phaseTasks.map(task => {
+        const taskLines = linesByTask.get(task.id) ?? []
+        const usedProfileIds = new Set(taskLines.map(l => l.profileId))
+        return (
+          <>
+            <TaskRow key={task.id} task={task} lines={taskLines} />
+            {taskLines.map(line => (
+              <ProfileRow
+                key={line.id}
+                line={line}
+                profileName={profileMap.get(line.profileId)?.name ?? line.profileId}
+                projectId={projectId}
+                quoteId={quoteId}
+              />
+            ))}
+            <AddProfileRow
+              key={`add-${task.id}`}
+              taskId={task.id}
+              profiles={profiles}
+              usedProfileIds={usedProfileIds}
+              projectId={projectId}
+              quoteId={quoteId}
+            />
+          </>
+        )
+      })}
+      {addingTask && (
+        <tr className="bg-card">
+          <td className="whitespace-nowrap px-3 py-1.5" colSpan={9}>
+            <div style={{ paddingLeft: 20 }}>
+              <input
+                ref={inputRef}
+                autoFocus
+                placeholder="Nom de la tâche…"
+                value={newTaskName}
+                onChange={e => setNewTaskName(e.target.value)}
+                onBlur={commitAddTask}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') inputRef.current?.blur()
+                  if (e.key === 'Escape') { setNewTaskName(''); setAddingTask(false) }
+                }}
+                className="w-40 rounded border border-sky-400 bg-background px-1.5 py-0.5 text-sm outline-none focus:ring-1 focus:ring-sky-400"
+              />
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  )
+}
+
+function AddPhaseRow({ projectId }: { projectId: string }) {
+  const createPhase = useCreatePhase(projectId)
+  const [adding, setAdding] = useState(false)
+  const [name, setName] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  function commit() {
+    const trimmed = name.trim()
+    if (trimmed) {
+      createPhase.mutate({ name: trimmed }, {
+        onSuccess: () => toast.success(`Phase "${trimmed}" créée`),
+        onError: () => toast.error('Échec de la création'),
+      })
+    }
+    setName('')
+    setAdding(false)
+  }
+
+  return (
+    <tr className="border-b border-border/50 bg-muted/20">
+      <td className="px-3 py-1.5" colSpan={9}>
+        {adding ? (
+          <input
+            ref={inputRef}
+            autoFocus
+            placeholder="Nom de la phase…"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onBlur={commit}
+            onKeyDown={e => {
+              if (e.key === 'Enter') inputRef.current?.blur()
+              if (e.key === 'Escape') { setName(''); setAdding(false) }
+            }}
+            className="w-44 rounded border border-sky-400 bg-background px-1.5 py-0.5 text-xs outline-none focus:ring-1 focus:ring-sky-400"
+          />
+        ) : (
+          <button
+            onClick={() => setAdding(true)}
+            className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-border hover:text-foreground"
+          >
+            <Plus size={11} /> Ajouter une phase
+          </button>
+        )}
+      </td>
     </tr>
   )
 }
@@ -311,78 +438,63 @@ function DraftGridHeader() {
 interface QuoteDraftGridProps {
   projectId: string
   quoteId: string
-  flatTasks: Task[]
+  phases: Phase[]
   profiles: Profile[]
   lines: QuoteLine[]
+  frozenRateKeys?: Set<string>
 }
 
-export function QuoteDraftGrid({ projectId, quoteId, flatTasks, profiles, lines }: QuoteDraftGridProps) {
-  const phases = flatTasks.filter(t => !t.parentTaskId)
-
+export function QuoteDraftGrid({ projectId, quoteId, phases, profiles, lines }: QuoteDraftGridProps) {
   const linesByTask = new Map<string, QuoteLine[]>()
   for (const line of lines) {
     if (!linesByTask.has(line.taskId)) linesByTask.set(line.taskId, [])
     linesByTask.get(line.taskId)!.push(line)
   }
 
+  // Always show the full WBS while a quote is in DRAFT — empty phases/tasks
+  // give the editor a place to add lines without first jumping to the WBS tab.
+  const visiblePhases = [...phases].sort((a, b) => a.sortOrder - b.sortOrder)
+
+  function phaseTasksFor(phase: Phase): Task[] {
+    return [...phase.tasks].sort((a, b) => a.sortOrder - b.sortOrder)
+  }
+
   const profileMap = new Map(profiles.map(p => [p.id, p]))
 
   return (
-    <GridTable className="w-full text-sm">
-      <colgroup>
-        <col className="min-w-[240px]" />
-        <col className="w-20" />
-        <col className="w-28" />
-        <col className="w-28" />
-        <col className="w-28" />
-        <col className="w-28" />
-        <col className="w-28" />
-        <col className="w-20" />
-        <col className="w-10" />
-      </colgroup>
+    <div className="flex flex-col gap-2">
+      <GridTable className="w-full text-sm">
+        <colgroup>
+          <col className="min-w-[240px]" />
+          <col className="w-20" />
+          <col className="w-28" />
+          <col className="w-28" />
+          <col className="w-28" />
+          <col className="w-28" />
+          <col className="w-28" />
+          <col className="w-20" />
+          <col className="w-10" />
+        </colgroup>
 
-      <DraftGridHeader />
+        <DraftGridHeader />
 
-      <tbody>
-        {phases.map(phase => {
-          const phaseTasks = flatTasks.filter(t => t.parentTaskId === phase.id)
-          const phaseLines = phaseTasks.flatMap(t => linesByTask.get(t.id) ?? [])
-
-          return (
-            <>
-              <PhaseRow key={phase.id} phase={phase} lines={phaseLines} colCount={1} />
-              {phaseTasks.map(task => {
-                const taskLines = linesByTask.get(task.id) ?? []
-                const usedProfileIds = new Set(taskLines.map(l => l.profileId))
-
-                return (
-                  <>
-                    <TaskRow key={task.id} task={task} lines={taskLines} />
-                    {taskLines.map(line => (
-                      <ProfileRow
-                        key={line.id}
-                        line={line}
-                        profileName={profileMap.get(line.profileId)?.name ?? line.profileId}
-                        projectId={projectId}
-                        quoteId={quoteId}
-                      />
-                    ))}
-                    <AddProfileRow
-                      key={`add-${task.id}`}
-                      taskId={task.id}
-                      profiles={profiles}
-                      usedProfileIds={usedProfileIds}
-                      projectId={projectId}
-                      quoteId={quoteId}
-                    />
-                  </>
-                )
-              })}
-            </>
-          )
-        })}
-        <GrandTotalRow lines={lines} />
-      </tbody>
-    </GridTable>
+        <tbody>
+          {visiblePhases.map(phase => (
+            <PhaseSection
+              key={phase.id}
+              phase={phase}
+              phaseTasks={phaseTasksFor(phase)}
+              linesByTask={linesByTask}
+              profileMap={profileMap}
+              projectId={projectId}
+              quoteId={quoteId}
+              profiles={profiles}
+            />
+          ))}
+          <AddPhaseRow projectId={projectId} />
+          <GrandTotalRow lines={lines} />
+        </tbody>
+      </GridTable>
+    </div>
   )
 }

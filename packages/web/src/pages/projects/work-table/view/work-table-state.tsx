@@ -1,4 +1,4 @@
-import { Calendar, Play } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LoadingState, ErrorState } from '@/components/shared/page-container'
@@ -12,28 +12,12 @@ export function WorkTableProjectNotFound() {
 }
 
 interface WorkTableUnavailableStateProps {
-  hasDates: boolean
   onSetDates?: () => void
-  onPlanProject?: () => void
 }
 
-export function WorkTableUnavailableState({ hasDates, onSetDates, onPlanProject }: WorkTableUnavailableStateProps) {
-  if (hasDates) {
-    return (
-      <EmptyState
-        icon={Play}
-        title="Prêt à planifier"
-        description="Les dates sont définies. Cliquez sur « Planifier » pour générer les périodes et accéder au tableau de planification."
-        action={
-          <Button onClick={onPlanProject}>
-            <Play size={16} />
-            Planifier le projet
-          </Button>
-        }
-      />
-    )
-  }
-
+// Surfaces when a project has no date range yet — the work table needs dates
+// to render its period axis. Once dates are set the grid renders directly.
+export function WorkTableUnavailableState({ onSetDates }: WorkTableUnavailableStateProps) {
   return (
     <EmptyState
       icon={Calendar}

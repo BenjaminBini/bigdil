@@ -2,10 +2,9 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Card } from '@/components/ui/card'
 import { VStack } from '@/components/shared/VStack'
-import type { Task } from '@/api/types'
+import type { Phase, Task } from '@/api/types'
 import { TaskNodeRow } from './task-node-row'
 
-// Page-local tree connector lines for the WBS hierarchy visualization
 function TreeVerticalLine() {
   return <div className="flex-1 w-px bg-gray-200" />
 }
@@ -39,37 +38,46 @@ function TreeChildContent({ children }: { children: ReactNode }) {
 }
 
 interface PhaseBlockProps {
-  phase: Task
-  onAddSubTask: (task: Task) => void
-  onEdit: (task: Task) => void
-  onDelete: (task: Task) => void
+  phase: Phase
+  onAddTask: (phase: Phase) => void
+  onEditPhase: (phase: Phase) => void
+  onDeletePhase: (phase: Phase) => void
+  onEditTask: (task: Task) => void
+  onDeleteTask: (task: Task) => void
 }
 
-function PhaseBlock({ phase, onAddSubTask, onEdit, onDelete }: PhaseBlockProps) {
+function PhaseBlock({ phase, onAddTask, onEditPhase, onDeletePhase, onEditTask, onDeleteTask }: PhaseBlockProps) {
   const [expanded, setExpanded] = useState(true)
+  const tasks = [...phase.tasks].sort((a, b) => a.sortOrder - b.sortOrder)
 
   return (
     <Card variant="flush">
       <TaskNodeRow
-        task={phase}
+        name={phase.name}
         isPhase
         isExpanded={expanded}
         onToggle={() => setExpanded((value) => !value)}
-        onAddSubTask={onAddSubTask}
-        onEdit={onEdit}
-        onDelete={onDelete}
+        onAddSubTask={() => onAddTask(phase)}
+        onEdit={() => onEditPhase(phase)}
+        onDelete={() => onDeletePhase(phase)}
       />
 
-      {expanded && phase.children && phase.children.length > 0 && (
+      {expanded && tasks.length > 0 && (
         <TaskChildrenBlock>
-          {phase.children.map((child, index) => (
-            <TreeChildRow key={child.id} hasDivider={index < phase.children!.length - 1}>
+          {tasks.map((task, index) => (
+            <TreeChildRow key={task.id} hasDivider={index < tasks.length - 1}>
               <TreeConnectorGutter>
                 <TreeVerticalLine />
-                {index === phase.children!.length - 1 && <TreeHorizontalLine />}
+                {index === tasks.length - 1 && <TreeHorizontalLine />}
               </TreeConnectorGutter>
               <TreeChildContent>
-                <TaskNodeRow task={child} isPhase={false} onAddSubTask={onAddSubTask} onEdit={onEdit} onDelete={onDelete} />
+                <TaskNodeRow
+                  name={task.name}
+                  status={task.status}
+                  isPhase={false}
+                  onEdit={() => onEditTask(task)}
+                  onDelete={() => onDeleteTask(task)}
+                />
               </TreeChildContent>
             </TreeChildRow>
           ))}
@@ -79,35 +87,30 @@ function PhaseBlock({ phase, onAddSubTask, onEdit, onDelete }: PhaseBlockProps) 
   )
 }
 
-function StandaloneTask({ task, onEdit, onDelete }: { task: Task; onEdit: (task: Task) => void; onDelete: (task: Task) => void }) {
-  return (
-    <Card variant="flush">
-      <TaskNodeRow task={task} isPhase={false} onAddSubTask={() => {}} onEdit={onEdit} onDelete={onDelete} />
-    </Card>
-  )
-}
-
 interface WbsTreeProps {
-  tasks: Task[]
-  onAddSubTask: (task: Task) => void
-  onEdit: (task: Task) => void
-  onDelete: (task: Task) => void
+  phases: Phase[]
+  onAddTask: (phase: Phase) => void
+  onEditPhase: (phase: Phase) => void
+  onDeletePhase: (phase: Phase) => void
+  onEditTask: (task: Task) => void
+  onDeleteTask: (task: Task) => void
 }
 
-export function WbsTaskTree({ tasks, onAddSubTask, onEdit, onDelete }: WbsTreeProps) {
+export function WbsTaskTree({ phases, onAddTask, onEditPhase, onDeletePhase, onEditTask, onDeleteTask }: WbsTreeProps) {
+  const sorted = [...phases].sort((a, b) => a.sortOrder - b.sortOrder)
   return (
     <VStack gap="md">
-      {tasks.map((task) =>
-        task.children && task.children.length > 0 ? (
-          <PhaseBlock key={task.id} phase={task} onAddSubTask={onAddSubTask} onEdit={onEdit} onDelete={onDelete} />
-        ) : task.parentTaskId === null ? (
-          <Card key={task.id} variant="flush">
-            <TaskNodeRow task={task} isPhase isExpanded={false} onToggle={() => {}} onAddSubTask={onAddSubTask} onEdit={onEdit} onDelete={onDelete} />
-          </Card>
-        ) : (
-          <StandaloneTask key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} />
-        ),
-      )}
+      {sorted.map((phase) => (
+        <PhaseBlock
+          key={phase.id}
+          phase={phase}
+          onAddTask={onAddTask}
+          onEditPhase={onEditPhase}
+          onDeletePhase={onDeletePhase}
+          onEditTask={onEditTask}
+          onDeleteTask={onDeleteTask}
+        />
+      ))}
     </VStack>
   )
 }

@@ -1,21 +1,33 @@
-import type { ProjectStatus, PeriodStatus, QuoteStatus, TimesheetStatus, UserRole, TaskStatus } from '@/api/types'
+import type { PeriodStatus, QuoteStatus, TimesheetStatus, UserRole, TaskStatus } from '@/api/types'
 
-export const projectStatusColors: Record<ProjectStatus, string> = {
-  DRAFT: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-  WAITING_APPROVAL: 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300',
-  TO_PLAN: 'bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300',
-  PLANNING: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-300',
-  IN_PROGRESS: 'bg-green-100 text-green-800 dark:bg-green-950/70 dark:text-green-300',
-  COMPLETED: 'bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300',
+// Project lifecycle is derived (T009): a project is either ACTIVE (running
+// today inside its date range, not closed), UPCOMING (today before
+// startDate), or CLOSED (closedAt set or today past endDate).
+export type ProjectLifecycle = 'ACTIVE' | 'UPCOMING' | 'CLOSED'
+
+export const projectLifecycleColors: Record<ProjectLifecycle, string> = {
+  ACTIVE: 'bg-green-100 text-green-800 dark:bg-green-950/70 dark:text-green-300',
+  UPCOMING: 'bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300',
+  CLOSED: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
 }
 
-export const projectStatusLabels: Record<ProjectStatus, string> = {
-  DRAFT: 'Brouillon',
-  WAITING_APPROVAL: 'En attente',
-  TO_PLAN: 'À planifier',
-  PLANNING: 'Planification',
-  IN_PROGRESS: 'En cours',
-  COMPLETED: 'Terminé',
+export const projectLifecycleLabels: Record<ProjectLifecycle, string> = {
+  ACTIVE: 'En cours',
+  UPCOMING: 'À venir',
+  CLOSED: 'Clos',
+}
+
+export function deriveProjectLifecycle(p: {
+  startDate: string | null
+  endDate: string | null
+  closedAt: string | null
+  isActive: boolean
+}): ProjectLifecycle {
+  if (p.closedAt) return 'CLOSED'
+  if (p.isActive) return 'ACTIVE'
+  const today = new Date().toISOString().slice(0, 10)
+  if (p.startDate && today < p.startDate) return 'UPCOMING'
+  return 'CLOSED'
 }
 
 export const periodStatusColors: Record<PeriodStatus, string> = {
@@ -37,6 +49,7 @@ export const quoteStatusColors: Record<QuoteStatus, string> = {
   SENT: 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300',
   VALIDATED: 'bg-green-100 text-green-800 dark:bg-green-950/70 dark:text-green-300',
   REJECTED: 'bg-red-100 text-red-800 dark:bg-red-950/70 dark:text-red-300',
+  CANCELLED: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
 }
 
 export const timesheetStatusColors: Record<TimesheetStatus, string> = {
