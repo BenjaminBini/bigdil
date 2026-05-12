@@ -36,6 +36,28 @@ employeesRouter.post('/', async (c) => {
       },
     })
 
+    // Auto-provision a CONSULTANT User linked to the new employee. This is
+    // what wires the "Incarner" button on the collaborators page — admins
+    // can impersonate the consultant straight after creation. Email is
+    // derived from the name with the new cuid's last 6 chars as a unique
+    // suffix to avoid collisions.
+    const slug = body.name
+      .trim()
+      .normalize('NFKD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '.')
+      .toLowerCase()
+      .replace(/^\.+|\.+$/g, '') || 'user'
+    const email = `${slug}.${created.id.slice(-6)}@bigdil.local`
+    await tx.user.create({
+      data: {
+        email,
+        name: body.name.trim(),
+        role: 'CONSULTANT',
+        employeeId: created.id,
+      },
+    })
+
     return created
   })
   await auditLog({ entity: 'Employee', entityId: employee.id, action: 'CREATE', after: employee })

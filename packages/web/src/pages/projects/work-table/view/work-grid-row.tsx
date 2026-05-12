@@ -1,8 +1,7 @@
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
-import type { Employee, PeriodInfo, ProfileTaskPeriodStart } from '@/api/types'
-import { AssignEmployeePopover } from './assign-employee-popover'
+import type { PeriodInfo, ProfileTaskPeriodStart } from '@/api/types'
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { TreeRowLabel } from '@/components/shared/tree-row-label'
 import { cn } from '@/lib/utils'
@@ -28,7 +27,7 @@ function SummaryCells({ row }: SummaryCellsProps) {
   // Match the typographic hierarchy used on the label cell — phase numbers
   // are the loudest, employee numbers the quietest.
   const cellClass = cn(
-    'whitespace-nowrap border-b border-r border-border px-1 py-1 text-center tabular-nums',
+    'whitespace-nowrap px-1 py-1 text-center tabular-nums',
     solidBg,
     row.kind === 'phase' && 'text-[13px] font-bold text-foreground',
     row.kind === 'task' && 'text-[13px] font-semibold text-foreground/90',
@@ -94,8 +93,8 @@ function WorkGridMainRow({ row, rowBg, isProfile, expandedProfileId, setExpanded
         rowBg,
         // Phase rows mark a new section in the tree — emphasise the boundary
         // with a top separator so two adjacent phases never blend visually.
-        row.kind === 'phase' && 'border-t-2 border-border/80',
-        row.kind === 'grand-total' && 'border-t-2 border-border',
+        row.kind === 'phase' && 'border-t-2 border-row-divider',
+        row.kind === 'grand-total' && 'border-t-2 border-row-divider',
         isProfile && 'cursor-pointer',
         isProfile && expandedProfileId === row.id && 'ring-1 ring-inset ring-blue-300',
       )}
@@ -126,12 +125,10 @@ function WorkGridLabelCell({ row, children }: { row: GridRow; children: ReactNod
       noShadow
       className={cn(
         getRowPaddingY(row),
-        // Borders here are opaque (no /XX alpha) — the sticky first column
-        // must not let scrolling content bleed through the row separators.
-        row.kind === 'phase' && 'border-b-2 border-border',
-        row.kind === 'task' && 'border-b border-border',
-        (row.kind === 'profile' || row.kind === 'employee') && 'border-b border-border',
-        row.kind === 'grand-total' && 'border-b-2 border-border',
+        // Only grand-total keeps an emphasised bottom divider. Phase rows
+        // are already marked by the left accent stripe + bold typography +
+        // tier colour, so they don't need a heavy horizontal line.
+        row.kind === 'grand-total' && 'border-b-2 border-row-divider',
         getSolidRowBackground(row),
         KIND_ACCENT[row.kind] ?? '',
         row.kind === 'phase' && 'text-[13px] font-bold uppercase tracking-wide text-foreground',
@@ -141,7 +138,7 @@ function WorkGridLabelCell({ row, children }: { row: GridRow; children: ReactNod
         row.kind === 'employee' && 'text-xs font-normal',
         row.kind === 'employee' && row.employeeId === null && 'italic text-muted-foreground/60',
         row.kind === 'employee' && row.employeeId !== null && 'text-foreground/80',
-        row.kind === 'grand-total' && 'border-t-2 border-border text-sm font-bold uppercase tracking-wide text-foreground',
+        row.kind === 'grand-total' && 'border-t-2 border-row-divider text-sm font-bold uppercase tracking-wide text-foreground',
       )}
     >
       <div className="relative flex items-center">
@@ -173,10 +170,7 @@ interface WorkGridRowProps {
   setExpandedProfileId: (id: string | null) => void
   frozenData: Map<string, FrozenData>
   periodStartMap: Map<string, ProfileTaskPeriodStart>
-  employees: Employee[]
-  assignedEmployeesByProfile: Map<string, Set<string>>
   onSaveCell?: (params: { taskId: string; profileId: string; employeeId?: string; periodCode: string; days: number }) => void
-  onAssignEmployee?: (params: { taskId: string; profileId: string; employeeId: string }) => void
 }
 
 export function WorkGridRow({
@@ -191,10 +185,7 @@ export function WorkGridRow({
   setExpandedProfileId,
   frozenData,
   periodStartMap,
-  employees,
-  assignedEmployeesByProfile,
   onSaveCell,
-  onAssignEmployee,
 }: WorkGridRowProps) {
   const { t } = useTranslation('pages')
   const isProfile = row.kind === 'profile'
@@ -216,7 +207,7 @@ export function WorkGridRow({
         <SummaryCells row={row} />
         <td
           colSpan={periods.length}
-          className={cn('border-b border-border/70', rowBg)}
+          className={cn('border-b border-row-divider', rowBg)}
         />
       </tr>
     )
@@ -244,16 +235,6 @@ export function WorkGridRow({
                   : undefined
             }
           />
-          {/* Only affordance on the work-table itself: a small always-visible
-            * "+" next to a profile row to assign another collaborator. */}
-          {row.kind === 'profile' && row.taskId && row.profileId && onAssignEmployee && (
-            <AssignEmployeePopover
-              employees={employees}
-              triggerTitle={t('workTable.addEmployeeToProfile', 'Ajouter un collaborateur')}
-              excludeIds={Array.from(assignedEmployeesByProfile.get(`${row.taskId}:${row.profileId}`) ?? [])}
-              onAssign={(employeeId) => onAssignEmployee({ taskId: row.taskId!, profileId: row.profileId!, employeeId })}
-            />
-          )}
         </WorkGridLabelCell>
 
         <SummaryCells row={row} />

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Plus } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { Employee } from '@/api/types'
@@ -10,9 +10,11 @@ interface AssignEmployeePopoverProps {
   excludeIds?: string[]
   /** Tooltip on the trigger. */
   triggerTitle?: string
+  /** Custom trigger element. Defaults to a small "+" icon button. */
+  trigger?: ReactNode
 }
 
-export function AssignEmployeePopover({ employees, onAssign, excludeIds, triggerTitle }: AssignEmployeePopoverProps) {
+export function AssignEmployeePopover({ employees, onAssign, excludeIds, triggerTitle, trigger }: AssignEmployeePopoverProps) {
   const [open, setOpen] = useState(false)
 
   const excluded = new Set(excludeIds ?? [])
@@ -21,14 +23,16 @@ export function AssignEmployeePopover({ employees, onAssign, excludeIds, trigger
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          title={triggerTitle ?? 'Assigner un collaborateur'}
-          onClick={(e) => e.stopPropagation()}
-          className="ml-1 inline-flex size-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <Plus size={10} strokeWidth={2.5} />
-        </button>
+        {trigger ?? (
+          <button
+            type="button"
+            title={triggerTitle ?? 'Assigner un collaborateur'}
+            onClick={(e) => e.stopPropagation()}
+            className="ml-1 inline-flex size-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Plus size={10} strokeWidth={2.5} />
+          </button>
+        )}
       </PopoverTrigger>
       <PopoverContent
         className="w-52 p-1"

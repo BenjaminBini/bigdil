@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Employee, Phase, PeriodInfo, Profile, ProfileTaskPeriodStart, Quote, WorkTableCell } from '@/api/types'
-import { PanelLayout, ScrollPane } from '@/components/ui/panel-layout'
+import { PanelLayout } from '@/components/ui/panel-layout'
 import { Separator } from '@/components/ui/separator'
 import { ConsolidationTable } from './view/consolidation-table'
 import { ConsolidationQuoteBanner } from './view/consolidation-quote-banner'

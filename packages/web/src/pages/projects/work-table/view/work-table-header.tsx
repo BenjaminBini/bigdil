@@ -30,8 +30,8 @@ export function WorkTableHeader({ projectName, periodCount }: WorkTableHeaderPro
       right={
         <Legend items={[
           { icon: <Lock size={8} color="#94a3b8" />, label: 'Frozen' },
-          { swatch: 'bg-amber-100', swatchBorder: 'border-amber-200', label: 'Consolidation' },
-          { swatch: 'bg-sky-100', swatchBorder: 'border-sky-200', label: 'Open' },
+          { swatch: 'bg-muted/60', swatchBorder: 'border-border', label: 'Consolidation' },
+          { swatch: 'bg-primary/15', swatchBorder: 'border-primary/30', label: 'Open' },
           { swatch: 'bg-card', swatchBorder: 'border-border', label: 'Future' },
         ]} />
       }

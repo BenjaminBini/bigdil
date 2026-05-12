@@ -24,10 +24,10 @@ export interface KpiCardProps {
 }
 
 const VARIANT_CONTAINER: Record<KpiCardVariant, string> = {
-  default: 'border p-4 border-border bg-card',
-  highlight: 'border p-4 border-green-200 bg-green-50',
-  warning: 'border p-4 border-amber-200 bg-amber-50',
-  dim: 'border p-4 border-border bg-card opacity-60',
+  default: 'border p-5 border-border bg-card',
+  highlight: 'border p-5 border-green-200 bg-green-50',
+  warning: 'border p-5 border-amber-200 bg-amber-50',
+  dim: 'border p-5 border-border bg-card opacity-60',
   inline: '',
 }
 
@@ -70,7 +70,7 @@ export function KpiCard({
       )}
     >
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
           {label}
         </p>
         {icon && <span className="text-muted-foreground">{icon}</span>}

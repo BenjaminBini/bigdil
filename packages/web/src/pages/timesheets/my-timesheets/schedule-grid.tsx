@@ -366,10 +366,10 @@ export function ScheduleGrid({
         <TableBody>
           {projectGroups.map((group) => (
             <Fragment key={`group-${group.projectId}`}>
-              <TableRow className="bg-muted/40">
+              <TableRow className="bg-accent/60">
                 <TableCell
                   colSpan={totalColSpan}
-                  className="py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                  className="py-1.5 text-xs font-semibold uppercase tracking-wide text-accent-foreground"
                 >
                   {group.projectName}
                 </TableCell>
@@ -470,10 +470,10 @@ export function ScheduleGrid({
           )}
 
           <Fragment key="leave-section">
-            <TableRow className="bg-muted/40">
+            <TableRow className="bg-accent/60">
               <TableCell
                 colSpan={totalColSpan}
-                className="py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                className="py-1.5 text-xs font-semibold uppercase tracking-wide text-accent-foreground"
               >
                 Hors mission
               </TableCell>

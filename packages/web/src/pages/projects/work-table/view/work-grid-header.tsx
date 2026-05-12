@@ -44,7 +44,7 @@ function SummaryHeaderCell({ label, tooltip, index }: { label: string; tooltip: 
     <th
       rowSpan={2}
       title={tooltip}
-      className="border-b border-r border-border/70 bg-muted px-1 py-2 align-middle text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+      className="border-b border-row-divider bg-muted px-1 py-2 align-middle text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
       style={stickySummaryStyle(index)}
     >
       <span
@@ -72,7 +72,7 @@ export function WorkGridHeader({ periods }: WorkGridHeaderProps) {
           as="th"
           zIndex={30}
           noShadow
-          className="border-b border-border bg-muted text-left font-semibold"
+          className="border-b border-row-divider bg-muted text-left font-semibold"
         >
           <span className="flex items-center">
             {t('workTable.taskPhaseColumn', 'Task / Phase')}
@@ -124,9 +124,9 @@ export function WorkGridHeader({ periods }: WorkGridHeaderProps) {
                 'min-w-[56px] w-14 whitespace-nowrap border-b border-r border-border/70 px-1 py-1 text-center',
                 isFrozen && 'bg-muted text-muted-foreground',
                 isConsolidation &&
-                  'bg-amber-100 font-bold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+                  'bg-muted/60 font-medium text-muted-foreground',
                 isOpen &&
-                  'bg-sky-100 font-bold text-sky-700 dark:bg-sky-950/50 dark:text-sky-300',
+                  'bg-primary/15 font-bold text-primary',
                 !isFrozen &&
                   !isConsolidation &&
                   !isOpen &&

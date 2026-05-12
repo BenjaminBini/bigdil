@@ -5,6 +5,8 @@ import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSnapshot, useProject, useProjectTimesheets, useReferenceData } from '@/api/hooks'
+import type { ProjectTaskTimesheet } from '@/api/types'
+import { parsePeriodSliceKey } from '@/lib/period-utils'
 import { LoadingState, ErrorState } from '@/components/shared/page-container'
 import { FlexRow, FlexBetween } from '@/components/shared/layouts'
 import { VStack } from '@/components/shared/VStack'
@@ -35,6 +37,36 @@ export default function SnapshotDetailPage() {
   if (hasError || !snapshot || !project || !refData || !allTimesheets) {
     return <ErrorState message={t('snapshots.notFound')} />
   }
+
+  // Flatten the Timesheet bundles into ProjectTaskTimesheet rows expected by
+  // ActualsTab — each TaskTimesheet merged with its parent timesheet's
+  // status / period / lifecycle fields.
+  const flatTimesheets: ProjectTaskTimesheet[] = allTimesheets.flatMap((ts) => {
+    const { weekCode, monthCode } = parsePeriodSliceKey(ts.periodKey)
+    const periodCode = weekCode ?? monthCode
+    return ts.taskTimesheets.map((entry) => ({
+      id: entry.id,
+      timesheetId: ts.id,
+      employeeId: ts.employeeId,
+      assignmentSlotId: entry.assignmentSlotId,
+      projectId: entry.assignmentSlot?.projectId ?? '',
+      taskId: entry.assignmentSlot?.taskId ?? '',
+      profileId: entry.assignmentSlot?.profileId ?? '',
+      periodCode,
+      periodKey: ts.periodKey,
+      workDate: entry.workDate,
+      days: entry.days,
+      notes: entry.notes ?? '',
+      status: ts.status,
+      submittedAt: ts.submittedAt,
+      approvedAt: ts.approvedAt,
+      rejectedAt: ts.rejectedAt,
+      appliedCostRatePerDay: entry.appliedCostRatePerDay,
+      appliedCostAmount: entry.appliedCostAmount,
+      appliedSellRatePerDay: entry.appliedSellRatePerDay,
+      appliedSellAmount: entry.appliedSellAmount,
+    }))
+  })
 
   const getTaskName = (taskId: string) => project.flatTasks.find(task => task.id === taskId)?.name ?? taskId
   const getProfileName = (profileId: string) => refData.profiles.find(p => p.id === profileId)?.name ?? profileId
@@ -113,7 +145,7 @@ export default function SnapshotDetailPage() {
         <TabsContent value="actuals">
           <ActualsTab
             snapshot={snapshot}
-            allTimesheets={allTimesheets}
+            allTimesheets={flatTimesheets}
             getTaskName={getTaskName}
             getProfileName={getProfileName}
             getEmployeeName={(id) => getEmployeeName(id)}

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useParams } from "react-router";
+import { FolderKanban } from "lucide-react";
 import { useProjects } from "@/api/hooks";
 import { LoadingState, ErrorState } from "@/components/shared/page-container";
+import { EmptyState } from "@/components/shared/empty-state";
 import { ClientProjectsTable } from "./components/client-projects-table";
 import type {
   ClientProjectSortKey as SortKey,
@@ -32,6 +34,16 @@ export default function ClientProjectsPage() {
       contractValue: project.contractValue,
       marginForecast: null,
     }));
+
+  if (projectRows.length === 0) {
+    return (
+      <EmptyState
+        icon={FolderKanban}
+        title="Aucun projet pour ce client"
+        description="Créez un projet depuis la liste des projets pour le rattacher à ce client."
+      />
+    );
+  }
 
   function handleSort(nextKey: SortKey) {
     if (nextKey === sortKey) {

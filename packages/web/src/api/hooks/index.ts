@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '../client'
 import type {
   ProjectListItem, ProjectDetail, WorkTableData, Snapshot, Quote, QuoteLine,
-  TimesheetEntry, Timesheet, ReferenceData, DashboardData,
+  Timesheet, ReferenceData, DashboardData,
   EmployeeDetail, ProfileDetail, Profile, Phase, Task, Client, Employee,
   FinancialReportRow, UtilizationReportRow, GlobalTimesheetWindow,
   User, UserRole, CurrentUserSession, AssignableSlot, CellDetail,
@@ -265,6 +265,15 @@ export function useUpdateProfile() {
   })
 }
 
+export function useDeleteProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<{ success: true }>(`/api/profiles/${id}`, { method: 'DELETE' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+  })
+}
+
 export function useCreatePhase(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -362,10 +371,21 @@ export function useReopenProject(projectId: string) {
   })
 }
 
+export interface ClientWriteInput {
+  name: string
+  contactName: string
+  contactEmail: string
+  addressLine1: string
+  addressLine2?: string | null
+  postalCode: string
+  city: string
+  country: string
+}
+
 export function useCreateClient() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name: string; contactName: string; contactEmail: string; address: string }) =>
+    mutationFn: (data: ClientWriteInput) =>
       apiFetch<Client>('/api/clients', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
   })
@@ -374,7 +394,7 @@ export function useCreateClient() {
 export function useUpdateClient() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; name?: string; contactName?: string; contactEmail?: string; address?: string }) =>
+    mutationFn: ({ id, ...data }: { id: string } & Partial<ClientWriteInput>) =>
       apiFetch<Client>(`/api/clients/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
   })
@@ -488,7 +508,12 @@ export function useCreateEmployee() {
   return useMutation({
     mutationFn: (data: { name: string; currentCostRatePerDay: number }) =>
       apiFetch<Employee>('/api/employees', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData })
+      // A linked User row is auto-provisioned on the backend — refresh the
+      // users list so the "Incarner" button can find it.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.users })
+    },
   })
 }
 

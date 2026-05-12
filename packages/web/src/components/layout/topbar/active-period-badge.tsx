@@ -29,14 +29,14 @@ export function ActivePeriodBadge({ projectId }: ActivePeriodBadgeProps) {
         <Badge
           className={cn(
             'text-xs font-semibold',
-            'bg-green-100 text-green-800 border-green-200',
+            'border-primary/30 bg-primary/15 text-primary',
           )}
         >
           {openPeriod.label} {t('period.OPEN')}
         </Badge>
       )}
       {consolidationPeriod && (
-        <Badge className="border-amber-200 bg-amber-100 text-xs font-semibold text-amber-700">
+        <Badge className="border-border bg-muted/60 text-xs font-medium text-muted-foreground">
           {consolidationPeriod.label} {t('period.CONSOLIDATION')}
         </Badge>
       )}

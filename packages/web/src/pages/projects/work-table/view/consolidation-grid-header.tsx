@@ -19,7 +19,7 @@ export function ConsolidationGridHeader() {
   return (
     <thead>
       <GroupHeaderRow>
-        <StickyColumnCell as="th" zIndex={30} shadowColor="var(--color-border)" className="border-b border-border bg-muted text-left font-semibold" rowSpan={3}>
+        <StickyColumnCell as="th" zIndex={30} shadowColor="var(--color-border)" className="border-b border-border/70 bg-muted text-left font-semibold" rowSpan={3}>
           Task / Phase
         </StickyColumnCell>
         {FROZEN_GROUPS.map((group, index) => (
@@ -27,8 +27,8 @@ export function ConsolidationGridHeader() {
             key={group.label}
             colSpan={group.colSpan}
             className={cn(
-              'whitespace-nowrap border-b border-border bg-muted/80 px-2 py-1 text-center text-xs font-bold uppercase tracking-wider text-foreground/70',
-              index === 0 ? 'border-r-2 border-r-border' : 'border-r border-r-border',
+              'whitespace-nowrap border-b border-border/70 bg-muted/80 px-2 py-1 text-center text-xs font-bold uppercase tracking-wider text-foreground/70',
+              index === 0 ? 'border-r-2 border-r-border/70' : 'border-r border-r-border/70',
             )}
           >
             {group.label}
@@ -42,8 +42,8 @@ export function ConsolidationGridHeader() {
             key={`${subgroup.label}-${index}`}
             colSpan={subgroup.colSpan}
             className={cn(
-              'whitespace-nowrap border-b border-border bg-muted px-1 py-1 text-center text-[10px] font-semibold uppercase tracking-wider',
-              index === 2 || index === 5 ? 'border-r-2 border-r-border' : 'border-r-2 border-r-border/70',
+              'whitespace-nowrap border-b border-border/70 bg-muted px-1 py-1 text-center text-[10px] font-semibold uppercase tracking-wider',
+              index === 2 || index === 5 ? 'border-r-2 border-r-border/70' : 'border-r border-r-border/70',
             )}
           >
             {subgroup.label}
@@ -56,12 +56,10 @@ export function ConsolidationGridHeader() {
           <th
             key={col.key}
             className={cn(
-              'whitespace-nowrap border-b-2 border-border bg-muted/50 px-1 py-1 text-right text-[10px] font-medium',
+              'whitespace-nowrap border-b border-border/70 bg-muted/50 px-1 py-1 text-right text-[10px] font-medium',
               index === 7 || index === 13
-                ? 'border-r-2 border-r-border'
-                : index === 3 || index === 6 || index === 10 || index === 12
-                  ? 'border-r-2 border-r-border/70'
-                  : 'border-r border-r-border/40',
+                ? 'border-r-2 border-r-border/70'
+                : 'border-r border-r-border/70',
             )}
             style={{ width: col.w, minWidth: col.w }}
           >
