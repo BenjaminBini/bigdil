@@ -43,6 +43,25 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+    /* Work-table hierarchy tiers — derived from theme tokens via color-mix */
+    --color-row-phase: var(--card);
+    --color-row-task: var(--row-task);
+    --color-row-profile: var(--row-profile);
+    --color-row-employee: var(--row-employee);
+    --color-row-total: var(--row-total);
+    --color-row-quote: var(--row-quote);
+    --color-row-divider: var(--row-divider);
+}
+
+/* Hierarchy tiers — same recipe for every theme, fades card → foreground */
+:root {
+    --row-task: color-mix(in oklch, var(--card) 92%, var(--foreground) 8%);
+    --row-profile: color-mix(in oklch, var(--card) 84%, var(--foreground) 16%);
+    --row-employee: color-mix(in oklch, var(--card) 74%, var(--foreground) 26%);
+    --row-total: color-mix(in oklch, var(--card) 55%, var(--foreground) 45%);
+    --row-quote: color-mix(in oklch, var(--card) 86%, var(--primary) 14%);
+    /* Opaque divider — used on sticky columns so borders never look ghostly */
+    --row-divider: color-mix(in oklch, var(--card) 72%, var(--foreground) 28%);
 }
 
 :root {

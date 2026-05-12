@@ -28,7 +28,7 @@ function SummaryCells({ row }: SummaryCellsProps) {
   // Match the typographic hierarchy used on the label cell — phase numbers
   // are the loudest, employee numbers the quietest.
   const cellClass = cn(
-    'whitespace-nowrap border-b border-r border-border px-1 py-1 text-center tabular-nums',
+    'whitespace-nowrap border-b border-r border-row-divider px-1 py-1 text-center tabular-nums',
     solidBg,
     row.kind === 'phase' && 'text-[13px] font-bold text-foreground',
     row.kind === 'task' && 'text-[13px] font-semibold text-foreground/90',
@@ -94,8 +94,8 @@ function WorkGridMainRow({ row, rowBg, isProfile, expandedProfileId, setExpanded
         rowBg,
         // Phase rows mark a new section in the tree — emphasise the boundary
         // with a top separator so two adjacent phases never blend visually.
-        row.kind === 'phase' && 'border-t-2 border-border/80',
-        row.kind === 'grand-total' && 'border-t-2 border-border',
+        row.kind === 'phase' && 'border-t-2 border-row-divider',
+        row.kind === 'grand-total' && 'border-t-2 border-row-divider',
         isProfile && 'cursor-pointer',
         isProfile && expandedProfileId === row.id && 'ring-1 ring-inset ring-blue-300',
       )}
@@ -128,10 +128,10 @@ function WorkGridLabelCell({ row, children }: { row: GridRow; children: ReactNod
         getRowPaddingY(row),
         // Borders here are opaque (no /XX alpha) — the sticky first column
         // must not let scrolling content bleed through the row separators.
-        row.kind === 'phase' && 'border-b-2 border-border',
-        row.kind === 'task' && 'border-b border-border',
-        (row.kind === 'profile' || row.kind === 'employee') && 'border-b border-border',
-        row.kind === 'grand-total' && 'border-b-2 border-border',
+        row.kind === 'phase' && 'border-b-2 border-row-divider',
+        row.kind === 'task' && 'border-b border-row-divider',
+        (row.kind === 'profile' || row.kind === 'employee') && 'border-b border-row-divider',
+        row.kind === 'grand-total' && 'border-b-2 border-row-divider',
         getSolidRowBackground(row),
         KIND_ACCENT[row.kind] ?? '',
         row.kind === 'phase' && 'text-[13px] font-bold uppercase tracking-wide text-foreground',
@@ -141,7 +141,7 @@ function WorkGridLabelCell({ row, children }: { row: GridRow; children: ReactNod
         row.kind === 'employee' && 'text-xs font-normal',
         row.kind === 'employee' && row.employeeId === null && 'italic text-muted-foreground/60',
         row.kind === 'employee' && row.employeeId !== null && 'text-foreground/80',
-        row.kind === 'grand-total' && 'border-t-2 border-border text-sm font-bold uppercase tracking-wide text-foreground',
+        row.kind === 'grand-total' && 'border-t-2 border-row-divider text-sm font-bold uppercase tracking-wide text-foreground',
       )}
     >
       <div className="relative flex items-center">
@@ -216,7 +216,7 @@ export function WorkGridRow({
         <SummaryCells row={row} />
         <td
           colSpan={periods.length}
-          className={cn('border-b border-border/70', rowBg)}
+          className={cn('border-b border-row-divider', rowBg)}
         />
       </tr>
     )

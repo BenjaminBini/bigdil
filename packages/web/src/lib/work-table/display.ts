@@ -33,28 +33,26 @@ export function isRowVisible(
   return true
 }
 
-// Translucent <tr> backgrounds — reversed gradient: phase is the lightest,
-// employee the darkest. Each tier sits one shade darker than its parent.
+// <tr> backgrounds — hierarchy tiers fading from card toward foreground.
+// Tier colors come from `--row-*` CSS vars in index.css, which use
+// color-mix() to derive shades from the active theme. This makes the
+// gradient adapt to every theme automatically (light, dark, cappuccino,
+// mocha, …) without per-theme overrides.
 export function getRowBackground(row: GridRow): string {
-  if (row.kind === 'phase') return 'bg-card'
-  if (row.kind === 'task') return 'bg-slate-100/70 dark:bg-slate-900/40'
-  if (row.kind === 'profile') return 'bg-slate-200/70 dark:bg-slate-800/60'
-  if (row.kind === 'employee') return 'bg-slate-300/70 dark:bg-slate-700/60'
-  if (row.kind === 'grand-total') return 'bg-slate-400/80 dark:bg-slate-700'
-  if (row.kind === 'quote') return 'bg-blue-50/40 dark:bg-blue-950/20'
+  if (row.kind === 'phase') return 'bg-row-phase'
+  if (row.kind === 'task') return 'bg-row-task'
+  if (row.kind === 'profile') return 'bg-row-profile'
+  if (row.kind === 'employee') return 'bg-row-employee'
+  if (row.kind === 'grand-total') return 'bg-row-total'
+  if (row.kind === 'quote') return 'bg-row-quote'
   return 'bg-card'
 }
 
-// Solid (non-transparent) variant — applied to sticky cells so scrolling
-// content slides under them without bleeding through.
+// Solid variant — applied to sticky cells so scrolling content slides
+// under them without bleeding through. With the color-mix recipe the
+// derived shades are already opaque, so solid == translucent here.
 export function getSolidRowBackground(row: GridRow): string {
-  if (row.kind === 'phase') return 'bg-card'
-  if (row.kind === 'task') return 'bg-slate-100 dark:bg-slate-900'
-  if (row.kind === 'profile') return 'bg-slate-200 dark:bg-slate-800'
-  if (row.kind === 'employee') return 'bg-slate-300 dark:bg-slate-700'
-  if (row.kind === 'grand-total') return 'bg-slate-400 dark:bg-slate-700'
-  if (row.kind === 'quote') return 'bg-blue-50 dark:bg-blue-950'
-  return 'bg-card'
+  return getRowBackground(row)
 }
 
 // All rows share the same height — full stop.
