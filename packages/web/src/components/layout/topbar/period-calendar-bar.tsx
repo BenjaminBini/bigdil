@@ -70,7 +70,7 @@ export function PeriodCalendarBar() {
                 className={cn(
                   'flex min-w-[118px] items-center gap-1 border-r border-border px-2 text-left text-[10px] transition-colors',
                   slice.status === 'OPEN' && 'bg-primary/15 text-primary shadow-[inset_0_-1px_0_0_var(--primary)]',
-                  slice.status === 'CONSOLIDATION' && 'bg-muted/60 text-muted-foreground shadow-[inset_0_-1px_0_0_var(--border)]',
+                  slice.status === 'CONSOLIDATION' && 'bg-foreground/10 font-medium text-foreground shadow-[inset_0_-2px_0_0_var(--muted-foreground)]',
                   slice.status === 'FROZEN' && 'text-muted-foreground/90',
                   slice.status === 'FUTURE' && 'text-muted-foreground/70',
                 )}
@@ -79,7 +79,7 @@ export function PeriodCalendarBar() {
                   <span className={cn(
                     'font-semibold tabular-nums',
                     slice.status === 'OPEN' && 'text-primary',
-                    slice.status === 'CONSOLIDATION' && 'text-foreground',
+                    slice.status === 'CONSOLIDATION' && 'text-foreground font-bold',
                     slice.status === 'FROZEN' && 'text-foreground/85',
                     slice.status === 'FUTURE' && 'text-muted-foreground',
                   )}>
@@ -89,7 +89,7 @@ export function PeriodCalendarBar() {
                 <div className={cn(
                   'shrink-0 whitespace-nowrap text-[9px]',
                   slice.status === 'OPEN' && 'text-primary/80',
-                  slice.status === 'CONSOLIDATION' && 'text-muted-foreground',
+                  slice.status === 'CONSOLIDATION' && 'text-foreground/85',
                   slice.status === 'FROZEN' && 'text-muted-foreground',
                   slice.status === 'FUTURE' && 'text-muted-foreground/75',
                 )}>
