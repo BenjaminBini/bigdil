@@ -13,3 +13,8 @@ node_modules
 # Claude Code worktrees (embedded repos)
 .claude/worktrees/
 .claude/scheduled_tasks.lock
+
+# UI alignment work — visual regression artifacts
+screenshots-before/
+screenshots-after/
+.playwright-mcp/
