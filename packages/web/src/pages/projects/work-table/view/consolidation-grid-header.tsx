@@ -43,7 +43,7 @@ export function ConsolidationGridHeader() {
             colSpan={subgroup.colSpan}
             className={cn(
               'whitespace-nowrap border-b border-row-divider bg-muted px-1 py-1 text-center text-[10px] font-semibold uppercase tracking-wider',
-              index === 2 || index === 5 ? 'border-r-2 border-r-row-divider' : 'border-r-2 border-r-row-divider',
+              index === 2 || index === 5 ? 'border-r-2 border-r-row-divider' : 'border-r border-r-row-divider',
             )}
           >
             {subgroup.label}
@@ -56,12 +56,10 @@ export function ConsolidationGridHeader() {
           <th
             key={col.key}
             className={cn(
-              'whitespace-nowrap border-b-2 border-row-divider bg-muted/50 px-1 py-1 text-right text-[10px] font-medium',
+              'whitespace-nowrap border-b border-row-divider bg-muted/50 px-1 py-1 text-right text-[10px] font-medium',
               index === 7 || index === 13
                 ? 'border-r-2 border-r-row-divider'
-                : index === 3 || index === 6 || index === 10 || index === 12
-                  ? 'border-r-2 border-r-row-divider'
-                  : 'border-r border-r-row-divider',
+                : 'border-r border-r-row-divider',
             )}
             style={{ width: col.w, minWidth: col.w }}
           >
