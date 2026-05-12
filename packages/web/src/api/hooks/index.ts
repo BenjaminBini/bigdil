@@ -508,7 +508,12 @@ export function useCreateEmployee() {
   return useMutation({
     mutationFn: (data: { name: string; currentCostRatePerDay: number }) =>
       apiFetch<Employee>('/api/employees', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData })
+      // A linked User row is auto-provisioned on the backend — refresh the
+      // users list so the "Incarner" button can find it.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.users })
+    },
   })
 }
 
