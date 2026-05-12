@@ -3,7 +3,7 @@ import { TreeRowLabel } from '@/components/shared/tree-row-label'
 import { MarginPctSuffix } from '@/components/shared/metric-display'
 import { cn } from '@/lib/utils'
 import { FROZEN_COLS, formatFrozenValue, getFrozenMarginPct, getFrozenValue } from '@/lib/work-table/frozen'
-import { getRowBackground } from '@/lib/work-table/display'
+import { getRowBackground, getSolidRowBackground } from '@/lib/work-table/display'
 import type { FrozenData, GridRow } from '@/lib/work-table/types'
 
 interface ConsolidationGridRowProps {
@@ -24,11 +24,12 @@ export function ConsolidationGridRow({
   toggleTask,
 }: ConsolidationGridRowProps) {
   const rowBg = getRowBackground(row)
+  const solidBg = getSolidRowBackground(row)
   const detail = frozenData.get(row.id)
 
   return (
     <tr className={cn('group', rowBg, row.kind === 'grand-total' && 'border-t-2 border-border')}>
-      <StickyColumnCell className={cn('border-b border-border/70', rowBg, row.kind === 'phase' && 'text-sm font-bold text-foreground', row.kind === 'task' && 'font-semibold text-foreground/80', row.kind === 'profile' && 'text-xs text-muted-foreground', row.kind === 'employee' && 'text-xs', row.kind === 'employee' && row.employeeId === null && 'italic text-muted-foreground/70', row.kind === 'employee' && row.employeeId !== null && 'text-foreground/70', row.kind === 'grand-total' && 'font-bold text-foreground')}>
+      <StickyColumnCell className={cn('border-b border-border/70', solidBg, row.kind === 'phase' && 'text-sm font-bold text-foreground', row.kind === 'task' && 'font-semibold text-foreground/80', row.kind === 'profile' && 'text-xs text-muted-foreground', row.kind === 'employee' && 'text-xs', row.kind === 'employee' && row.employeeId === null && 'italic text-muted-foreground/70', row.kind === 'employee' && row.employeeId !== null && 'text-foreground/70', row.kind === 'grand-total' && 'font-bold text-foreground')}>
         <TreeRowLabel
           label={row.label}
           depth={row.depth}

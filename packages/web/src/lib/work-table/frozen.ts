@@ -1,5 +1,5 @@
 import { formatCurrency, formatDays } from '@/lib/format'
-import type { Period } from '@/api/types'
+import type { PeriodInfo } from '@/api/types'
 import type { FrozenData, GridRow } from './types'
 
 export interface FrozenColDef {
@@ -94,16 +94,16 @@ function aggregateFrozen(children: GridRow[], data: Map<string, FrozenData>): Fr
 
 export function computeFrozenData(
   rows: GridRow[],
-  periods: Period[],
-  overridePeriodId?: string,
+  periods: PeriodInfo[],
+  overridePeriodCode?: string,
 ): Map<string, FrozenData> {
-  const activePeriodId = overridePeriodId ?? (periods.find((p) => p.status === 'OPEN')?.id ?? '')
+  const activePeriodCode = overridePeriodCode ?? (periods.find((p) => p.status === 'OPEN')?.code ?? '')
   const result = new Map<string, FrozenData>()
 
   for (const row of rows) {
     if (row.kind !== 'employee') continue
     const costRate = row.forecastCostRate ?? 0
-    const periodDays = row.cells[activePeriodId] ?? 0
+    const periodDays = row.cells[activePeriodCode] ?? 0
     result.set(row.id, {
       tcDaysSpent: row.totalActual,
       tcDaysRemaining: row.totalRemaining,
@@ -138,7 +138,7 @@ export function computeFrozenData(
     const trAmount = row.quotedDays * sellRate
     const trMargin = trAmount - tcAmount
 
-    const periodDays = row.cells[activePeriodId] ?? 0
+    const periodDays = row.cells[activePeriodCode] ?? 0
     const pcAmount = children.reduce((s, r) => s + (result.get(r.id)?.pcAmount ?? 0), 0)
     const prAmount = periodDays * sellRate
     const prMargin = prAmount - pcAmount

@@ -1,13 +1,11 @@
-import { useState, useRef, type ReactNode } from 'react'
-import { Lock, Plus } from 'lucide-react'
-import { toast } from 'sonner'
+import { type ReactNode } from 'react'
+import { Lock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { PeriodInfo } from '@/api/types'
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { formatShortDate } from '@/lib/format'
 import { weekCodeForDate } from '@/lib/period-utils'
 import { cn } from '@/lib/utils'
-import { useCreatePhase } from '@/api/hooks'
 import { stickySummaryStyle } from '@/lib/work-table/display'
 
 function HeaderRow({ children }: { children: ReactNode }) {
@@ -41,54 +39,6 @@ function getMonthGroups(periods: PeriodInfo[]) {
   return groups
 }
 
-function AddPhaseInline({ projectId }: { projectId: string }) {
-  const { t } = useTranslation('pages')
-  const createPhase = useCreatePhase(projectId)
-  const [adding, setAdding] = useState(false)
-  const [name, setName] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  function commit() {
-    const trimmed = name.trim()
-    if (trimmed) {
-      createPhase.mutate({ name: trimmed }, {
-        onSuccess: () => toast.success(t('workTable.phaseCreated', { name: trimmed })),
-        onError: () => toast.error(t('workTable.createFailed')),
-      })
-    }
-    setName('')
-    setAdding(false)
-  }
-
-  if (adding) {
-    return (
-      <input
-        ref={inputRef}
-        autoFocus
-        placeholder={t('workTable.phaseNamePlaceholder')}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') inputRef.current?.blur()
-          if (e.key === 'Escape') { setName(''); setAdding(false) }
-        }}
-        className="w-32 rounded border border-sky-400 bg-background px-1.5 py-0.5 text-xs font-normal text-foreground outline-none focus:ring-1 focus:ring-sky-400"
-      />
-    )
-  }
-
-  return (
-    <button
-      onClick={() => setAdding(true)}
-      className="ml-2 inline-flex items-center justify-center rounded p-1 text-muted-foreground transition-colors hover:bg-border hover:text-foreground"
-      title={t('workTable.addPhaseTitle')}
-    >
-      <Plus size={14} />
-    </button>
-  )
-}
-
 function SummaryHeaderCell({ label, tooltip, index }: { label: string; tooltip: string; index: number }) {
   return (
     <th
@@ -108,11 +58,10 @@ function SummaryHeaderCell({ label, tooltip, index }: { label: string; tooltip: 
 }
 
 interface WorkGridHeaderProps {
-  projectId: string
   periods: PeriodInfo[]
 }
 
-export function WorkGridHeader({ projectId, periods }: WorkGridHeaderProps) {
+export function WorkGridHeader({ periods }: WorkGridHeaderProps) {
   const { t } = useTranslation('pages')
   const monthGroups = getMonthGroups(periods)
   return (
@@ -127,7 +76,6 @@ export function WorkGridHeader({ projectId, periods }: WorkGridHeaderProps) {
         >
           <span className="flex items-center">
             {t('workTable.taskPhaseColumn', 'Task / Phase')}
-            <AddPhaseInline projectId={projectId} />
           </span>
         </StickyColumnCell>
 

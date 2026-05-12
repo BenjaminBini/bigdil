@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Period } from '@/api/types'
+import type { PeriodInfo } from '@/api/types'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { FlexRow } from '@/components/shared/layouts'
 import { GridTable } from '@/components/shared/grid-table'
@@ -32,7 +32,7 @@ const endDateFormatter = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', mont
 interface ConsolidationTableProps {
   visibleRows: GridRow[]
   frozenData: Map<string, FrozenData>
-  periods: Period[]
+  periods: PeriodInfo[]
   collapsedPhases: Set<string>
   collapsedTasks: Set<string>
   togglePhase: (id: string) => void
@@ -58,7 +58,7 @@ export function ConsolidationTable({
       <ConsolidationTitleBar>
         <ConsolidationTitle>Consolidation on the {endDateLabel}</ConsolidationTitle>
         {consolidationPeriod && (
-          <StatusBadge status="CONSOLIDATION" label={`W${consolidationPeriod.periodNumber}`} />
+          <StatusBadge status="CONSOLIDATION" label={consolidationPeriod.label} />
         )}
       </ConsolidationTitleBar>
 
@@ -66,17 +66,19 @@ export function ConsolidationTable({
         <GridTable>
           <ConsolidationGridHeader />
           <tbody>
-            {visibleRows.map((row) => (
-              <ConsolidationGridRow
-                key={row.id}
-                row={row}
-                frozenData={frozenData}
-                collapsedPhases={collapsedPhases}
-                collapsedTasks={collapsedTasks}
-                togglePhase={togglePhase}
-                toggleTask={toggleTask}
-              />
-            ))}
+            {visibleRows
+              .filter((row) => row.kind !== 'quote')
+              .map((row) => (
+                <ConsolidationGridRow
+                  key={row.id}
+                  row={row}
+                  frozenData={frozenData}
+                  collapsedPhases={collapsedPhases}
+                  collapsedTasks={collapsedTasks}
+                  togglePhase={togglePhase}
+                  toggleTask={toggleTask}
+                />
+              ))}
           </tbody>
         </GridTable>
       </ConsolidationScrollArea>

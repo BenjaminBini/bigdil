@@ -11,10 +11,35 @@ interface TreeRowLabelProps {
   className?: string
 }
 
+// Render `depth` faint vertical guide lines so each indent level reads as a
+// distinct level of the tree. Last guide is the "active" one (slightly
+// darker) — drawn at the cell that owns the row.
+function IndentGuides({ depth, indentPx }: { depth: number; indentPx: number }) {
+  if (depth <= 0) return null
+  return (
+    <span
+      className="inline-flex shrink-0 self-stretch"
+      style={{ width: depth * indentPx }}
+      aria-hidden
+    >
+      {Array.from({ length: depth }).map((_, i) => (
+        <span
+          key={i}
+          className={cn(
+            'inline-block self-stretch',
+            i === depth - 1 ? 'border-l border-border/70' : 'border-l border-border/30',
+          )}
+          style={{ width: indentPx }}
+        />
+      ))}
+    </span>
+  )
+}
+
 export function TreeRowLabel({
   label,
   depth = 0,
-  indentPx = 16,
+  indentPx = 18,
   isExpanded,
   onToggle,
   maxLabelWidth = '210px',
@@ -22,7 +47,7 @@ export function TreeRowLabel({
 }: TreeRowLabelProps) {
   return (
     <div className={cn('flex items-center gap-1.5', className)}>
-      {depth > 0 && <span style={{ display: 'inline-block', width: depth * indentPx }} />}
+      <IndentGuides depth={depth} indentPx={indentPx} />
       {onToggle ? (
         <button
           onClick={onToggle}

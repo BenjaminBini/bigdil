@@ -62,39 +62,6 @@ function findValidatedQuoteLines(
   return { totalDays, sellRatePerDay }
 }
 
-interface QuoteContribution {
-  quoteId: string
-  quoteTitle: string
-  days: number
-  revenue: number
-  cost: number
-}
-
-function buildQuoteContributionsForTask(taskId: string, quotes: Quote[]): QuoteContribution[] {
-  const byQuote = new Map<string, QuoteContribution>()
-  for (const quote of quotes) {
-    if (quote.status !== 'VALIDATED') continue
-    for (const line of quote.lines) {
-      if (line.taskId !== taskId) continue
-      const existing = byQuote.get(quote.id)
-      if (existing) {
-        existing.days += line.days
-        existing.revenue += line.revenueAmount
-        existing.cost += line.budgetCostAmount
-      } else {
-        byQuote.set(quote.id, {
-          quoteId: quote.id,
-          quoteTitle: quote.title,
-          days: line.days,
-          revenue: line.revenueAmount,
-          cost: line.budgetCostAmount,
-        })
-      }
-    }
-  }
-  return [...byQuote.values()]
-}
-
 function mergeCells(...cellMaps: Record<string, number>[]): Record<string, number> {
   const result: Record<string, number> = {}
   for (const map of cellMaps) {
@@ -119,6 +86,11 @@ export function buildGridRows(
   const phaseMap = indexById(phases)
   const profileMap = indexById(profiles)
   const employeeMap = indexById(employees)
+
+  // Track (task, profile, employee, period) tuples whose value is sourced
+  // from a TaskTimesheet (isActual=true on the API). Used to highlight cells
+  // showing declared work versus planned days.
+  const actualKeys = new Set<string>()
 
   function getPhaseId(taskId: string): string | null {
     return taskMap.get(taskId)?.phaseId ?? null
@@ -171,6 +143,10 @@ export function buildGridRows(
     }
     const empCells = profileEntry.employeeMap.get(empKey)!
     empCells[cell.periodKey] = (empCells[cell.periodKey] ?? 0) + cell.days
+    if (cell.isActual) {
+      const key = `${cell.taskId}::${cell.profileId}::${empKey}::${cell.periodKey}`
+      actualKeys.add(key)
+    }
   }
 
   // Seed all phases and their tasks so they appear even with no quote lines or cells.
@@ -291,6 +267,12 @@ export function buildGridRows(
         for (const [empKey, empCells] of profileEntry.employeeMap) {
           const employeeId = empKey === 'UNASSIGNED' ? null : empKey
           const summary = makeSummary(empCells, taskId, profileId, employeeId)
+          const actualPeriods = new Set<string>()
+          for (const periodKey of Object.keys(empCells)) {
+            if (actualKeys.has(`${taskId}::${profileId}::${empKey}::${periodKey}`)) {
+              actualPeriods.add(periodKey)
+            }
+          }
 
           rows.push({
             id: `emp-${phaseId}-${taskId}-${profileId}-${empKey}`,
@@ -299,6 +281,7 @@ export function buildGridRows(
             taskId,
             profileId,
             employeeId,
+            actualPeriods,
             label: employeeId
               ? (employeeMap.get(employeeId)?.name ?? employeeId)
               : 'UNASSIGNED',
@@ -341,34 +324,10 @@ export function buildGridRows(
         ...taskSummary,
       })
 
-      // Quote contribution sub-rows: one per validated quote that touches this task.
-      // They sit between the task row and its profile rows in the rendered order.
-      // No period cells (commercial layer, not planning).
-      for (const contrib of buildQuoteContributionsForTask(taskId, quotes)) {
-        rows.push({
-          id: `quote-${phaseId}-${taskId}-${contrib.quoteId}`,
-          kind: 'quote',
-          phaseId,
-          taskId,
-          quoteId: contrib.quoteId,
-          label: contrib.quoteTitle,
-          depth: 2,
-          cells: {},
-          totalActual: 0,
-          totalRemaining: 0,
-          total: 0,
-          validatedDaysSpent: 0,
-          daysInConsolidation: 0,
-          quotedDays: contrib.days,
-          variance: 0,
-          toPlan: 0,
-          forecastCostRate: null,
-          forecastSellRate: null,
-          etcCost: null,
-          quoteRevenue: contrib.revenue,
-          quoteCost: contrib.cost,
-        })
-      }
+      // Quote contribution sub-rows were previously emitted here. Removed:
+      // the commercial breakdown lived between task and profile rows but
+      // duplicated information already visible on the quote detail page,
+      // so the work table now stays planning-only.
 
       phaseCellsList.push(taskCells)
     }
@@ -411,13 +370,6 @@ export function buildGridRows(
     for (const taskId of taskIds) {
       const taskRow = rowById.get(`task-${phaseId}-${taskId}`)
       if (taskRow) orderedRows.push(taskRow)
-
-      // Emit quote contribution rows for this task before the profile rows.
-      for (const r of rows) {
-        if (r.kind === 'quote' && r.phaseId === phaseId && r.taskId === taskId) {
-          orderedRows.push(r)
-        }
-      }
 
       const taskEntry = phaseEntry.task.get(taskId)!
       for (const profileId of taskEntry.profileMap.keys()) {

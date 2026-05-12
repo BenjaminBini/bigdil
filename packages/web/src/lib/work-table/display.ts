@@ -33,22 +33,31 @@ export function isRowVisible(
   return true
 }
 
+// Translucent <tr> backgrounds — reversed gradient: phase is the lightest,
+// employee the darkest. Each tier sits one shade darker than its parent.
 export function getRowBackground(row: GridRow): string {
-  if (row.kind === 'phase') return 'bg-muted/50'
-  if (row.kind === 'grand-total') return 'bg-muted'
-  if (row.kind === 'task') return 'bg-card'
+  if (row.kind === 'phase') return 'bg-card'
+  if (row.kind === 'task') return 'bg-slate-100/70 dark:bg-slate-900/40'
+  if (row.kind === 'profile') return 'bg-slate-200/70 dark:bg-slate-800/60'
+  if (row.kind === 'employee') return 'bg-slate-300/70 dark:bg-slate-700/60'
+  if (row.kind === 'grand-total') return 'bg-slate-400/80 dark:bg-slate-700'
   if (row.kind === 'quote') return 'bg-blue-50/40 dark:bg-blue-950/20'
-  if (row.kind === 'profile') return 'bg-muted/20'
   return 'bg-card'
 }
 
-// Solid (non-transparent) variant of getRowBackground — applied to sticky
-// cells so scrolling content slides under them without bleeding through.
+// Solid (non-transparent) variant — applied to sticky cells so scrolling
+// content slides under them without bleeding through.
 export function getSolidRowBackground(row: GridRow): string {
-  if (row.kind === 'phase') return 'bg-muted'
-  if (row.kind === 'grand-total') return 'bg-muted'
-  if (row.kind === 'task') return 'bg-card'
+  if (row.kind === 'phase') return 'bg-card'
+  if (row.kind === 'task') return 'bg-slate-100 dark:bg-slate-900'
+  if (row.kind === 'profile') return 'bg-slate-200 dark:bg-slate-800'
+  if (row.kind === 'employee') return 'bg-slate-300 dark:bg-slate-700'
+  if (row.kind === 'grand-total') return 'bg-slate-400 dark:bg-slate-700'
   if (row.kind === 'quote') return 'bg-blue-50 dark:bg-blue-950'
-  if (row.kind === 'profile') return 'bg-card'
   return 'bg-card'
+}
+
+// All rows share the same height — full stop.
+export function getRowPaddingY(_row: GridRow): string {
+  return 'py-2'
 }

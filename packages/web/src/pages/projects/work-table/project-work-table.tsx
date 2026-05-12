@@ -122,7 +122,10 @@ export function ProjectWorkTable({
     <PanelLayout>
       <WorkTableHeader projectName={project.name} periodCount={periods.length} />
       <ConsolidationQuoteBanner periods={periods} quotes={quotes} />
-      <ScrollPane>
+      {/* Plain horizontal scroller — must be width-bounded so the table can
+        * overflow it. position: sticky on the first column anchors against
+        * the scrollbar of this div. */}
+      <div className="relative w-full min-w-0 overflow-x-auto">
         <WorkGridTable
           projectId={projectId}
           periods={periods}
@@ -140,7 +143,7 @@ export function ProjectWorkTable({
           onSaveCell={onSaveCell}
           onAssignEmployee={onAssignEmployee}
         />
-      </ScrollPane>
+      </div>
       <Separator />
       {consolidationPeriod && (
         <ConsolidationTable

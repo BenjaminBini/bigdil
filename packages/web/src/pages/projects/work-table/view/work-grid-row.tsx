@@ -1,18 +1,15 @@
-import { useState, useRef, type ReactNode } from 'react'
-import { toast } from 'sonner'
+import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
 import type { Employee, PeriodInfo, ProfileTaskPeriodStart } from '@/api/types'
 import { AssignEmployeePopover } from './assign-employee-popover'
-import { TaskRowControls } from './task-row-controls'
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { TreeRowLabel } from '@/components/shared/tree-row-label'
 import { cn } from '@/lib/utils'
-import { getRowBackground, getSolidRowBackground, stickySummaryStyle, SUMMARY_COL_COUNT } from '@/lib/work-table/display'
+import { getRowBackground, getSolidRowBackground, getRowPaddingY, stickySummaryStyle, SUMMARY_COL_COUNT } from '@/lib/work-table/display'
 import { PlanningDetailCard } from './planning-detail-card'
 import type { FrozenData, GridRow } from '@/lib/work-table/types'
 import { WorkCell } from './work-cell'
-import { useCreateTask } from '@/api/hooks'
 
 function formatDays(value: number): string {
   if (value === 0) return '—'
@@ -28,7 +25,18 @@ function SummaryCells({ row }: SummaryCellsProps) {
     row.kind === 'phase' || row.kind === 'task' || row.kind === 'profile' || row.kind === 'grand-total'
 
   const solidBg = getSolidRowBackground(row)
-  const cellClass = cn('whitespace-nowrap border-b border-r border-border/70 px-1 py-1 text-center text-xs tabular-nums', solidBg)
+  // Match the typographic hierarchy used on the label cell — phase numbers
+  // are the loudest, employee numbers the quietest.
+  const cellClass = cn(
+    'whitespace-nowrap border-b border-r border-border px-1 py-1 text-center tabular-nums',
+    solidBg,
+    row.kind === 'phase' && 'text-[13px] font-bold text-foreground',
+    row.kind === 'task' && 'text-[13px] font-semibold text-foreground/90',
+    row.kind === 'profile' && 'text-xs font-medium text-foreground/80',
+    row.kind === 'employee' && 'text-xs font-normal text-foreground/80',
+    row.kind === 'grand-total' && 'text-sm font-bold text-foreground',
+    row.kind === 'quote' && 'text-xs italic text-blue-700 dark:text-blue-300',
+  )
   // Quote rows are commercial breakdown — period split / to-plan don't apply.
   if (row.kind === 'quote') {
     return (
@@ -84,6 +92,9 @@ function WorkGridMainRow({ row, rowBg, isProfile, expandedProfileId, setExpanded
       className={cn(
         'group',
         rowBg,
+        // Phase rows mark a new section in the tree — emphasise the boundary
+        // with a top separator so two adjacent phases never blend visually.
+        row.kind === 'phase' && 'border-t-2 border-border/80',
         row.kind === 'grand-total' && 'border-t-2 border-border',
         isProfile && 'cursor-pointer',
         isProfile && expandedProfileId === row.id && 'ring-1 ring-inset ring-blue-300',
@@ -99,21 +110,38 @@ function WorkGridMainRow({ row, rowBg, isProfile, expandedProfileId, setExpanded
   )
 }
 
+// Width of the depth-indicator stripe on the label cell's inside-left edge.
+// Encodes hierarchy at a glance: thicker + brighter colour at the top of
+// the tree, fading down to a hairline for individual employee rows.
+const KIND_ACCENT: Record<string, string> = {
+  phase: 'before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-primary',
+  task: 'before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-primary/50',
+  profile: 'before:absolute before:inset-y-0 before:left-0 before:w-[2px] before:bg-muted-foreground/40',
+  employee: 'before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-muted-foreground/30',
+}
+
 function WorkGridLabelCell({ row, children }: { row: GridRow; children: ReactNode }) {
   return (
     <StickyColumnCell
       noShadow
       className={cn(
-        'border-b border-border/70',
+        getRowPaddingY(row),
+        // Borders here are opaque (no /XX alpha) — the sticky first column
+        // must not let scrolling content bleed through the row separators.
+        row.kind === 'phase' && 'border-b-2 border-border',
+        row.kind === 'task' && 'border-b border-border',
+        (row.kind === 'profile' || row.kind === 'employee') && 'border-b border-border',
+        row.kind === 'grand-total' && 'border-b-2 border-border',
         getSolidRowBackground(row),
-        row.kind === 'phase' && 'text-sm font-bold text-foreground',
-        row.kind === 'task' && 'font-semibold text-foreground/80',
+        KIND_ACCENT[row.kind] ?? '',
+        row.kind === 'phase' && 'text-[13px] font-bold uppercase tracking-wide text-foreground',
+        row.kind === 'task' && 'text-sm font-semibold text-foreground/90',
         row.kind === 'quote' && 'text-xs italic text-blue-700 dark:text-blue-300',
-        row.kind === 'profile' && 'text-xs text-muted-foreground',
-        row.kind === 'employee' && 'text-xs',
-        row.kind === 'employee' && row.employeeId === null && 'italic text-muted-foreground/70',
-        row.kind === 'employee' && row.employeeId !== null && 'text-foreground/70',
-        row.kind === 'grand-total' && 'font-bold text-foreground',
+        row.kind === 'profile' && 'text-xs font-medium text-foreground/80',
+        row.kind === 'employee' && 'text-xs font-normal',
+        row.kind === 'employee' && row.employeeId === null && 'italic text-muted-foreground/60',
+        row.kind === 'employee' && row.employeeId !== null && 'text-foreground/80',
+        row.kind === 'grand-total' && 'border-t-2 border-border text-sm font-bold uppercase tracking-wide text-foreground',
       )}
     >
       <div className="relative flex items-center">
@@ -172,23 +200,6 @@ export function WorkGridRow({
   const isProfile = row.kind === 'profile'
   const rowBg = getRowBackground(row)
 
-  const createTask = useCreateTask(projectId)
-  const [addingTask, setAddingTask] = useState(false)
-  const [newTaskName, setNewTaskName] = useState('')
-  const newTaskRef = useRef<HTMLInputElement>(null)
-
-  function commitAddTask() {
-    const trimmed = newTaskName.trim()
-    if (trimmed && row.kind === 'phase') {
-      createTask.mutate({ phaseId: row.phaseId, name: trimmed }, {
-        onSuccess: () => toast.success(t('workTable.taskCreated', { name: trimmed })),
-        onError: () => toast.error(t('workTable.createFailed')),
-      })
-    }
-    setNewTaskName('')
-    setAddingTask(false)
-  }
-
   const displayLabel =
     row.kind === 'grand-total'
       ? t('workTable.grandTotal')
@@ -233,18 +244,8 @@ export function WorkGridRow({
                   : undefined
             }
           />
-          {(row.kind === 'phase' || row.kind === 'task') && (
-            <TaskRowControls
-              projectId={projectId}
-              row={row}
-            />
-          )}
-          {row.kind === 'employee' && row.employeeId === null && row.taskId && row.profileId && onAssignEmployee && (
-            <AssignEmployeePopover
-              employees={employees}
-              onAssign={(employeeId) => onAssignEmployee({ taskId: row.taskId!, profileId: row.profileId!, employeeId })}
-            />
-          )}
+          {/* Only affordance on the work-table itself: a small always-visible
+            * "+" next to a profile row to assign another collaborator. */}
           {row.kind === 'profile' && row.taskId && row.profileId && onAssignEmployee && (
             <AssignEmployeePopover
               employees={employees}
@@ -257,48 +258,34 @@ export function WorkGridRow({
 
         <SummaryCells row={row} />
 
-        {periods.map((period) => (
-          <WorkCell
-            key={period.code}
-            days={row.cells[period.code]}
-            periodStatus={period.status}
-            rowKind={row.kind}
-            onSave={
-              row.taskId && row.profileId
-                ? (days) => onSaveCell?.({ taskId: row.taskId!, profileId: row.profileId!, employeeId: row.employeeId ?? undefined, periodCode: period.code, days })
-                : undefined
-            }
-          />
-        ))}
+        {periods.map((period) => {
+          // When an aggregate row's children are hidden by collapse, surface
+          // its summed period value so the row still carries information.
+          const showAggregateValue =
+            (row.kind === 'phase' && collapsedPhases.has(row.phaseId)) ||
+            (row.kind === 'task' && !!row.taskId && collapsedTasks.has(row.taskId))
+          return (
+            <WorkCell
+              key={period.code}
+              days={row.cells[period.code]}
+              periodStatus={period.status}
+              rowKind={row.kind}
+              isActual={row.kind === 'employee' && (row.actualPeriods?.has(period.periodKey) ?? false)}
+              showAggregateValue={showAggregateValue}
+              projectId={projectId}
+              taskId={row.taskId}
+              profileId={row.profileId}
+              employeeId={row.kind === 'employee' ? row.employeeId : undefined}
+              periodKey={period.periodKey}
+              onSave={
+                row.taskId && row.profileId
+                  ? (days) => onSaveCell?.({ taskId: row.taskId!, profileId: row.profileId!, employeeId: row.employeeId ?? undefined, periodCode: period.code, days })
+                  : undefined
+              }
+            />
+          )
+        })}
       </WorkGridMainRow>
-
-      {row.kind === 'phase' && addingTask && (
-        <tr className="bg-card">
-          <StickyColumnCell as="td" noShadow className="border-b border-border/70 bg-card">
-            <div className="flex items-center" style={{ paddingLeft: '1.25rem' }}>
-              <input
-                ref={newTaskRef}
-                autoFocus
-                placeholder={t('workTable.taskNamePlaceholder')}
-                value={newTaskName}
-                onChange={(e) => setNewTaskName(e.target.value)}
-                onBlur={commitAddTask}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') newTaskRef.current?.blur()
-                  if (e.key === 'Escape') { setNewTaskName(''); setAddingTask(false) }
-                }}
-                className="w-40 rounded border border-sky-400 bg-background px-1.5 py-0.5 text-sm outline-none focus:ring-1 focus:ring-sky-400"
-              />
-            </div>
-          </StickyColumnCell>
-          {Array.from({ length: SUMMARY_COL_COUNT }).map((_, i) => (
-            <td key={`sum-${i}`} className="border-b border-r border-border/70 bg-card" style={stickySummaryStyle(i)} />
-          ))}
-          {periods.map((period) => (
-            <td key={period.code} className="border-b border-r border-border/70" />
-          ))}
-        </tr>
-      )}
 
       {isProfile && expandedProfileId === row.id && (
         <WorkGridDetailRow colSpan={1 + SUMMARY_COL_COUNT + periods.length}>
