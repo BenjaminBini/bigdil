@@ -85,6 +85,8 @@ export default function WorkTablePage() {
       phases={workTableData.phases}
       quotes={effectiveQuotes}
       periodStartData={workTableData.periodStarts}
+      previousSnapshotRaf={workTableData.previousSnapshotRaf}
+      previousSnapshotMonthCode={workTableData.previousSnapshotMonthCode}
       profiles={refData.profiles}
       employees={refData.employees}
       onSaveCell={handleSaveCell}

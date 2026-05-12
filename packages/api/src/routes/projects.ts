@@ -331,6 +331,43 @@ projectsRouter.get('/:id/work-table', async (c) => {
       }),
   ]
 
+  // RAF (remaining days) per (task, profile) from the most-recent snapshot
+  // strictly before the current CONSOLIDATION month. Drives the consolidation
+  // table revenue formula: revenue_period = (RAF_prev - RAF_now) * sellRate.
+  // For the first consolidation (no prior snapshot) the frontend falls back
+  // to quotedDays as RAF_prev.
+  const consolidationMonthCode = periods.find(p => p.status === 'CONSOLIDATION')?.monthCode ?? null
+  let previousSnapshotRaf: Array<{ taskId: string; profileId: string; days: number }> = []
+  let previousSnapshotMonthCode: string | null = null
+  let previousSnapshotAt: string | null = null
+  if (consolidationMonthCode) {
+    const allSnapshots = await prisma.snapshot.findMany({
+      where: { projectId },
+      select: { id: true, monthCode: true, snapshotAt: true },
+    })
+    const prevSnapshot = allSnapshots
+      .filter(s => comparePeriodCodes(s.monthCode, consolidationMonthCode) < 0)
+      .sort((a, b) => comparePeriodCodes(b.monthCode, a.monthCode))[0] ?? null
+
+    if (prevSnapshot) {
+      previousSnapshotMonthCode = prevSnapshot.monthCode
+      previousSnapshotAt = toIsoDate(prevSnapshot.snapshotAt)
+      const prevWorkRows = await prisma.snapshotWorkRow.findMany({
+        where: { snapshotId: prevSnapshot.id, periodStatus: { not: 'FROZEN' } },
+        select: { taskId: true, profileId: true, plannedDays: true },
+      })
+      const acc = new Map<string, number>()
+      for (const w of prevWorkRows) {
+        const key = `${w.taskId}::${w.profileId}`
+        acc.set(key, (acc.get(key) ?? 0) + w.plannedDays)
+      }
+      previousSnapshotRaf = [...acc.entries()].map(([k, days]) => {
+        const [taskId, profileId] = k.split('::')
+        return { taskId, profileId, days }
+      })
+    }
+  }
+
   return c.json({
     periods,
     phases: projectPhases,
@@ -338,6 +375,9 @@ projectsRouter.get('/:id/work-table', async (c) => {
     cells,
     quotes: projectQuotes.map(quoteShape),
     periodStarts: periodStartRows,
+    previousSnapshotRaf,
+    previousSnapshotMonthCode,
+    previousSnapshotAt,
   })
 })
 

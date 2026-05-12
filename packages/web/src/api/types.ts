@@ -300,6 +300,12 @@ export interface ProjectDetail extends Project {
   quotes: Quote[]
 }
 
+export interface PreviousSnapshotRaf {
+  taskId: string
+  profileId: string
+  days: number
+}
+
 export interface WorkTableData {
   periods: PeriodInfo[]
   phases: Phase[]
@@ -307,6 +313,14 @@ export interface WorkTableData {
   cells: WorkTableCell[]
   quotes: Quote[]
   periodStarts: ProfileTaskPeriodStart[]
+  /** RAF (remaining days) per (task, profile) from the snapshot taken just
+   *  before the current CONSOLIDATION month. Empty when no prior snapshot
+   *  exists — consumers fall back to quotedDays for that case. */
+  previousSnapshotRaf: PreviousSnapshotRaf[]
+  /** monthCode of the snapshot that produced `previousSnapshotRaf`, if any. */
+  previousSnapshotMonthCode: string | null
+  /** ISO date the snapshot was taken (drives "source" tooltips). */
+  previousSnapshotAt: string | null
 }
 
 export interface ReferenceData {

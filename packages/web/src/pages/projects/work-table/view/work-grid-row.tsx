@@ -66,11 +66,22 @@ function SummaryCells({ row }: SummaryCellsProps) {
   )
 }
 
+// Inline detail row rendered right under the clicked profile.
+// `<td colSpan>` spans the whole table; the inner div uses
+// `position: sticky; left: 0` + width = scroll viewport width
+// (via the `--wt-viewport` CSS var on the scroll container) so the
+// card stays visible during horizontal scroll AND doesn't overflow
+// the viewport.
 function WorkGridDetailRow({ colSpan, children }: { colSpan: number; children: ReactNode }) {
   return (
     <tr className="bg-blue-50/30 dark:bg-blue-950/20">
       <td colSpan={colSpan} className="border-b border-blue-200 p-0 dark:border-blue-900">
-        <div className="sticky left-0 overflow-hidden px-4 py-3">{children}</div>
+        <div
+          className="sticky left-0 overflow-hidden px-4 py-3"
+          style={{ width: 'var(--wt-viewport, 100%)' }}
+        >
+          {children}
+        </div>
       </td>
     </tr>
   )

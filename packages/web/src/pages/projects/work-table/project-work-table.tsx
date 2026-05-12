@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import type { Employee, Phase, PeriodInfo, Profile, ProfileTaskPeriodStart, Quote, WorkTableCell } from '@/api/types'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { Employee, Phase, PeriodInfo, PreviousSnapshotRaf, Profile, ProfileTaskPeriodStart, Quote, WorkTableCell } from '@/api/types'
 import { PanelLayout } from '@/components/ui/panel-layout'
 import { Separator } from '@/components/ui/separator'
 import { ConsolidationTable } from './view/consolidation-table'
@@ -21,6 +21,8 @@ interface ProjectWorkTableProps {
   phases: Phase[]
   quotes: Quote[]
   periodStartData: ProfileTaskPeriodStart[]
+  previousSnapshotRaf: PreviousSnapshotRaf[]
+  previousSnapshotMonthCode: string | null
   profiles: Profile[]
   employees: Employee[]
   onSaveCell?: (params: { taskId: string; profileId: string; employeeId?: string; periodCode: string; days: number }) => void
@@ -35,6 +37,8 @@ export function ProjectWorkTable({
   phases,
   quotes,
   periodStartData,
+  previousSnapshotRaf,
+  previousSnapshotMonthCode,
   profiles,
   employees,
   onSaveCell,
@@ -52,11 +56,30 @@ export function ProjectWorkTable({
 
   const frozenData = useMemo(() => computeFrozenData(allRows, periods), [allRows, periods])
 
-  const consolidationPeriod = periods.find((p) => p.status === 'CONSOLIDATION')
+  const consolidationPeriods = useMemo(
+    () => periods.filter((p) => p.status === 'CONSOLIDATION'),
+    [periods],
+  )
+  // Latest consolidation slice — drives the displayed end-date label.
+  const consolidationPeriod = consolidationPeriods[consolidationPeriods.length - 1]
+
+  const prevSnapshotRafMap = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const entry of previousSnapshotRaf) {
+      map.set(`${entry.taskId}::${entry.profileId}`, entry.days)
+    }
+    return map
+  }, [previousSnapshotRaf])
 
   const consolidationFrozenData = useMemo(() => {
-    return consolidationPeriod ? computeFrozenData(allRows, periods, consolidationPeriod.code) : frozenData
-  }, [allRows, periods, frozenData, consolidationPeriod])
+    if (consolidationPeriods.length === 0) return frozenData
+    return computeFrozenData(
+      allRows,
+      periods,
+      consolidationPeriods.map((p) => p.code),
+      { prevSnapshotRaf: prevSnapshotRafMap },
+    )
+  }, [allRows, periods, frozenData, consolidationPeriods, prevSnapshotRafMap])
 
   const totalToPlan = useMemo(
     () =>
@@ -118,6 +141,23 @@ export function ProjectWorkTable({
     })
   }
 
+  // The detail card sits in an inline `<tr>` below the clicked profile row,
+  // but must NOT span the full table scroll-width. We measure the scroll
+  // container's visible width here and expose it as a CSS variable so the
+  // detail card's inner div can size itself against the viewport rather
+  // than its colSpan-wide td.
+  const scrollerRef = useRef<HTMLDivElement | null>(null)
+  const [viewportWidth, setViewportWidth] = useState<number>(0)
+  useEffect(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    const update = () => setViewportWidth(el.clientWidth)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   return (
     <PanelLayout>
       <WorkTableHeader projectName={project.name} periodCount={periods.length} />
@@ -125,7 +165,11 @@ export function ProjectWorkTable({
       {/* Plain horizontal scroller — must be width-bounded so the table can
         * overflow it. position: sticky on the first column anchors against
         * the scrollbar of this div. */}
-      <div className="relative w-full min-w-0 overflow-x-auto">
+      <div
+        ref={scrollerRef}
+        className="relative w-full min-w-0 overflow-x-auto"
+        style={{ ['--wt-viewport' as string]: `${viewportWidth}px` }}
+      >
         <WorkGridTable
           projectId={projectId}
           periods={periods}
@@ -148,7 +192,11 @@ export function ProjectWorkTable({
       {consolidationPeriod && (
         <ConsolidationTable
           visibleRows={visibleRows}
+          allRows={allRows}
           frozenData={consolidationFrozenData}
+          prevSnapshotRafMap={prevSnapshotRafMap}
+          prevSnapshotMonthCode={previousSnapshotMonthCode}
+          quotes={quotes}
           periods={periods}
           collapsedPhases={collapsedPhases}
           collapsedTasks={collapsedTasks}

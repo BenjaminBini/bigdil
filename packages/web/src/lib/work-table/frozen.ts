@@ -92,18 +92,37 @@ function aggregateFrozen(children: GridRow[], data: Map<string, FrozenData>): Fr
   }
 }
 
+export interface ComputeFrozenOptions {
+  /** Map of `${taskId}::${profileId}` → RAF days from the previous snapshot.
+   *  When provided, profile/task/phase Period Revenue uses (prevRAF - currentRAF)
+   *  * sellRate instead of cells[activePeriodCode] * sellRate.
+   *  Missing keys fall back to row.quotedDays (first-period semantics). */
+  prevSnapshotRaf?: Map<string, number>
+}
+
 export function computeFrozenData(
   rows: GridRow[],
   periods: PeriodInfo[],
-  overridePeriodCode?: string,
+  overridePeriodCode?: string | string[],
+  options?: ComputeFrozenOptions,
 ): Map<string, FrozenData> {
-  const activePeriodCode = overridePeriodCode ?? (periods.find((p) => p.status === 'OPEN')?.code ?? '')
+  // Default to the single OPEN period; the consolidation flow passes every
+  // CONSOLIDATION-status period so cost cells aggregate across all of them.
+  const activePeriodCodes: string[] = overridePeriodCode === undefined
+    ? [periods.find((p) => p.status === 'OPEN')?.code ?? '']
+    : Array.isArray(overridePeriodCode)
+      ? overridePeriodCode
+      : [overridePeriodCode]
+  const sumCells = (cells: Record<string, number>): number =>
+    activePeriodCodes.reduce((s, code) => s + (cells[code] ?? 0), 0)
+  const prevRafMap = options?.prevSnapshotRaf
+  const useRafDeltaRevenue = prevRafMap !== undefined
   const result = new Map<string, FrozenData>()
 
   for (const row of rows) {
     if (row.kind !== 'employee') continue
     const costRate = row.forecastCostRate ?? 0
-    const periodDays = row.cells[activePeriodCode] ?? 0
+    const periodDays = sumCells(row.cells)
     result.set(row.id, {
       tcDaysSpent: row.totalActual,
       tcDaysRemaining: row.totalRemaining,
@@ -138,9 +157,21 @@ export function computeFrozenData(
     const trAmount = row.quotedDays * sellRate
     const trMargin = trAmount - tcAmount
 
-    const periodDays = row.cells[activePeriodCode] ?? 0
+    const periodDays = sumCells(row.cells)
     const pcAmount = children.reduce((s, r) => s + (result.get(r.id)?.pcAmount ?? 0), 0)
-    const prAmount = periodDays * sellRate
+
+    // Period revenue: delta of remaining days (RAF) since the previous
+    // snapshot, valued at the validated sell rate. The first consolidated
+    // period has no prior snapshot — quotedDays acts as the baseline RAF.
+    let prDaysProduced: number
+    if (useRafDeltaRevenue && row.taskId && row.profileId) {
+      const key = `${row.taskId}::${row.profileId}`
+      const prevRaf = prevRafMap.get(key) ?? row.quotedDays
+      prDaysProduced = Math.max(0, prevRaf - row.totalRemaining)
+    } else {
+      prDaysProduced = periodDays
+    }
+    const prAmount = prDaysProduced * sellRate
     const prMargin = prAmount - pcAmount
 
     result.set(row.id, {
@@ -156,7 +187,7 @@ export function computeFrozenData(
       pcDaysSpent: periodDays,
       pcDailyCost: periodDays > 0 ? pcAmount / periodDays : null,
       pcAmount,
-      prDaysProduced: periodDays,
+      prDaysProduced,
       prAmount,
       prMargin,
       prMarginPct: prAmount !== 0 ? (prMargin / prAmount) * 100 : null,
