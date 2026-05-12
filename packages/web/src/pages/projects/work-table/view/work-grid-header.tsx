@@ -124,7 +124,7 @@ export function WorkGridHeader({ periods }: WorkGridHeaderProps) {
                 'min-w-[56px] w-14 whitespace-nowrap border-b border-r border-border/70 px-1 py-1 text-center',
                 isFrozen && 'bg-muted text-muted-foreground',
                 isConsolidation &&
-                  'bg-amber-500/8 font-medium text-amber-700/80 dark:text-amber-300/80',
+                  'bg-muted/60 font-medium text-muted-foreground',
                 isOpen &&
                   'bg-primary/15 font-bold text-primary',
                 !isFrozen &&

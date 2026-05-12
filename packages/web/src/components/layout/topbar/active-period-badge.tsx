@@ -36,7 +36,7 @@ export function ActivePeriodBadge({ projectId }: ActivePeriodBadgeProps) {
         </Badge>
       )}
       {consolidationPeriod && (
-        <Badge className="border-amber-500/20 bg-amber-500/8 text-xs font-medium text-amber-700/80 dark:text-amber-300/80">
+        <Badge className="border-border bg-muted/60 text-xs font-medium text-muted-foreground">
           {consolidationPeriod.label} {t('period.CONSOLIDATION')}
         </Badge>
       )}

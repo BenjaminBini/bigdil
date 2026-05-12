@@ -70,7 +70,7 @@ export function PeriodCalendarBar() {
                 className={cn(
                   'flex min-w-[118px] items-center gap-1 border-r border-border/50 px-2 text-left text-[10px] transition-colors',
                   slice.status === 'OPEN' && 'bg-primary/15 text-primary shadow-[inset_0_-1px_0_0_var(--primary)]',
-                  slice.status === 'CONSOLIDATION' && 'bg-amber-500/8 text-foreground/80 shadow-[inset_0_-1px_0_0_rgba(245,158,11,0.18)]',
+                  slice.status === 'CONSOLIDATION' && 'bg-muted/50 text-muted-foreground shadow-[inset_0_-1px_0_0_var(--border)]',
                   slice.status === 'FROZEN' && 'text-muted-foreground/70',
                   slice.status === 'FUTURE' && 'text-muted-foreground/55',
                 )}
