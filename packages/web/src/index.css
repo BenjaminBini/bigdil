@@ -54,16 +54,18 @@
 }
 
 /* Hierarchy tiers — phase darkest at the top, employee lightest near the leaves.
-   Grand-total keeps its own distinct emphasis. Same recipe per theme via color-mix. */
+   Grand-total keeps its own distinct emphasis. Fade target is --accent-foreground
+   so the gradient picks up each theme's accent hue (e.g. espresso in cappuccino,
+   emerald in forest) instead of a flat grey toward --foreground. */
 :root {
-    --row-phase: color-mix(in oklch, var(--card) 66%, var(--foreground) 34%);
-    --row-task: color-mix(in oklch, var(--card) 78%, var(--foreground) 22%);
-    --row-profile: color-mix(in oklch, var(--card) 87%, var(--foreground) 13%);
-    --row-employee: color-mix(in oklch, var(--card) 95%, var(--foreground) 5%);
-    --row-total: color-mix(in oklch, var(--card) 55%, var(--foreground) 45%);
-    --row-quote: color-mix(in oklch, var(--card) 86%, var(--primary) 14%);
+    --row-phase: color-mix(in oklch, var(--card) 70%, var(--accent-foreground) 30%);
+    --row-task: color-mix(in oklch, var(--card) 82%, var(--accent-foreground) 18%);
+    --row-profile: color-mix(in oklch, var(--card) 91%, var(--accent-foreground) 9%);
+    --row-employee: color-mix(in oklch, var(--card) 97%, var(--accent-foreground) 3%);
+    --row-total: color-mix(in oklch, var(--card) 50%, var(--accent-foreground) 50%);
+    --row-quote: color-mix(in oklch, var(--card) 84%, var(--primary) 16%);
     /* Opaque divider — used on sticky columns so borders never look ghostly */
-    --row-divider: color-mix(in oklch, var(--card) 72%, var(--foreground) 28%);
+    --row-divider: color-mix(in oklch, var(--card) 70%, var(--accent-foreground) 30%);
 }
 
 :root {
