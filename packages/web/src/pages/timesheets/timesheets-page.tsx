@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import {
   useAddTaskTimesheet,
   useCurrentUser,
+  useMyAssignableSlots,
   useMyTimesheets,
   useReferenceData,
   useSubmitTimesheet,
@@ -126,6 +127,7 @@ export default function TimesheetsPage() {
   const { data: timesheets, isLoading: isLoadingTimesheets } = useMyTimesheets()
   const { data: refData, isLoading: isLoadingRef } = useReferenceData()
   const { data: window, isLoading: isLoadingWindow } = useTimesheetWindow()
+  const { data: availableSlots } = useMyAssignableSlots()
 
   const activeTimesheet = useMemo<Timesheet | null>(() => {
     if (!timesheets) return null
@@ -221,6 +223,24 @@ export default function TimesheetsPage() {
     }
   }
 
+  // Add an unassigned slot to the active bundle so the consultant can declare
+  // time on it. Creates the TaskTimesheet at days=0 on the slice's first day;
+  // the popover then becomes editable like any other row.
+  async function handleAddTask(slotId: string) {
+    if (!activeTimesheet || days.length === 0) return
+    try {
+      await upsertEntry.mutateAsync({
+        timesheetId: activeTimesheet.id,
+        assignmentSlotId: slotId,
+        workDate: days[0].date,
+        days: 0,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('timesheets.errorLoading')
+      toast.error(message)
+    }
+  }
+
   return (
     <FullHeightColumn>
       <PageHeader title={t('timesheets.title')} subtitle={subtitle} />
@@ -236,8 +256,10 @@ export default function TimesheetsPage() {
             tasks={tasks}
             cells={cells}
             leaveByDate={leaveByDate}
+            availableSlots={availableSlots}
             onCellSave={handleCellSave}
             onLeaveSave={handleLeaveSave}
+            onAddTask={handleAddTask}
             onSaveDraft={handleSaveDraft}
             onSubmit={handleSubmit}
             isSaving={upsertEntry.isPending || upsertLeave.isPending}

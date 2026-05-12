@@ -1,4 +1,4 @@
-import type { TimesheetStatus } from '@/api/types'
+import type { Timesheet, TimesheetStatus } from '@/api/types'
 
 export interface EntryRowState {
   id: string
@@ -11,9 +11,10 @@ export interface EntryRowState {
 }
 
 export interface ClosedPeriodRow {
-  periodId: string
+  periodCode: string
   label: string
   daysSubmitted: number
   costAmount: number
   status: TimesheetStatus
+  timesheet: Timesheet
 }

@@ -1,20 +1,12 @@
-import type { TimesheetStatus } from '@/api/types'
+import type { Timesheet, TimesheetStatus } from '@/api/types'
 
 export interface ApprovalRow {
   id: string
   employeeId: string
-  taskId: string
-  profileId: string
-  projectId: string
-  periodId: string
-  plannedDays: number
-  submittedDays: number
+  periodCode: string
+  entryCount: number
+  totalDays: number
   status: TimesheetStatus
+  timesheet: Timesheet
 }
 
-export interface PastPeriodSummary {
-  periodId: string
-  totalEntries: number
-  approvedEntries: number
-  totalCost: number
-}

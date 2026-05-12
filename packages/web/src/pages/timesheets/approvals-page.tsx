@@ -1,84 +1,78 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useApprovals, useReferenceData, useApproveTimesheet, useRejectTimesheet } from '@/api/hooks'
-import type { Employee, TimesheetEntry } from '@/api/types'
+import {
+  useAllTimesheets,
+  useApprovals,
+  useApproveTimesheet,
+  useReferenceData,
+  useRejectTimesheet,
+  useTimesheetWindow,
+} from '@/api/hooks'
+import { comparePeriodSliceKeys } from '@/lib/period-utils'
+import type { Timesheet } from '@/api/types'
 import { PageHeader } from '@/components/shared/page-header'
 import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
 import { FullHeightColumn } from '@/components/shared/layouts'
 import { formatCurrency } from '@/lib/format'
 import { ApprovalsTable } from './approvals/approvals-table'
 import { PastApprovals } from './approvals/past-approvals'
-import type { ApprovalRow, PastPeriodSummary } from './approvals/types'
+import type { ApprovalRow } from './approvals/types'
 
-function buildApprovalRows(approvals: TimesheetEntry[]): ApprovalRow[] {
-  return approvals.map((timesheet) => ({
-    id: timesheet.id,
-    employeeId: timesheet.employeeId,
-    taskId: timesheet.taskId,
-    profileId: timesheet.profileId,
-    projectId: timesheet.projectId,
-    periodId: timesheet.periodId,
-    plannedDays: 0,
-    submittedDays: timesheet.days,
-    status: timesheet.status,
+function buildApprovalRows(approvals: Timesheet[]): ApprovalRow[] {
+  return approvals.map((ts) => ({
+    id: ts.id,
+    employeeId: ts.employeeId,
+    periodCode: ts.periodKey,
+    entryCount: ts.taskTimesheets.length,
+    totalDays:
+      ts.taskTimesheets.reduce((sum, e) => sum + e.days, 0) +
+      (ts.leaveDays ?? []).reduce((sum, l) => sum + l.days, 0),
+    status: ts.status,
+    timesheet: ts,
   }))
 }
 
-function buildPastPeriodSummaries(
-  approvedRows: ApprovalRow[],
-  employees: Employee[],
-): PastPeriodSummary[] {
-  const periodIds = [...new Set(approvedRows.map((row) => row.periodId))]
-  return periodIds.map((periodId) => {
-    const entries = approvedRows.filter((row) => row.periodId === periodId)
-    const totalCost = entries.reduce((sum, entry) => {
-      const employee = employees.find((candidate) => candidate.id === entry.employeeId)
-      return sum + entry.submittedDays * (employee?.currentCostRatePerDay ?? 0)
-    }, 0)
-
-    return {
-      periodId,
-      totalEntries: entries.length,
-      approvedEntries: entries.length,
-      totalCost,
-    }
-  })
-}
-
 export default function ApprovalsPage() {
+  const { t } = useTranslation('pages')
   const { data: approvals, isLoading: isLoadingApprovals } = useApprovals()
+  const { data: allTimesheets, isLoading: isLoadingAll } = useAllTimesheets()
   const { data: refData, isLoading: isLoadingRef } = useReferenceData()
+  const { data: window, isLoading: isLoadingWindow } = useTimesheetWindow()
   const approveTimesheet = useApproveTimesheet()
   const rejectTimesheet = useRejectTimesheet()
 
   const [pastOpen, setPastOpen] = useState(false)
 
-  if (isLoadingApprovals || isLoadingRef) {
+  if (isLoadingApprovals || isLoadingAll || isLoadingRef || isLoadingWindow) {
     return <LoadingState />
   }
 
-  if (!approvals || !refData) {
-    return <ErrorState message="Impossible de charger les données d'approbation." />
+  if (!approvals || !allTimesheets || !refData || !window) {
+    return <ErrorState message={t('approvals.errorLoading')} />
   }
 
-  const { profiles, employees } = refData
+  const { employees } = refData
   const initialRows = buildApprovalRows(approvals)
   const activeRows = initialRows.filter(
     (r) => r.status === 'SUBMITTED' || r.status === 'DRAFT' || r.status === 'REJECTED',
   )
-  const approvedRows = initialRows.filter((r) => r.status === 'APPROVED')
 
-  const pastPeriodSummaries = buildPastPeriodSummaries(approvedRows, employees)
+  // "Past approvals" = every timesheet whose period is strictly before the
+  // current open week, regardless of status (APPROVED, REJECTED, even
+  // stragglers in DRAFT/SUBMITTED that never closed).
+  const openPeriodKey = window.openPeriodKey
+  const pastTimesheets = allTimesheets
+    .filter((ts) => comparePeriodSliceKeys(ts.periodKey, openPeriodKey) < 0)
+    .sort((a, b) => {
+      const byPeriod = comparePeriodSliceKeys(b.periodKey, a.periodKey)
+      if (byPeriod !== 0) return byPeriod
+      return (employees.find((e) => e.id === a.employeeId)?.name ?? '')
+        .localeCompare(employees.find((e) => e.id === b.employeeId)?.name ?? '')
+    })
+
   const hasAnySubmitted = activeRows.some((r) => r.status === 'SUBMITTED')
   const approveAllDisabled = !activeRows.every((r) => r.status === 'SUBMITTED')
-
-  function getTaskName(taskId: string): string {
-    return taskId
-  }
-
-  function getProfileName(profileId: string): string {
-    return profiles.find((p) => p.id === profileId)?.name ?? profileId
-  }
 
   function getEmployeeName(employeeId: string): string {
     return employees.find((e) => e.id === employeeId)?.name ?? employeeId
@@ -91,35 +85,35 @@ export default function ApprovalsPage() {
   function handleApprove(id: string) {
     const row = activeRows.find((r) => r.id === id)
     if (!row) return
-    const costRate = getCostRate(row.employeeId)
+    const costEstimate = getCostRate(row.employeeId) * row.totalDays
     approveTimesheet.mutate(id, {
-      onSuccess: () => toast.success(`Feuille approuvée — taux de coût figé à ${formatCurrency(costRate)}/j`),
-      onError: () => toast.error("Échec de l'approbation"),
+      onSuccess: () => toast.success(t('approvals.approved', { cost: formatCurrency(costEstimate) })),
+      onError: () => toast.error(t('approvals.approveFailed')),
     })
   }
 
   function handleReject(id: string) {
-    rejectTimesheet.mutate(id, {
-      onSuccess: () => toast.error('Feuille de temps rejetée'),
-      onError: () => toast.error('Échec du rejet'),
+    rejectTimesheet.mutate({ timesheetId: id }, {
+      onSuccess: () => toast.error(t('approvals.rejected')),
+      onError: () => toast.error(t('approvals.rejectFailed')),
     })
   }
 
   function handleApproveAll() {
     const submitted = activeRows.filter((r) => r.status === 'SUBMITTED')
     submitted.forEach((r) => {
-      const costRate = getCostRate(r.employeeId)
+      const costEstimate = getCostRate(r.employeeId) * r.totalDays
       approveTimesheet.mutate(r.id, {
         onSuccess: () =>
-          toast.success(`${getEmployeeName(r.employeeId)} approuvé — ${formatCurrency(costRate)}/j figé`),
-        onError: () => toast.error(`Échec : ${getEmployeeName(r.employeeId)}`),
+          toast.success(t('approvals.approvedEmployee', { name: getEmployeeName(r.employeeId), cost: formatCurrency(costEstimate) })),
+        onError: () => toast.error(t('approvals.approveEmployeeFailed', { name: getEmployeeName(r.employeeId) })),
       })
     })
   }
 
   return (
     <FullHeightColumn>
-      <PageHeader title="Approbations" subtitle="Vue chef de projet — vérifier et approuver les feuilles soumises" />
+      <PageHeader title={t('approvals.title')} subtitle={t('approvals.subtitle')} />
 
       <PageContainer size="lg">
         <ApprovalsTable
@@ -130,11 +124,14 @@ export default function ApprovalsPage() {
           onApprove={handleApprove}
           onReject={handleReject}
           getEmployeeName={getEmployeeName}
-          getTaskName={getTaskName}
-          getProfileName={getProfileName}
         />
 
-        <PastApprovals open={pastOpen} onOpenChange={setPastOpen} rows={pastPeriodSummaries} />
+        <PastApprovals
+          open={pastOpen}
+          onOpenChange={setPastOpen}
+          timesheets={pastTimesheets}
+          getEmployeeName={getEmployeeName}
+        />
       </PageContainer>
     </FullHeightColumn>
   )
