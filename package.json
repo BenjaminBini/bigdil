@@ -5,9 +5,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "docker compose up -d db && concurrently -k -p [{name}] -c blue,green,yellow -n db,api,web \"docker compose logs -f db\" \"pnpm --filter @bigdil/api dev\" \"pnpm --filter web dev\""
+    "dev": "docker compose up -d db && concurrently -k -p [{name}] -c blue,magenta,green,yellow -n db,pkg-db,api,web \"docker compose logs -f db\" \"pnpm --filter @bigdil/db dev\" \"pnpm --filter @bigdil/api dev\" \"pnpm --filter web dev\"",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "concurrently": "^9.2.1"
   }
 }

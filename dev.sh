@@ -14,5 +14,8 @@ if [ "$TABLE_COUNT" -lt 1 ]; then
   bash ./init-schema.sh
 fi
 
+echo "▶ Ensuring dependencies installed (single pass)…"
+pnpm install --silent
+
 echo "▶ Starting API + Web with live reload…"
 exec pnpm dev
