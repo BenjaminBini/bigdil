@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, IdCard } from 'lucide-react'
 import { toast } from 'sonner'
 import { useReferenceData, useCreateProfile, useUpdateProfile, useDeleteProfile } from '@/api/hooks'
 import { ApiError } from '@/api/client'
 import type { Profile } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { EmptyState } from '@/components/shared/empty-state'
 import { FlexBetween } from '@/components/shared/layouts'
 import { PageTitle } from '@/components/shared/page-title'
 import { MutedText } from '@/components/shared/muted-text'
@@ -98,7 +99,21 @@ export default function ProfilesPage() {
         </Button>
       </FlexBetween>
 
-      <ProfilesTable profiles={refData.profiles} onEdit={openEdit} onDelete={setDeleteTarget} />
+      {refData.profiles.length === 0 ? (
+        <EmptyState
+          icon={IdCard}
+          title="Aucun profil"
+          description="Créez un profil de facturation pour commencer à rédiger des devis avec des taux journaliers par défaut."
+          action={
+            <Button onClick={openNew}>
+              <Plus />
+              Créer le premier profil
+            </Button>
+          }
+        />
+      ) : (
+        <ProfilesTable profiles={refData.profiles} onEdit={openEdit} onDelete={setDeleteTarget} />
+      )}
 
       <TextCaption>
         Ces taux sont des valeurs par défaut pour faciliter la création de devis. Ils ne modifient pas les devis validés ni les taux appliqués aux projets.
