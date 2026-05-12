@@ -43,7 +43,18 @@ export function ClientOverviewCard({ client }: ClientOverviewCardProps) {
             <IconBlock
               icon={<MapPin size={16} />}
               label="Address"
-              value={<TextStrong>{client.address}</TextStrong>}
+              value={
+                <TextStrong>
+                  {[
+                    client.addressLine1,
+                    client.addressLine2,
+                    [client.postalCode, client.city].filter(Boolean).join(' '),
+                    client.country,
+                  ]
+                    .filter(Boolean)
+                    .join(', ')}
+                </TextStrong>
+              }
             />
           </ContactGridFullRow>
         </ContactGrid>

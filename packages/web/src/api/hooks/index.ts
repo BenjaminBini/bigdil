@@ -371,10 +371,21 @@ export function useReopenProject(projectId: string) {
   })
 }
 
+export interface ClientWriteInput {
+  name: string
+  contactName: string
+  contactEmail: string
+  addressLine1: string
+  addressLine2?: string | null
+  postalCode: string
+  city: string
+  country: string
+}
+
 export function useCreateClient() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name: string; contactName: string; contactEmail: string; address: string }) =>
+    mutationFn: (data: ClientWriteInput) =>
       apiFetch<Client>('/api/clients', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
   })
@@ -383,7 +394,7 @@ export function useCreateClient() {
 export function useUpdateClient() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; name?: string; contactName?: string; contactEmail?: string; address?: string }) =>
+    mutationFn: ({ id, ...data }: { id: string } & Partial<ClientWriteInput>) =>
       apiFetch<Client>(`/api/clients/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
   })

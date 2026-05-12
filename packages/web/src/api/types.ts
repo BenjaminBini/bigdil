@@ -25,7 +25,11 @@ export interface Client {
   name: string
   contactName: string
   contactEmail: string
-  address: string
+  addressLine1: string
+  addressLine2: string | null
+  postalCode: string
+  city: string
+  country: string
 }
 
 export interface Profile {
