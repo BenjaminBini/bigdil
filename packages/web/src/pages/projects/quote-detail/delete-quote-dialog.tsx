@@ -9,26 +9,26 @@ import {
 } from '@/components/ui/dialog'
 import { MutedText } from '@/components/shared/muted-text'
 
-interface ValidateDialogProps {
+interface DeleteQuoteDialogProps {
   open: boolean
   onConfirm: () => void
   onClose: () => void
 }
 
-export function ValidateDialog({ open, onConfirm, onClose }: ValidateDialogProps) {
+export function DeleteQuoteDialog({ open, onConfirm, onClose }: DeleteQuoteDialogProps) {
   const { t } = useTranslation(['pages', 'common'])
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <DialogContent size="sm">
         <DialogHeader>
-          <DialogTitle>{t('pages:quotes.validateDialog.title')}</DialogTitle>
+          <DialogTitle>{t('pages:quotes.deleteDialog.title')}</DialogTitle>
         </DialogHeader>
         <MutedText>
-          {t('pages:quotes.validateDialog.description')}
+          {t('pages:quotes.deleteDialog.description')}
         </MutedText>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>{t('common:actions.cancel')}</Button>
-          <Button onClick={onConfirm}>{t('pages:quotes.validateDialog.confirm')}</Button>
+          <Button variant="destructive" onClick={onConfirm}>{t('pages:quotes.deleteDialog.confirm')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

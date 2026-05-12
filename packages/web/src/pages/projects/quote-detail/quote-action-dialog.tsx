@@ -9,26 +9,39 @@ import {
 } from '@/components/ui/dialog'
 import { MutedText } from '@/components/shared/muted-text'
 
-interface ValidateDialogProps {
+export type QuoteAction = 'send' | 'reject' | 'reopen'
+
+interface QuoteActionDialogProps {
+  action: QuoteAction
   open: boolean
   onConfirm: () => void
   onClose: () => void
 }
 
-export function ValidateDialog({ open, onConfirm, onClose }: ValidateDialogProps) {
+const DIALOG_KEY: Record<QuoteAction, 'sendDialog' | 'rejectDialog' | 'reopenDialog'> = {
+  send: 'sendDialog',
+  reject: 'rejectDialog',
+  reopen: 'reopenDialog',
+}
+
+export function QuoteActionDialog({ action, open, onConfirm, onClose }: QuoteActionDialogProps) {
   const { t } = useTranslation(['pages', 'common'])
+  const key = DIALOG_KEY[action]
+  const isDestructive = action === 'reject'
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <DialogContent size="sm">
         <DialogHeader>
-          <DialogTitle>{t('pages:quotes.validateDialog.title')}</DialogTitle>
+          <DialogTitle>{t(`pages:quotes.${key}.title`)}</DialogTitle>
         </DialogHeader>
         <MutedText>
-          {t('pages:quotes.validateDialog.description')}
+          {t(`pages:quotes.${key}.description`)}
         </MutedText>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>{t('common:actions.cancel')}</Button>
-          <Button onClick={onConfirm}>{t('pages:quotes.validateDialog.confirm')}</Button>
+          <Button variant={isDestructive ? 'destructive' : 'default'} onClick={onConfirm}>
+            {t(`pages:quotes.${key}.confirm`)}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

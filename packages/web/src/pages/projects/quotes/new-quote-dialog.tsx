@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useCreateQuote } from '@/api/hooks'
 import { Button } from '@/components/ui/button'
@@ -19,27 +21,28 @@ interface NewQuoteDialogProps {
 }
 
 export function NewQuoteDialog({ open, onClose, projectId }: NewQuoteDialogProps) {
+  const { t } = useTranslation(['forms', 'pages', 'common'])
+  const navigate = useNavigate()
   const [title, setTitle] = useState('')
-  const [effectiveAt, setEffectiveAt] = useState('')
 
   const createQuote = useCreateQuote(projectId)
 
   function handleClose() {
     setTitle('')
-    setEffectiveAt('')
     onClose()
   }
 
   function handleCreate() {
-    if (!title.trim()) { toast.error('Le titre est requis'); return }
+    if (!title.trim()) { toast.error(t('forms:dialogs.titleRequired')); return }
     createQuote.mutate(
-      { title: title.trim(), effectiveAt: effectiveAt || null },
+      { title: title.trim() },
       {
-        onSuccess: () => {
-          toast.success('Devis créé')
+        onSuccess: (quote) => {
+          toast.success(t('pages:quotes.createSuccess'))
           handleClose()
+          navigate(`/projects/${projectId}/quotes/${quote.id}`)
         },
-        onError: () => toast.error('Échec de la création'),
+        onError: () => toast.error(t('forms:dialogs.quoteCreateFailed')),
       },
     )
   }
@@ -47,37 +50,28 @@ export function NewQuoteDialog({ open, onClose, projectId }: NewQuoteDialogProps
   return (
     <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
       <DialogContent size="sm">
+        <form onSubmit={(e) => { e.preventDefault(); handleCreate() }}>
         <DialogHeader>
-          <DialogTitle>Nouveau devis</DialogTitle>
+          <DialogTitle>{t('pages:quotes.newQuote')}</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField label="Titre" htmlFor="nq-title">
-            <Input
-              id="nq-title"
-              placeholder="ex. Périmètre initial"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleCreate() }}
-              autoFocus
-            />
-          </FormField>
-          <FormField label="Date d'effet" htmlFor="nq-effective">
-            <Input
-              id="nq-effective"
-              type="date"
-              value={effectiveAt}
-              onChange={e => setEffectiveAt(e.target.value)}
-            />
-          </FormField>
-        </div>
+        <FormField label={t('forms:fields.title')} htmlFor="nq-title">
+          <Input
+            id="nq-title"
+            placeholder={t('forms:dialogs.quoteTitlePlaceholder')}
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            autoFocus
+          />
+        </FormField>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Annuler</Button>
-          <Button onClick={handleCreate} disabled={createQuote.isPending}>
-            {createQuote.isPending ? 'Création…' : 'Créer le devis'}
+          <Button type="button" variant="outline" onClick={handleClose}>{t('common:actions.cancel')}</Button>
+          <Button type="submit" disabled={createQuote.isPending}>
+            {createQuote.isPending ? t('forms:dialogs.creating') : t('forms:buttons.createQuote')}
           </Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

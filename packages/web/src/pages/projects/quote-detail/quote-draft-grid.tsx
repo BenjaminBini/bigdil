@@ -32,7 +32,7 @@ function sentiment(margin: number, pct: number | null) {
 
 // ── aggregate rows ────────────────────────────────────────────────────────────
 
-function PhaseRow({ phase, lines, colCount, onAddTask }: { phase: Phase; lines: QuoteLine[]; colCount: number; onAddTask?: () => void }) {
+function PhaseRow({ phase, lines, colCount }: { phase: Phase; lines: QuoteLine[]; colCount: number }) {
   const { days, revenue, cost, margin, marginPct } = sumLines(lines)
   const s = sentiment(margin, marginPct)
   return (
@@ -40,15 +40,6 @@ function PhaseRow({ phase, lines, colCount, onAddTask }: { phase: Phase; lines: 
       <td className="whitespace-nowrap px-3 py-2">
         <span className="flex items-center gap-1 text-sm font-bold text-foreground">
           {phase.name}
-          {onAddTask && (
-            <button
-              onClick={onAddTask}
-              className="ml-1 inline-flex items-center justify-center rounded p-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-border hover:text-foreground"
-              title="Ajouter une tâche"
-            >
-              <Plus size={11} />
-            </button>
-          )}
         </span>
       </td>
       <QuoteTd className="font-semibold text-foreground">{days || '—'}</QuoteTd>
@@ -307,7 +298,7 @@ function PhaseSection({ phase, phaseTasks, linesByTask, profileMap, projectId, q
 
   return (
     <>
-      <PhaseRow phase={phase} lines={phaseLines} colCount={1} onAddTask={() => setAddingTask(true)} />
+      <PhaseRow phase={phase} lines={phaseLines} colCount={1} />
       {phaseTasks.map(task => {
         const taskLines = linesByTask.get(task.id) ?? []
         const usedProfileIds = new Set(taskLines.map(l => l.profileId))
@@ -334,10 +325,11 @@ function PhaseSection({ phase, phaseTasks, linesByTask, profileMap, projectId, q
           </>
         )
       })}
-      {addingTask && (
-        <tr className="bg-card">
-          <td className="whitespace-nowrap px-3 py-1.5" colSpan={9}>
-            <div style={{ paddingLeft: 20 }}>
+      {/* Always-visible add-task affordance at the bottom of each phase. */}
+      <tr className="bg-card/60">
+        <td className="whitespace-nowrap px-3 py-1" colSpan={9}>
+          <div style={{ paddingLeft: 20 }}>
+            {addingTask ? (
               <input
                 ref={inputRef}
                 autoFocus
@@ -351,10 +343,17 @@ function PhaseSection({ phase, phaseTasks, linesByTask, profileMap, projectId, q
                 }}
                 className="w-40 rounded border border-sky-400 bg-background px-1.5 py-0.5 text-sm outline-none focus:ring-1 focus:ring-sky-400"
               />
-            </div>
-          </td>
-        </tr>
-      )}
+            ) : (
+              <button
+                onClick={() => setAddingTask(true)}
+                className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-border hover:text-foreground"
+              >
+                <Plus size={11} /> Ajouter une tâche
+              </button>
+            )}
+          </div>
+        </td>
+      </tr>
     </>
   )
 }
