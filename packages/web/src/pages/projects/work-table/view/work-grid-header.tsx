@@ -44,7 +44,7 @@ function SummaryHeaderCell({ label, tooltip, index }: { label: string; tooltip: 
     <th
       rowSpan={2}
       title={tooltip}
-      className="border-b border-r border-row-divider bg-muted px-1 py-2 align-middle text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+      className="border-b border-row-divider bg-muted px-1 py-2 align-middle text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
       style={stickySummaryStyle(index)}
     >
       <span

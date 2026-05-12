@@ -28,7 +28,7 @@ function SummaryCells({ row }: SummaryCellsProps) {
   // Match the typographic hierarchy used on the label cell — phase numbers
   // are the loudest, employee numbers the quietest.
   const cellClass = cn(
-    'whitespace-nowrap border-b border-r border-row-divider px-1 py-1 text-center tabular-nums',
+    'whitespace-nowrap border-b border-row-divider px-1 py-1 text-center tabular-nums',
     solidBg,
     row.kind === 'phase' && 'text-[13px] font-bold text-foreground',
     row.kind === 'task' && 'text-[13px] font-semibold text-foreground/90',
