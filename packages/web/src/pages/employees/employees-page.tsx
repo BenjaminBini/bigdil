@@ -1,8 +1,11 @@
 import { useState } from 'react'
+import { Plus, Users } from 'lucide-react'
 import { useReferenceData } from '@/api/hooks'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { EmptyState } from '@/components/shared/empty-state'
 import { ThRight } from '@/components/shared/table-cells'
 import { EmployeesHeader } from './components/employees-header'
 import { EmployeeRow } from './components/employee-row'
@@ -19,29 +22,43 @@ export default function EmployeesPage() {
     <>
       <EmployeesHeader onNew={() => setShowNewEmployee(true)} />
       <PageContainer size="md">
-      <Card variant="flush">
-        <Table>
-          <TableHeader>
-            <TableRow variant="header">
-              <TableHead className="w-8 pr-0" />
-              <TableHead>Nom</TableHead>
-              <TableHead>Actif</TableHead>
-              <ThRight>Taux de coût/jour</ThRight>
-              <ThRight>Projets assignés</ThRight>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {refData.employees.map((employee) => (
-              <EmployeeRow
-                key={employee.id}
-                employee={employee}
-                projectCount={employee.assignedProjectCount}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
-      <NewEmployeeDialog open={showNewEmployee} onClose={() => setShowNewEmployee(false)} />
+        {refData.employees.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="Aucun collaborateur"
+            description="Ajoutez vos collaborateurs pour pouvoir les affecter aux projets et suivre leurs feuilles de temps."
+            action={
+              <Button onClick={() => setShowNewEmployee(true)}>
+                <Plus />
+                Ajouter le premier collaborateur
+              </Button>
+            }
+          />
+        ) : (
+          <Card variant="flush">
+            <Table>
+              <TableHeader>
+                <TableRow variant="header">
+                  <TableHead className="w-8 pr-0" />
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Actif</TableHead>
+                  <ThRight>Taux de coût/jour</ThRight>
+                  <ThRight>Projets assignés</ThRight>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refData.employees.map((employee) => (
+                  <EmployeeRow
+                    key={employee.id}
+                    employee={employee}
+                    projectCount={employee.assignedProjectCount}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
+        <NewEmployeeDialog open={showNewEmployee} onClose={() => setShowNewEmployee(false)} />
       </PageContainer>
     </>
   )
