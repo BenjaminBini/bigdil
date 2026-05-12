@@ -28,7 +28,7 @@ function SummaryCells({ row }: SummaryCellsProps) {
   // Match the typographic hierarchy used on the label cell — phase numbers
   // are the loudest, employee numbers the quietest.
   const cellClass = cn(
-    'whitespace-nowrap border-b border-row-divider px-1 py-1 text-center tabular-nums',
+    'whitespace-nowrap px-1 py-1 text-center tabular-nums',
     solidBg,
     row.kind === 'phase' && 'text-[13px] font-bold text-foreground',
     row.kind === 'task' && 'text-[13px] font-semibold text-foreground/90',
@@ -126,11 +126,10 @@ function WorkGridLabelCell({ row, children }: { row: GridRow; children: ReactNod
       noShadow
       className={cn(
         getRowPaddingY(row),
-        // Borders here are opaque (no /XX alpha) — the sticky first column
-        // must not let scrolling content bleed through the row separators.
+        // Phase + grand-total keep an emphasised divider; task/profile/employee
+        // rely on tier colour alone so the sticky panel reads as a unified
+        // surface with no horizontal gap lines.
         row.kind === 'phase' && 'border-b-2 border-row-divider',
-        row.kind === 'task' && 'border-b border-row-divider',
-        (row.kind === 'profile' || row.kind === 'employee') && 'border-b border-row-divider',
         row.kind === 'grand-total' && 'border-b-2 border-row-divider',
         getSolidRowBackground(row),
         KIND_ACCENT[row.kind] ?? '',

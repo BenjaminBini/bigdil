@@ -29,7 +29,7 @@ export function ConsolidationGridRow({
 
   return (
     <tr className={cn('group', rowBg, row.kind === 'grand-total' && 'border-t-2 border-row-divider')}>
-      <StickyColumnCell className={cn('border-b border-row-divider', solidBg, row.kind === 'phase' && 'text-sm font-bold text-foreground', row.kind === 'task' && 'font-semibold text-foreground/80', row.kind === 'profile' && 'text-xs text-muted-foreground', row.kind === 'employee' && 'text-xs', row.kind === 'employee' && row.employeeId === null && 'italic text-muted-foreground/70', row.kind === 'employee' && row.employeeId !== null && 'text-foreground/70', row.kind === 'grand-total' && 'font-bold text-foreground')}>
+      <StickyColumnCell className={cn(solidBg, row.kind === 'phase' && 'border-b border-row-divider text-sm font-bold text-foreground', row.kind === 'task' && 'font-semibold text-foreground/80', row.kind === 'profile' && 'text-xs text-muted-foreground', row.kind === 'employee' && 'text-xs', row.kind === 'employee' && row.employeeId === null && 'italic text-muted-foreground/70', row.kind === 'employee' && row.employeeId !== null && 'text-foreground/70', row.kind === 'grand-total' && 'border-b border-row-divider font-bold text-foreground')}>
         <TreeRowLabel
           label={row.label}
           depth={row.depth}
@@ -60,9 +60,8 @@ export function ConsolidationGridRow({
           <td
             key={col.key}
             className={cn(
-              'border-b border-row-divider px-1 py-1 text-right text-xs font-mono tabular-nums',
+              'px-1 py-1 text-right text-xs font-mono tabular-nums',
               rowBg,
-              index === 7 || index === 13 ? 'border-r-2 border-r-row-divider' : index === 3 || index === 6 || index === 10 || index === 12 ? 'border-r-2 border-r-row-divider' : 'border-r border-r-row-divider',
               isEmpty && 'text-muted-foreground/40',
               !isEmpty && !isMarginCol && 'text-foreground/80',
               isMarginCol && !isEmpty && value! > 0 && 'text-emerald-600 dark:text-emerald-400',
