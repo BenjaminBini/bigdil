@@ -54,6 +54,7 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
       <DialogContent size="sm">
+        <form onSubmit={(e) => { e.preventDefault(); handleCreate() }}>
         <DialogHeader>
           <DialogTitle>New Client</DialogTitle>
         </DialogHeader>
@@ -98,11 +99,12 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
         </VStack>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleCreate} disabled={createClient.isPending}>
+          <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button type="submit" disabled={createClient.isPending}>
             {createClient.isPending ? 'Creating…' : 'Create Client'}
           </Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

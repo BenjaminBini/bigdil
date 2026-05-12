@@ -67,6 +67,7 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
   return (
     <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
       <DialogContent size="sm">
+        <form onSubmit={(e) => { e.preventDefault(); handleSave() }}>
         <DialogHeader>
           <DialogTitle>Edit Client</DialogTitle>
         </DialogHeader>
@@ -107,11 +108,12 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
         </VStack>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={updateClient.isPending}>
+          <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button type="submit" disabled={updateClient.isPending}>
             {updateClient.isPending ? 'Saving…' : 'Save Changes'}
           </Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

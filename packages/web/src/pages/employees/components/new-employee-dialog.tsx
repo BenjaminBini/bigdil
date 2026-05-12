@@ -51,6 +51,7 @@ export function NewEmployeeDialog({ open, onClose }: NewEmployeeDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
       <DialogContent size="sm">
+        <form onSubmit={(e) => { e.preventDefault(); handleCreate() }}>
         <DialogHeader>
           <DialogTitle>New Employee</DialogTitle>
         </DialogHeader>
@@ -79,11 +80,12 @@ export function NewEmployeeDialog({ open, onClose }: NewEmployeeDialogProps) {
         </VStack>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleCreate} disabled={createEmployee.isPending}>
+          <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button type="submit" disabled={createEmployee.isPending}>
             {createEmployee.isPending ? 'Creating…' : 'Create Employee'}
           </Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

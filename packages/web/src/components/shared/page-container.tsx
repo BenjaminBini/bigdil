@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
-const containerVariants = cva('mx-auto space-y-6 p-6', {
+const containerVariants = cva('space-y-6 p-6', {
   variants: {
     size: {
       sm: 'max-w-3xl',

@@ -70,6 +70,7 @@ export function ProfileFormDialog({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent size="sm">
+        <form onSubmit={(event) => { event.preventDefault(); if (form.name.trim() && !isPending) onSave() }}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -121,11 +122,12 @@ export function ProfileFormDialog({
         </DialogBody>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={onSave} disabled={!form.name.trim() || isPending}>
+          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="submit" disabled={!form.name.trim() || isPending}>
             {isPending ? 'Saving…' : saveLabel}
           </Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

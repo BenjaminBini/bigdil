@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ColorValue } from '@/components/shared/color-value'
 import { AppLink } from '@/components/shared/app-link'
@@ -9,10 +10,11 @@ import { useUtilizationReport } from '@/api/hooks'
 import { LoadingState, ErrorState } from '@/components/shared/page-container'
 
 export function UtilizationTab() {
+  const { t } = useTranslation('pages')
   const { data, isLoading, error } = useUtilizationReport()
 
   if (isLoading) return <LoadingState />
-  if (error || !data) return <ErrorState message="Error loading utilization data" />
+  if (error || !data) return <ErrorState message={t('reports.utilization.errorLoading')} />
 
   const allPeriods = [...new Set(data.flatMap((entry) => entry.periods.map((p) => p.periodNumber)))].sort(
     (a, b) => a - b,
@@ -21,17 +23,17 @@ export function UtilizationTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Employee Utilization by Period</CardTitle>
+        <CardTitle>{t('reports.utilization.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
-          <MutedText>No utilization data available yet</MutedText>
+          <MutedText>{t('reports.utilization.noData')}</MutedText>
         ) : (
           <ScrollContainer>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="sticky left-0 bg-background">Employee</TableHead>
+                  <TableHead className="sticky left-0 bg-background">{t('reports.utilization.employee')}</TableHead>
                   {allPeriods.map((period) => (
                     <HeadCell key={period} label={`P${period}`} align="center" width="60px" />
                   ))}
@@ -68,4 +70,3 @@ export function UtilizationTab() {
     </Card>
   )
 }
-

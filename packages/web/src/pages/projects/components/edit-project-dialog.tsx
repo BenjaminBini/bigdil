@@ -67,6 +67,7 @@ export function EditProjectDialog({ project, open, onClose }: EditProjectDialogP
   return (
     <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
       <DialogContent size="sm">
+        <form onSubmit={(e) => { e.preventDefault(); handleSave() }}>
         <DialogHeader>
           <DialogTitle>Edit Project</DialogTitle>
         </DialogHeader>
@@ -114,11 +115,12 @@ export function EditProjectDialog({ project, open, onClose }: EditProjectDialogP
         </VStack>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={updateProject.isPending}>
+          <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button type="submit" disabled={updateProject.isPending}>
             {updateProject.isPending ? 'Saving…' : 'Save Changes'}
           </Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

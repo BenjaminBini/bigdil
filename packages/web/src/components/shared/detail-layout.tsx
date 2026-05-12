@@ -19,7 +19,7 @@ export function DetailHeaderShell({
 }) {
   return (
     <div className="border-b bg-card">
-      <div className="mx-auto max-w-7xl space-y-4 px-6 pb-0 pt-6">
+      <div className="space-y-4 px-6 pb-0 pt-6">
         {children}
       </div>
     </div>

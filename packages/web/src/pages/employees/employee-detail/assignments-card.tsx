@@ -40,7 +40,7 @@ export function AssignmentsCard({ assignments }: AssignmentsCardProps) {
                   </TableCell>
                   <TableCell>{assignment.taskName}</TableCell>
                   <TableCell>{assignment.profileName}</TableCell>
-                  <TableCell>P{assignment.periodNumber}</TableCell>
+                  <TableCell>{assignment.periodCode}</TableCell>
                   <TdRight>{formatDays(assignment.days)}</TdRight>
                 </TableRow>
               ))}

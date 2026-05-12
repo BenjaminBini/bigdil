@@ -53,6 +53,7 @@ export function AddRateDialog({ employeeId, employeeName, open, onClose }: AddRa
   return (
     <Dialog open={open} onOpenChange={(next) => !next && handleClose()}>
       <DialogContent size="sm">
+        <form onSubmit={(e) => { e.preventDefault(); handleSave() }}>
         <DialogHeader>
           <DialogTitle>Add Rate Period — {employeeName}</DialogTitle>
         </DialogHeader>
@@ -81,11 +82,12 @@ export function AddRateDialog({ employeeId, employeeName, open, onClose }: AddRa
         </VStack>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSave} disabled={addRate.isPending}>
+          <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button type="submit" disabled={addRate.isPending}>
             {addRate.isPending ? 'Saving…' : 'Add Rate'}
           </Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )
