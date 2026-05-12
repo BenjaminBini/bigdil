@@ -1,0 +1,40 @@
+{
+  "groups": {
+    "main": "Main",
+    "reference": "Reference",
+    "myWork": "My work",
+    "administration": "Administration"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "clients": "Clients",
+    "profiles": "Profiles",
+    "employees": "Employees",
+    "timesheets": "Timesheets",
+    "approvals": "Approvals",
+    "reports": "Reports",
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "breadcrumb": {
+    "projects": "Projects",
+    "clients": "Clients",
+    "profiles": "Profiles",
+    "employees": "Employees",
+    "timesheets": "Timesheets",
+    "approvals": "Approvals",
+    "users": "Users",
+    "settings": "Settings",
+    "reports": "Reports",
+    "wbs": "WBS",
+    "quotes": "Quotes",
+    "snapshots": "Snapshots",
+    "overview": "Overview",
+    "work-table": "Work Table",
+    "quote-detail": "Quote",
+    "planning-detail": "Planning",
+    "admin": "Admin",
+    "dashboard": "Dashboard"
+  }
+}

@@ -12,7 +12,9 @@ import { profilesRouter } from './routes/profiles.js'
 import { reportsRouter } from './routes/reports.js'
 import { workTableMutationsRouter } from './routes/work-table-mutations.js'
 import { timesheetMutationsRouter } from './routes/timesheet-mutations.js'
-import { periodTransitionsRouter } from './routes/period-transitions.js'
+import { timesheetWindowRouter } from './routes/timesheet-window.js'
+import { usersRouter } from './routes/users.js'
+import { authRouter } from './routes/auth.js'
 
 const app = new Hono()
 
@@ -22,6 +24,7 @@ app.use('*', cors({
   origin: (origin) => origin?.startsWith('http://localhost:') ? origin : null,
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowHeaders: ['Content-Type'],
+  credentials: true,
 }))
 
 // ── Health check ──
@@ -38,13 +41,15 @@ app.route('/api/profiles', profilesRouter)
 app.route('/api/reports', reportsRouter)
 app.route('/api/projects', workTableMutationsRouter)
 app.route('/api/timesheets', timesheetMutationsRouter)
-app.route('/api/projects', periodTransitionsRouter)
+app.route('/api/timesheet-window', timesheetWindowRouter)
+app.route('/api/users', usersRouter)
+app.route('/api/auth', authRouter)
 
 // ── Error handling ──
 app.onError((err, c) => {
   const status = (err as { status?: number }).status
   if (status && status >= 400 && status < 500) {
-    return c.json({ error: err.message }, status as 400 | 404)
+    return c.json({ error: err.message }, status as 400 | 401 | 403 | 404 | 409)
   }
   console.error('Unhandled error:', err)
   return c.json({ error: 'Internal server error' }, 500)

@@ -135,6 +135,30 @@ export interface ProfileTaskPeriodStart {
   soldAtStart: number
 }
 
+export interface CellDetail {
+  slotId: string
+  timesheetId: string | null
+  bundleStatus: TimesheetStatus | null
+  periodStatus: PeriodStatus
+  editable: boolean
+  entries: Array<{
+    id: string
+    workDate: string
+    days: number
+    notes: string
+  }>
+}
+
+export interface AssignableSlot {
+  id: string
+  projectId: string
+  projectName: string
+  taskId: string
+  taskName: string
+  profileId: string
+  profileName: string
+}
+
 export interface AssignmentSlotRef {
   id: string
   projectId: string

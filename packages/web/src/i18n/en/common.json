@@ -1,0 +1,97 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "create": "Create",
+    "confirm": "Confirm",
+    "close": "Close",
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject",
+    "validate": "Validate",
+    "send": "Send",
+    "duplicate": "Duplicate",
+    "export": "Export",
+    "import": "Import",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "viewDetails": "View details",
+    "view": "View",
+    "open": "Open",
+    "remove": "Remove",
+    "continue": "Continue",
+    "finish": "Finish",
+    "saveChanges": "Save changes"
+  },
+  "states": {
+    "loading": "Loading...",
+    "error": "Error",
+    "errorLoadingData": "Error loading data",
+    "noData": "No data",
+    "empty": "No items",
+    "saving": "Saving...",
+    "loadingMore": "Loading..."
+  },
+  "user": {
+    "myProfile": "My profile",
+    "signOut": "Sign out"
+  },
+  "labels": {
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "none": "None",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "name": "Name",
+    "description": "Description",
+    "status": "Status",
+    "type": "Type",
+    "date": "Date",
+    "from": "From",
+    "to": "To",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "createdAt": "Created at",
+    "updatedAt": "Updated at",
+    "actions": "Actions",
+    "details": "Details",
+    "summary": "Summary",
+    "settings": "Settings",
+    "language": "Language",
+    "theme": "Theme"
+  },
+  "languages": {
+    "fr": "French",
+    "en": "English"
+  },
+  "theme": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
+  },
+  "sidebar": {
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar"
+  },
+  "breadcrumb": {
+    "home": "Home"
+  },
+  "pagination": {
+    "page": "Page",
+    "of": "of",
+    "rowsPerPage": "Rows per page",
+    "showing": "Showing",
+    "results": "results",
+    "first": "First",
+    "last": "Last"
+  }
+}

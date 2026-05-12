@@ -1,7 +1,9 @@
 import { Outlet } from 'react-router'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { ImpersonationBanner } from './impersonation-banner'
 import { Sidebar } from './sidebar'
 import { Topbar } from './topbar'
+import { PeriodCalendarBar } from './topbar/period-calendar-bar'
 
 /**
  * Root shell layout.
@@ -9,6 +11,7 @@ import { Topbar } from './topbar'
  * Structure:
  *   ┌─────────┬─────────────────────────────┐
  *   │         │ Topbar (fixed h-14)         │
+ *   │         │ Period calendar strip       │
  *   │ Sidebar ├─────────────────────────────┤
  *   │ (fixed) │ <Outlet /> (scrollable)     │
  *   └─────────┴─────────────────────────────┘
@@ -24,11 +27,16 @@ export function AppLayout() {
 
         {/* Right column: topbar + scrollable content */}
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <ImpersonationBanner />
+
           {/* Topbar */}
           <Topbar />
 
+          {/* Global period calendar */}
+          <PeriodCalendarBar />
+
           {/* Page content */}
-          <main className="main-texture flex-1 overflow-y-auto">
+          <main className="main-texture min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
             <Outlet />
           </main>
         </div>
@@ -36,3 +44,4 @@ export function AppLayout() {
     </TooltipProvider>
   )
 }
+

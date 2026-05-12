@@ -1,0 +1,40 @@
+{
+  "groups": {
+    "main": "Principal",
+    "reference": "Référentiel",
+    "myWork": "Mon travail",
+    "administration": "Administration"
+  },
+  "items": {
+    "dashboard": "Tableau de bord",
+    "projects": "Projets",
+    "clients": "Clients",
+    "profiles": "Profils",
+    "employees": "Collaborateurs",
+    "timesheets": "Feuilles de temps",
+    "approvals": "Approbations",
+    "reports": "Rapports",
+    "users": "Utilisateurs",
+    "settings": "Paramètres"
+  },
+  "breadcrumb": {
+    "projects": "Projets",
+    "clients": "Clients",
+    "profiles": "Profils",
+    "employees": "Collaborateurs",
+    "timesheets": "Feuilles de temps",
+    "approvals": "Approbations",
+    "users": "Utilisateurs",
+    "settings": "Paramètres",
+    "reports": "Rapports",
+    "wbs": "WBS",
+    "quotes": "Devis",
+    "snapshots": "Snapshots",
+    "overview": "Vue d'ensemble",
+    "work-table": "Table de travail",
+    "quote-detail": "Devis",
+    "planning-detail": "Planification",
+    "admin": "Administration",
+    "dashboard": "Tableau de bord"
+  }
+}

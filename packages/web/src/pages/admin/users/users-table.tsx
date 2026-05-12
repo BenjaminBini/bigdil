@@ -1,4 +1,4 @@
-import { KeyRound, Pencil, UserX } from 'lucide-react'
+import { KeyRound, Pencil, UserCog, UserX } from 'lucide-react'
 import type { Employee, User } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -19,12 +19,24 @@ import { RoleBadge } from './role-badge'
 interface UsersTableProps {
   users: User[]
   employees: Employee[]
+  currentUserId: string | null
+  canImpersonate: boolean
   onEdit: (user: User) => void
   onResetPassword: (user: User) => void
   onDeactivate: (user: User) => void
+  onImpersonate: (user: User) => void
 }
 
-export function UsersTable({ users, employees, onEdit, onResetPassword, onDeactivate }: UsersTableProps) {
+export function UsersTable({
+  users,
+  employees,
+  currentUserId,
+  canImpersonate,
+  onEdit,
+  onResetPassword,
+  onDeactivate,
+  onImpersonate,
+}: UsersTableProps) {
   return (
     <Card variant="flush">
       <Table>
@@ -45,6 +57,7 @@ export function UsersTable({ users, employees, onEdit, onResetPassword, onDeacti
             const linkedEmployee = user.employeeId ? employees.find((employee) => employee.id === user.employeeId) : null
             const loginDate = LAST_LOGIN_DATES[user.id]
             const isActive = linkedEmployee === null || linkedEmployee === undefined || linkedEmployee.active
+            const isSelf = user.id === currentUserId
 
             return (
               <TableRow key={user.id} variant="interactive">
@@ -68,6 +81,17 @@ export function UsersTable({ users, employees, onEdit, onResetPassword, onDeacti
                       <Pencil size={14} />
                       Edit
                     </Button>
+                    {canImpersonate && !isSelf && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onImpersonate(user)}
+                        title={`Impersonate ${user.name}`}
+                      >
+                        <UserCog size={14} />
+                        Impersonate
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"

@@ -5,7 +5,7 @@ import type {
   TimesheetEntry, Timesheet, ReferenceData, DashboardData,
   EmployeeDetail, ProfileDetail, Profile, Phase, Task, Client, Employee,
   FinancialReportRow, UtilizationReportRow, GlobalTimesheetWindow,
-  User, UserRole, CurrentUserSession,
+  User, UserRole, CurrentUserSession, AssignableSlot, CellDetail,
 } from '../types'
 
 // ── Query Keys ─────────────────────────────────
@@ -98,6 +98,48 @@ export function useMyTimesheets() {
   return useQuery({
     queryKey: queryKeys.myTimesheets,
     queryFn: () => apiFetch<Timesheet[]>('/api/timesheets/me'),
+  })
+}
+
+export function useMyAssignableSlots() {
+  return useQuery({
+    queryKey: ['timesheets', 'me', 'assignable-slots'] as const,
+    queryFn: () => apiFetch<AssignableSlot[]>('/api/timesheets/me/assignable-slots'),
+  })
+}
+
+// Drives the work-table cell detail popover. Disabled until enabled=true so
+// nothing fires before the popover opens.
+export function useCellDetail(
+  params: { taskId: string; profileId: string; employeeId: string; periodKey: string } | null,
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: ['cell-detail', params?.taskId, params?.profileId, params?.employeeId, params?.periodKey] as const,
+    queryFn: () => {
+      if (!params) throw new Error('params required')
+      const qs = new URLSearchParams(params).toString()
+      return apiFetch<CellDetail>(`/api/timesheets/cell-detail?${qs}`)
+    },
+    enabled: enabled && !!params,
+  })
+}
+
+// Save a single per-day cell from the work-table popover. Uses the same
+// upsert endpoint the consultant's schedule grid uses.
+export function useUpsertCellEntry(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ timesheetId, ...body }: { timesheetId: string; assignmentSlotId: string; workDate: string; days: number; notes?: string }) =>
+      apiFetch(`/api/timesheets/${timesheetId}/entries`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => {
+      // Both the work-table and the cell-detail popover need fresh data.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workTable(projectId) })
+      void queryClient.invalidateQueries({ queryKey: ['cell-detail'] })
+    },
   })
 }
 

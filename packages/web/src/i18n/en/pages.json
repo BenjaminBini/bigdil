@@ -1,0 +1,421 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Multi-project overview",
+    "errorLoading": "Error loading the dashboard",
+    "kpi": {
+      "totalContractValue": "Total contract value",
+      "totalContractDescription": "Across all validated quotes",
+      "totalMargin": "Total forecast margin",
+      "totalMarginDescription": "Based on the latest snapshots",
+      "activeProjects": "Active projects",
+      "activeProjectsDescription": "Currently in progress",
+      "overdueApprovals": "Pending approvals",
+      "overdueApprovalsDescription": "Timesheets awaiting approval"
+    },
+    "activeProjectsTitle": "Active projects",
+    "noActiveProjects": "No active projects",
+    "alerts": {
+      "title": "Alerts",
+      "periodsReady": "Periods in consolidation (ready to close)",
+      "pendingApprovals": "Pending approvals",
+      "pendingApprovalsDescription_one": "{{count}} timesheet awaiting approval",
+      "pendingApprovalsDescription_other": "{{count}} timesheets awaiting approval",
+      "review": "Review",
+      "noAlerts": "No alerts — everything is in order.",
+      "periodLabel": "Period"
+    },
+    "recentActivity": {
+      "title": "Recent activity",
+      "periodClosed": "Period {{periodNumber}} closed",
+      "noRecent": "No recent activity"
+    }
+  },
+  "login": {
+    "tagline": "Professional Services Automation",
+    "cardTitle": "Sign in to your account",
+    "cardDescription": "Enter your credentials to access your workspace",
+    "emailPlaceholder": "you@acme-consulting.fr",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "loginSuccess": "Login successful — redirecting...",
+    "copyright": "All rights reserved."
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle_one": "{{count}} project",
+    "subtitle_other": "{{count}} projects",
+    "errorLoading": "Error loading projects",
+    "newProject": "New project"
+  },
+  "projectLayout": {
+    "errorLoading": "Error loading project",
+    "client": "Client",
+    "tabs": {
+      "overview": "Overview",
+      "quotes": "Quotes",
+      "workTable": "Work table",
+      "snapshots": "Periods & snapshots",
+      "timesheets": "Timesheets"
+    },
+    "kpi": {
+      "contractValue": "Contract value",
+      "estimatedCost": "Estimated cost",
+      "estimatedMargin": "Estimated margin",
+      "actualCost": "Actual cost to date",
+      "eacCost": "EAC cost",
+      "produced": "Produced to date",
+      "fromQuote": "from quote",
+      "fromQuotes": "from {{count}} quotes",
+      "ofContract": "{{pct}}% of contract"
+    }
+  },
+  "quotes": {
+    "title": "Quotes",
+    "subtitle": "Project quotes and amendments",
+    "newQuote": "New quote",
+    "createSuccess": "Quote created",
+    "table": {
+      "title": "Title",
+      "status": "Status",
+      "effectiveAt": "Effective date",
+      "validatedAt": "Validation date",
+      "days": "Days",
+      "revenue": "Revenue ex-tax",
+      "budgetCost": "Budgeted cost",
+      "margin": "Margin",
+      "marginPct": "Margin %"
+    },
+    "totals": {
+      "totalDays": "Total days",
+      "revenue": "Total revenue",
+      "cost": "Total cost",
+      "margin": "Margin",
+      "marginPct": "Margin %"
+    },
+    "draftGrid": {
+      "showAllTasks": "Show full WBS",
+      "showAllTasksHint": "Display every phase and task of the project, including those not in this quote.",
+      "addProfile": "Add profile"
+    },
+    "actions": {
+      "send": "Send to client",
+      "validate": "Mark as validated",
+      "reject": "Mark as refused",
+      "cancel": "Cancel",
+      "reopen": "Reopen",
+      "duplicate": "Duplicate",
+      "export": "Export"
+    },
+    "cancelDialog": {
+      "title": "Cancel quote",
+      "description": "Are you sure you want to cancel this quote? This action cannot be undone.",
+      "confirm": "Cancel quote"
+    },
+    "deleteDialog": {
+      "title": "Delete quote",
+      "description": "Are you sure you want to delete this quote? This action cannot be undone.",
+      "confirm": "Delete"
+    },
+    "validateDialog": {
+      "title": "Validate quote",
+      "description": "Confirm the client has accepted this quote? Days and revenue will be added to the project's financial analysis.",
+      "confirm": "Validate"
+    },
+    "sendDialog": {
+      "title": "Send to client",
+      "description": "Mark this quote as sent to the client?",
+      "confirm": "Send"
+    },
+    "rejectDialog": {
+      "title": "Quote refused by client",
+      "description": "Mark this quote as refused? You can reopen or cancel it afterwards.",
+      "confirm": "Mark as refused"
+    },
+    "reopenDialog": {
+      "title": "Reopen quote",
+      "description": "Move this quote back to draft for editing?",
+      "confirm": "Reopen"
+    },
+    "toasts": {
+      "sent": "Quote sent to client",
+      "validated": "Quote validated",
+      "validatedDesc": "Revenue and days added to financial analysis.",
+      "rejected": "Quote marked as refused",
+      "cancelled": "Quote cancelled",
+      "reopened": "Quote reopened",
+      "actionFailed": "Action failed"
+    },
+    "empty": "No quotes"
+  },
+  "wbs": {
+    "title": "Work Breakdown Structure",
+    "subtitle": "Manage the phases and tasks for this project",
+    "addPhase": "Add phase",
+    "dialog": {
+      "addPhase": "Add phase",
+      "addSubTask": "Add sub-task to \"{{parent}}\"",
+      "edit": "Edit \"{{name}}\""
+    },
+    "toasts": {
+      "deleted": "\"{{name}}\" deleted",
+      "deleteFailed": "Delete failed",
+      "taskNameRequired": "Task name is required",
+      "updated": "Task \"{{name}}\" updated",
+      "updateFailed": "Failed to update task",
+      "created": "Task \"{{name}}\" created",
+      "createFailed": "Failed to create task"
+    }
+  },
+  "workTable": {
+    "title": "Work table",
+    "subtitle": "{{projectName}} · {{count}} periods",
+    "taskPhaseColumn": "Task / Phase",
+    "consolidationBanner": {
+      "title": "New quotes validated this month",
+      "description": "These quotes were validated while the period is consolidating. Revenue and days are already added to the financial analysis. Days appear in the \"To plan\" column until they are allocated.",
+      "quoteLine": "{{title}} — +{{revenue}} revenue · +{{days}} days"
+    },
+    "summary": {
+      "validatedDaysSpent": "Spent",
+      "validatedDaysSpentTooltip": "Days logged on frozen (closed) periods.",
+      "daysInConsolidation": "To validate",
+      "daysInConsolidationTooltip": "Days on the month currently being closed.",
+      "totalRemaining": "Remaining",
+      "totalRemainingTooltip": "Days on the open week and future weeks.",
+      "toPlan": "To plan",
+      "toPlanTooltip": "Sold days (validated quotes) not yet distributed into weeks."
+    },
+    "addEmployeeToProfile": "Add employee to this profile",
+    "addPhaseTitle": "Add phase",
+    "phaseNamePlaceholder": "Phase name",
+    "phaseCreated": "Phase \"{{name}}\" created",
+    "taskNamePlaceholder": "Task name",
+    "taskCreated": "Task \"{{name}}\" created",
+    "createFailed": "Failed to create",
+    "saveCellFailed": "Failed to save",
+    "planningFailed": "Planning update failed",
+    "assignEmployeeTitle": "Assign employee",
+    "assignTo": "Assign to {{name}}",
+    "assigned": "{{name}} assigned",
+    "alreadyAssigned": "Already assigned",
+    "assignFailed": "Assignment failed",
+    "unassigned": "Unassigned",
+    "clickToEdit": "Click to edit",
+    "columnTotals": "Column totals",
+    "grandTotal": "Grand total",
+    "periodsGenerated": "{{count}} periods generated",
+    "legend": {
+      "open": "Open",
+      "consolidation": "Consolidation",
+      "frozen": "Closed",
+      "future": "Future"
+    },
+    "total": {
+      "zoneTitle": "Financial totals",
+      "revenue": "Revenue",
+      "revenueFormula": "{{days}} days sold",
+      "cost": "Cost",
+      "costFormula": "{{days}} days",
+      "marginFormula": "{{revenue}} − cost"
+    }
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "subtitle": "{{pending}} month(s) pending - {{snapshots}} snapshots recorded",
+    "pendingTitle": "Pending consolidation",
+    "pendingEmpty": "No month is fully consolidated yet.",
+    "pendingHint": "All weekly periods of this month are consolidated. You can take the snapshot.",
+    "createSnapshot": "Create snapshot",
+    "snapshotsTitle": "Snapshots",
+    "snapshotsEmpty": "No snapshot recorded for this project.",
+    "detailTitle": "Snapshot — {{periodCode}}",
+    "exportBundle": "Export bundle",
+    "exporting": "Exporting...",
+    "margin": "Forecast margin: {{value}}",
+    "noMetrics": "No metrics available",
+    "notFound": "Snapshot not found",
+    "snapshotRecorded": "Snapshot recorded on {{date}}",
+    "tabs": {
+      "metrics": "Metrics",
+      "scope": "Scope",
+      "workTable": "Work table",
+      "actuals": "Actuals"
+    }
+  },
+  "periodClose": {
+    "loadingData": "Loading data...",
+    "stepIndicator": {
+      "checklist": "Checklist",
+      "reforecast": "Reforecast",
+      "preview": "Preview",
+      "confirm": "Confirm"
+    },
+    "titles": {
+      "step1": "Period {{num}}",
+      "step1Default": "Close period",
+      "step2": "Preview snapshot",
+      "step3": "Reforecast",
+      "step4": "Confirm close"
+    }
+  },
+  "profileDetail": {
+    "errorLoading": "Error loading profile",
+    "profileId": "Profile ID: {{id}}",
+    "kpi": {
+      "defaultSellRate": "Default sell rate",
+      "defaultCostRate": "Default cost rate",
+      "defaultMargin": "Default margin",
+      "perDay": "{{value}} / day",
+      "perDayPct": "{{value}} ({{pct}}%)"
+    }
+  },
+  "projectTimesheets": {
+    "title": "Timesheets",
+    "subtitle": "All entries for {{project}}",
+    "allEmployees": "All employees",
+    "allPeriods": "All periods",
+    "allTasks": "All tasks",
+    "exportCsv": "Export CSV",
+    "legend": {
+      "open": "Open",
+      "frozen": "Frozen"
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "subtitle": "Manage your client portfolio",
+    "newClient": "New client",
+    "search": "Search for a client...",
+    "notFound": "Client not found"
+  },
+  "profiles": {
+    "title": "Profiles",
+    "subtitle": "Billing profiles with default daily rates for quote creation.",
+    "newProfile": "New profile",
+    "footer": "These rates serve as defaults to speed up quote creation. They do not change validated quotes or rates already applied to projects.",
+    "dialog": {
+      "newTitle": "New profile",
+      "editTitle": "Edit profile"
+    },
+    "toasts": {
+      "createSuccess": "Profile \"{{name}}\" created",
+      "updateSuccess": "Profile \"{{name}}\" updated",
+      "createFailed": "Failed to create profile",
+      "updateFailed": "Failed to update profile"
+    }
+  },
+  "employees": {
+    "title": "Employees",
+    "subtitle": "Manage your team members and their cost rate history.",
+    "newEmployee": "New employee",
+    "exportUnavailable": "Export unavailable",
+    "errorLoading": "Error loading employee",
+    "employeeId": "Employee ID: {{id}}",
+    "table": {
+      "name": "Name",
+      "active": "Active",
+      "costRate": "Cost rate / day",
+      "assignedProjects": "Assigned projects"
+    }
+  },
+  "timesheets": {
+    "title": "My timesheets",
+    "errorLoading": "Could not load timesheets.",
+    "draftSaved": "Draft saved",
+    "submitted": "Timesheet submitted",
+    "defaultProject": "Project",
+    "activePeriod": "Current period",
+    "frozenPeriodsReadOnly": "Past periods (read-only)",
+    "pastPeriods": "{{count}} past period(s)",
+    "saveDraft": "Save draft",
+    "placeholders": {
+      "optionalNotes": "Optional notes"
+    },
+    "table": {
+      "task": "Task",
+      "profile": "Profile",
+      "period": "Period",
+      "plannedDays": "Planned days",
+      "daysSubmitted": "Days submitted",
+      "actualDays": "Actual days",
+      "costAmount": "Cost amount",
+      "notes": "Notes",
+      "status": "Status",
+      "total": "Total"
+    }
+  },
+  "approvals": {
+    "title": "Approvals",
+    "subtitle": "Project manager view — review and approve submitted timesheets",
+    "errorLoading": "Could not load approval data.",
+    "approveAll": "Approve all",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Timesheet approved — cost rate frozen at {{cost}}/d",
+    "approvedEmployee": "{{name}} approved — {{cost}}/d frozen",
+    "rejected": "Timesheet rejected",
+    "approveFailed": "Approval failed",
+    "rejectFailed": "Reject failed",
+    "approveEmployeeFailed": "Failed: {{name}}",
+    "frozenAllApproved": "All entries frozen",
+    "pastApprovals": "{{count}} past approval(s)",
+    "table": {
+      "period": "Period",
+      "status": "Status",
+      "entries": "Entries",
+      "totalCost": "Total cost",
+      "approved": "Approved"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Financial and productivity indicators",
+    "financial": {
+      "title": "Financial summary",
+      "errorLoading": "Error loading financial data",
+      "noData": "No financial data available",
+      "table": {
+        "project": "Project",
+        "client": "Client",
+        "contractValue": "Contract value",
+        "eacCost": "EAC cost",
+        "actualCost": "Actual cost",
+        "marginForecast": "Forecast margin",
+        "marginPct": "Margin %",
+        "producedValue": "Produced value",
+        "total": "Total"
+      }
+    },
+    "utilization": {
+      "title": "Utilization",
+      "errorLoading": "Error loading utilization data",
+      "noData": "No utilization data available",
+      "employee": "Employee"
+    }
+  },
+  "users": {
+    "title": "User management",
+    "subtitle_one": "{{count}} user",
+    "subtitle_other": "{{count}} users",
+    "newUser": "New user",
+    "edit": "Edit user: {{name}}",
+    "resetEmail": "Password reset email sent to {{email}}",
+    "deactivating": "Deactivating {{name}}…"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure global application preferences",
+    "saved": "Settings saved",
+    "weekStart": "Week starts on",
+    "dayPrecision": "Day precision",
+    "currency": "Currency",
+    "unassignedBehavior": "Unassigned behavior",
+    "applicationName": "Application name",
+    "companyName": "Company name"
+  },
+  "common": {
+    "errorLoading": "Error loading",
+    "noData": "No data available"
+  }
+}

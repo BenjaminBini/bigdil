@@ -1,0 +1,421 @@
+{
+  "dashboard": {
+    "title": "Tableau de bord",
+    "subtitle": "Vue d'ensemble multi-projets",
+    "errorLoading": "Erreur lors du chargement du tableau de bord",
+    "kpi": {
+      "totalContractValue": "Valeur contractuelle totale",
+      "totalContractDescription": "Sur tous les devis validés",
+      "totalMargin": "Marge prévisionnelle totale",
+      "totalMarginDescription": "D'après les derniers snapshots",
+      "activeProjects": "Projets en cours",
+      "activeProjectsDescription": "Actuellement en cours",
+      "overdueApprovals": "Approbations en attente",
+      "overdueApprovalsDescription": "Feuilles de temps à approuver"
+    },
+    "activeProjectsTitle": "Projets en cours",
+    "noActiveProjects": "Aucun projet en cours",
+    "alerts": {
+      "title": "Alertes",
+      "periodsReady": "Périodes en consolidation (prêtes à clôturer)",
+      "pendingApprovals": "Approbations en attente",
+      "pendingApprovalsDescription_one": "{{count}} feuille de temps en attente d'approbation",
+      "pendingApprovalsDescription_other": "{{count}} feuilles de temps en attente d'approbation",
+      "review": "Réviser",
+      "noAlerts": "Aucune alerte — tout est en ordre.",
+      "periodLabel": "Période"
+    },
+    "recentActivity": {
+      "title": "Activité récente",
+      "periodClosed": "Période {{periodNumber}} clôturée",
+      "noRecent": "Aucune activité récente"
+    }
+  },
+  "login": {
+    "tagline": "Professional Services Automation",
+    "cardTitle": "Connectez-vous à votre compte",
+    "cardDescription": "Entrez vos identifiants pour accéder à votre espace de travail",
+    "emailPlaceholder": "vous@acme-consulting.fr",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion...",
+    "loginSuccess": "Connexion réussie — redirection...",
+    "copyright": "Tous droits réservés."
+  },
+  "projects": {
+    "title": "Projets",
+    "subtitle_one": "{{count}} projet",
+    "subtitle_other": "{{count}} projets",
+    "errorLoading": "Erreur lors du chargement des projets",
+    "newProject": "Nouveau projet"
+  },
+  "projectLayout": {
+    "errorLoading": "Erreur lors du chargement du projet",
+    "client": "Client",
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "quotes": "Devis",
+      "workTable": "Planning",
+      "snapshots": "Périodes & clôtures",
+      "timesheets": "Feuilles de temps"
+    },
+    "kpi": {
+      "contractValue": "Valeur contractuelle",
+      "estimatedCost": "Coût estimé",
+      "estimatedMargin": "Marge estimée",
+      "actualCost": "Coût réel à ce jour",
+      "eacCost": "Coût EAC",
+      "produced": "Produit à ce jour",
+      "fromQuote": "depuis le devis",
+      "fromQuotes": "depuis {{count}} devis",
+      "ofContract": "{{pct}}% du contrat"
+    }
+  },
+  "quotes": {
+    "title": "Devis",
+    "subtitle": "Devis et avenants du projet",
+    "newQuote": "Nouveau devis",
+    "createSuccess": "Devis créé",
+    "table": {
+      "title": "Titre",
+      "status": "Statut",
+      "effectiveAt": "Date d'effet",
+      "validatedAt": "Date de validation",
+      "days": "Jours",
+      "revenue": "CA HT",
+      "budgetCost": "Coût budgété",
+      "margin": "Marge",
+      "marginPct": "Marge %"
+    },
+    "totals": {
+      "totalDays": "Total jours",
+      "revenue": "CA total",
+      "cost": "Coût total",
+      "margin": "Marge",
+      "marginPct": "Marge %"
+    },
+    "draftGrid": {
+      "showAllTasks": "Afficher toute la WBS",
+      "showAllTasksHint": "Affiche toutes les phases et tâches du projet, même celles non concernées par ce devis.",
+      "addProfile": "Ajouter un profil"
+    },
+    "actions": {
+      "send": "Envoyer au client",
+      "validate": "Marquer comme validé",
+      "reject": "Marquer comme refusé",
+      "cancel": "Annuler",
+      "reopen": "Rouvrir",
+      "duplicate": "Dupliquer",
+      "export": "Exporter"
+    },
+    "cancelDialog": {
+      "title": "Annuler le devis",
+      "description": "Êtes-vous sûr de vouloir annuler ce devis ? Cette action est irréversible.",
+      "confirm": "Annuler le devis"
+    },
+    "deleteDialog": {
+      "title": "Supprimer le devis",
+      "description": "Êtes-vous sûr de vouloir supprimer ce devis ? Cette action est irréversible.",
+      "confirm": "Supprimer"
+    },
+    "validateDialog": {
+      "title": "Valider le devis",
+      "description": "Confirmer que le client a accepté ce devis ? Les jours et le CA seront ajoutés à l'analyse financière du projet.",
+      "confirm": "Valider"
+    },
+    "sendDialog": {
+      "title": "Envoyer au client",
+      "description": "Marquer ce devis comme envoyé au client ?",
+      "confirm": "Envoyer"
+    },
+    "rejectDialog": {
+      "title": "Devis refusé par le client",
+      "description": "Marquer ce devis comme refusé ? Vous pourrez le rouvrir ou l'annuler ensuite.",
+      "confirm": "Marquer comme refusé"
+    },
+    "reopenDialog": {
+      "title": "Rouvrir le devis",
+      "description": "Repasser ce devis en brouillon pour modification ?",
+      "confirm": "Rouvrir"
+    },
+    "toasts": {
+      "sent": "Devis envoyé au client",
+      "validated": "Devis validé",
+      "validatedDesc": "Le CA et les jours sont ajoutés à l'analyse financière.",
+      "rejected": "Devis marqué comme refusé",
+      "cancelled": "Devis annulé",
+      "reopened": "Devis rouvert",
+      "actionFailed": "Action impossible"
+    },
+    "empty": "Aucun devis"
+  },
+  "wbs": {
+    "title": "Work Breakdown Structure",
+    "subtitle": "Gérez les phases et tâches du projet",
+    "addPhase": "Ajouter une phase",
+    "dialog": {
+      "addPhase": "Ajouter une phase",
+      "addSubTask": "Ajouter une sous-tâche à \"{{parent}}\"",
+      "edit": "Modifier \"{{name}}\""
+    },
+    "toasts": {
+      "deleted": "\"{{name}}\" supprimé",
+      "deleteFailed": "Échec de la suppression",
+      "taskNameRequired": "Le nom de la tâche est requis",
+      "updated": "Tâche \"{{name}}\" mise à jour",
+      "updateFailed": "Échec de la mise à jour de la tâche",
+      "created": "Tâche \"{{name}}\" créée",
+      "createFailed": "Échec de la création de la tâche"
+    }
+  },
+  "workTable": {
+    "title": "Planning",
+    "subtitle": "{{projectName}} · {{count}} périodes",
+    "taskPhaseColumn": "Tâche / Phase",
+    "consolidationBanner": {
+      "title": "Nouveaux devis validés sur ce mois",
+      "description": "Ces devis ont été validés pendant la période en consolidation. Le CA et les jours sont déjà ajoutés à l'analyse financière. Les jours apparaissent dans la colonne « À planifier » jusqu'à leur affectation.",
+      "quoteLine": "{{title}} — +{{revenue}} de CA · +{{days}} jours"
+    },
+    "summary": {
+      "validatedDaysSpent": "Consommés",
+      "validatedDaysSpentTooltip": "Jours pointés sur des périodes clôturées (snapshots).",
+      "daysInConsolidation": "À valider",
+      "daysInConsolidationTooltip": "Jours sur le mois en cours de clôture.",
+      "totalRemaining": "Restants",
+      "totalRemainingTooltip": "Jours sur la semaine ouverte et les semaines futures.",
+      "toPlan": "À planifier",
+      "toPlanTooltip": "Jours vendus (devis validés) qui ne sont pas encore répartis dans les semaines."
+    },
+    "addEmployeeToProfile": "Ajouter un collaborateur sur ce profil",
+    "addPhaseTitle": "Ajouter une phase",
+    "phaseNamePlaceholder": "Nom de la phase",
+    "phaseCreated": "Phase \"{{name}}\" créée",
+    "taskNamePlaceholder": "Nom de la tâche",
+    "taskCreated": "Tâche \"{{name}}\" créée",
+    "createFailed": "Échec de la création",
+    "saveCellFailed": "Échec de l'enregistrement",
+    "planningFailed": "Échec de la mise à jour du planning",
+    "assignEmployeeTitle": "Affecter un collaborateur",
+    "assignTo": "Affecter à {{name}}",
+    "assigned": "{{name}} affecté",
+    "alreadyAssigned": "Déjà affecté",
+    "assignFailed": "Échec de l'affectation",
+    "unassigned": "Non affecté",
+    "clickToEdit": "Cliquer pour modifier",
+    "columnTotals": "Totaux par colonne",
+    "grandTotal": "Total général",
+    "periodsGenerated": "{{count}} périodes générées",
+    "legend": {
+      "open": "Ouvert",
+      "consolidation": "Consolidation",
+      "frozen": "Clôturé",
+      "future": "Futur"
+    },
+    "total": {
+      "zoneTitle": "Totaux financiers",
+      "revenue": "Chiffre d'affaires",
+      "revenueFormula": "{{days}} jours vendus",
+      "cost": "Coût",
+      "costFormula": "{{days}} jours",
+      "marginFormula": "{{revenue}} − coût"
+    }
+  },
+  "snapshots": {
+    "title": "Snapshots",
+    "subtitle": "{{pending}} mois à consolider - {{snapshots}} snapshots enregistrés",
+    "pendingTitle": "À consolider",
+    "pendingEmpty": "Aucun mois entièrement consolidé pour le moment.",
+    "pendingHint": "Toutes les semaines de ce mois sont consolidées. Vous pouvez créer le snapshot.",
+    "createSnapshot": "Créer le snapshot",
+    "snapshotsTitle": "Snapshots",
+    "snapshotsEmpty": "Aucun snapshot enregistré pour ce projet.",
+    "detailTitle": "Snapshot — {{periodCode}}",
+    "exportBundle": "Exporter le bundle",
+    "exporting": "Export en cours...",
+    "margin": "Marge prévisionnelle : {{value}}",
+    "noMetrics": "Aucune métrique disponible",
+    "notFound": "Snapshot introuvable",
+    "snapshotRecorded": "Snapshot enregistré le {{date}}",
+    "tabs": {
+      "metrics": "Métriques",
+      "scope": "Périmètre",
+      "workTable": "Planning",
+      "actuals": "Réalisé"
+    }
+  },
+  "periodClose": {
+    "loadingData": "Chargement des données...",
+    "stepIndicator": {
+      "checklist": "Checklist",
+      "reforecast": "Reforecast",
+      "preview": "Aperçu",
+      "confirm": "Confirmer"
+    },
+    "titles": {
+      "step1": "Période {{num}}",
+      "step1Default": "Clôturer la période",
+      "step2": "Aperçu du snapshot",
+      "step3": "Reforecast",
+      "step4": "Confirmer la clôture"
+    }
+  },
+  "profileDetail": {
+    "errorLoading": "Erreur lors du chargement du profil",
+    "profileId": "ID profil : {{id}}",
+    "kpi": {
+      "defaultSellRate": "Taux de vente par défaut",
+      "defaultCostRate": "Taux de coût par défaut",
+      "defaultMargin": "Marge par défaut",
+      "perDay": "{{value}} / jour",
+      "perDayPct": "{{value}} ({{pct}}%)"
+    }
+  },
+  "projectTimesheets": {
+    "title": "Feuilles de temps",
+    "subtitle": "Toutes les entrées pour {{project}}",
+    "allEmployees": "Tous les collaborateurs",
+    "allPeriods": "Toutes les périodes",
+    "allTasks": "Toutes les tâches",
+    "exportCsv": "Exporter en CSV",
+    "legend": {
+      "open": "Ouvert",
+      "frozen": "Clôturé"
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "subtitle": "Gérez votre portefeuille clients",
+    "newClient": "Nouveau client",
+    "search": "Rechercher un client...",
+    "notFound": "Client introuvable"
+  },
+  "profiles": {
+    "title": "Profils",
+    "subtitle": "Profils de facturation avec taux journaliers par défaut pour la création des devis.",
+    "newProfile": "Nouveau profil",
+    "footer": "Ces taux sont des valeurs par défaut pour faciliter la création de devis. Ils ne modifient pas les devis validés ni les taux appliqués aux projets.",
+    "dialog": {
+      "newTitle": "Nouveau profil",
+      "editTitle": "Modifier le profil"
+    },
+    "toasts": {
+      "createSuccess": "Profil \"{{name}}\" créé",
+      "updateSuccess": "Profil \"{{name}}\" mis à jour",
+      "createFailed": "Échec de la création du profil",
+      "updateFailed": "Échec de la mise à jour du profil"
+    }
+  },
+  "employees": {
+    "title": "Collaborateurs",
+    "subtitle": "Gérez vos collaborateurs et leur historique de taux de coût.",
+    "newEmployee": "Nouveau collaborateur",
+    "exportUnavailable": "Export non disponible",
+    "errorLoading": "Erreur lors du chargement du collaborateur",
+    "employeeId": "ID collaborateur : {{id}}",
+    "table": {
+      "name": "Nom",
+      "active": "Actif",
+      "costRate": "Taux de coût/jour",
+      "assignedProjects": "Projets assignés"
+    }
+  },
+  "timesheets": {
+    "title": "Mes feuilles de temps",
+    "errorLoading": "Impossible de charger les feuilles de temps.",
+    "draftSaved": "Brouillon enregistré",
+    "submitted": "Feuille de temps soumise",
+    "defaultProject": "Projet",
+    "activePeriod": "Période en cours",
+    "frozenPeriodsReadOnly": "Périodes passées (lecture seule)",
+    "pastPeriods": "{{count}} période(s) passée(s)",
+    "saveDraft": "Enregistrer le brouillon",
+    "placeholders": {
+      "optionalNotes": "Notes (optionnel)"
+    },
+    "table": {
+      "task": "Tâche",
+      "profile": "Profil",
+      "period": "Période",
+      "plannedDays": "Jours planifiés",
+      "daysSubmitted": "Jours soumis",
+      "actualDays": "Jours réels",
+      "costAmount": "Montant coût",
+      "notes": "Notes",
+      "status": "Statut",
+      "total": "Total"
+    }
+  },
+  "approvals": {
+    "title": "Approbations",
+    "subtitle": "Vue chef de projet — vérifier et approuver les feuilles soumises",
+    "errorLoading": "Impossible de charger les données d'approbation.",
+    "approveAll": "Tout approuver",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "approved": "Feuille approuvée — taux de coût figé à {{cost}}/j",
+    "approvedEmployee": "{{name}} approuvé — {{cost}}/j figé",
+    "rejected": "Feuille de temps rejetée",
+    "approveFailed": "Échec de l'approbation",
+    "rejectFailed": "Échec du rejet",
+    "approveEmployeeFailed": "Échec : {{name}}",
+    "frozenAllApproved": "Toutes les entrées sont figées",
+    "pastApprovals": "{{count}} approbation(s) passée(s)",
+    "table": {
+      "period": "Période",
+      "status": "Statut",
+      "entries": "Entrées",
+      "totalCost": "Coût total",
+      "approved": "Approuvé"
+    }
+  },
+  "reports": {
+    "title": "Rapports",
+    "subtitle": "Indicateurs financiers et de productivité",
+    "financial": {
+      "title": "Synthèse financière",
+      "errorLoading": "Erreur lors du chargement des données financières",
+      "noData": "Aucune donnée financière disponible",
+      "table": {
+        "project": "Projet",
+        "client": "Client",
+        "contractValue": "Valeur contractuelle",
+        "eacCost": "Coût EAC",
+        "actualCost": "Coût réel",
+        "marginForecast": "Marge prévisionnelle",
+        "marginPct": "Marge %",
+        "producedValue": "Valeur produite",
+        "total": "Total"
+      }
+    },
+    "utilization": {
+      "title": "Utilisation",
+      "errorLoading": "Erreur lors du chargement des données d'utilisation",
+      "noData": "Aucune donnée d'utilisation disponible",
+      "employee": "Collaborateur"
+    }
+  },
+  "users": {
+    "title": "Gestion des utilisateurs",
+    "subtitle_one": "{{count}} utilisateur",
+    "subtitle_other": "{{count}} utilisateurs",
+    "newUser": "Nouvel utilisateur",
+    "edit": "Modifier l'utilisateur : {{name}}",
+    "resetEmail": "Email de réinitialisation envoyé à {{email}}",
+    "deactivating": "Désactivation de {{name}}…"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Configurer les préférences globales de l'application",
+    "saved": "Paramètres enregistrés",
+    "weekStart": "Premier jour de la semaine",
+    "dayPrecision": "Précision en jours",
+    "currency": "Devise",
+    "unassignedBehavior": "Comportement non affecté",
+    "applicationName": "Nom de l'application",
+    "companyName": "Nom de la société"
+  },
+  "common": {
+    "errorLoading": "Erreur lors du chargement",
+    "noData": "Aucune donnée disponible"
+  }
+}

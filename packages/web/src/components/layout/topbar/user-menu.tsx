@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, UserCog } from 'lucide-react'
+import { toast } from 'sonner'
+import { useCurrentUser, useStopImpersonating } from '@/api/hooks'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -9,31 +11,45 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import type { User as UserType } from '@/api/types'
 
-const currentUser: UserType = {
-  id: 'u1',
-  email: 'marie.dupont@acme-consulting.fr',
-  role: 'PM',
-  name: 'Marie Dupont',
-  employeeId: null,
+const ROLE_LABEL: Record<string, string> = {
+  ADMIN: 'Admin',
+  PM: 'Chef de projet',
+  CONSULTANT: 'Consultant',
+  FINANCE: 'Finance',
+  EXEC: 'Direction',
 }
 
-export function UserMenu() {
-  const navigate = useNavigate()
-  const initials = currentUser.name
+function initialsFor(name: string): string {
+  return name
     .split(' ')
     .map((n) => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2)
+}
 
-  const roleLabel: Record<string, string> = {
-    ADMIN: 'Admin',
-    PM: 'Chef de projet',
-    CONSULTANT: 'Consultant',
-    FINANCE: 'Finance',
-    EXEC: 'Direction',
+export function UserMenu() {
+  const navigate = useNavigate()
+  const { data: session } = useCurrentUser()
+  const stopImpersonating = useStopImpersonating()
+
+  if (!session) {
+    return (
+      <Button variant="ghost" size="sm" className="h-8 px-2" disabled>
+        …
+      </Button>
+    )
+  }
+
+  const { user, isImpersonating } = session
+  const initials = initialsFor(user.name)
+
+  function handleStopImpersonating() {
+    stopImpersonating.mutate(undefined, {
+      onSuccess: () => toast.success('Stopped impersonating'),
+      onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed'),
+    })
   }
 
   return (
@@ -44,7 +60,7 @@ export function UserMenu() {
             {initials}
           </span>
           <span className="hidden max-w-32 truncate text-sm font-medium sm:block">
-            {currentUser.name}
+            {user.name}
           </span>
         </Button>
       </DropdownMenuTrigger>
@@ -52,13 +68,18 @@ export function UserMenu() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-semibold">{currentUser.name}</span>
+            <span className="text-sm font-semibold">{user.name}</span>
             <span className="text-xs font-normal text-muted-foreground">
-              {roleLabel[currentUser.role] ?? currentUser.role}
+              {ROLE_LABEL[user.role] ?? user.role}
             </span>
             <span className="text-xs font-normal text-muted-foreground truncate">
-              {currentUser.email}
+              {user.email}
             </span>
+            {isImpersonating && (
+              <span className="mt-1 text-xs font-medium text-amber-500">
+                Impersonating — real user: {session.realUser.name}
+              </span>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -66,6 +87,12 @@ export function UserMenu() {
           <User className="size-4" />
           Mon profil
         </DropdownMenuItem>
+        {isImpersonating && (
+          <DropdownMenuItem className="gap-2" onSelect={handleStopImpersonating}>
+            <UserCog className="size-4" />
+            Stop impersonating
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"

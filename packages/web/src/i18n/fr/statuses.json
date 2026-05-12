@@ -1,0 +1,48 @@
+{
+  "project": {
+    "DRAFT": "Brouillon",
+    "WAITING_APPROVAL": "En attente",
+    "TO_PLAN": "À planifier",
+    "PLANNING": "Planification",
+    "IN_PROGRESS": "En cours",
+    "COMPLETED": "Terminé"
+  },
+  "period": {
+    "FROZEN": "Clôturée",
+    "CONSOLIDATION": "Consolidation",
+    "OPEN": "Ouverte",
+    "FUTURE": "Future"
+  },
+  "quote": {
+    "DRAFT": "Brouillon",
+    "SENT": "Envoyé",
+    "VALIDATED": "Validé",
+    "REJECTED": "Refusé",
+    "CANCELLED": "Annulée"
+  },
+  "timesheet": {
+    "DRAFT": "Brouillon",
+    "SUBMITTED": "Soumise",
+    "APPROVED": "Approuvée",
+    "REJECTED": "Rejetée"
+  },
+  "task": {
+    "planned": "Planifiée",
+    "active": "En cours",
+    "done": "Terminée"
+  },
+  "misc": {
+    "ACTIVE": "Actif",
+    "INACTIVE": "Inactif",
+    "ACTUAL": "Réalisé",
+    "PLANNED": "Planifié",
+    "CLOSED": "Clôturé"
+  },
+  "role": {
+    "ADMIN": "Administrateur",
+    "PM": "Chef de projet",
+    "CONSULTANT": "Consultant",
+    "FINANCE": "Finance",
+    "EXEC": "Direction"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "actions": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "create": "Créer",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "submit": "Soumettre",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "validate": "Valider",
+    "send": "Envoyer",
+    "duplicate": "Dupliquer",
+    "export": "Exporter",
+    "import": "Importer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "reset": "Réinitialiser",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "viewDetails": "Voir le détail",
+    "view": "Voir",
+    "open": "Ouvrir",
+    "remove": "Retirer",
+    "continue": "Continuer",
+    "finish": "Terminer",
+    "saveChanges": "Enregistrer les modifications"
+  },
+  "states": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "errorLoadingData": "Erreur lors du chargement",
+    "noData": "Aucune donnée",
+    "empty": "Aucun élément",
+    "saving": "Enregistrement...",
+    "loadingMore": "Chargement..."
+  },
+  "user": {
+    "myProfile": "Mon profil",
+    "signOut": "Se déconnecter"
+  },
+  "labels": {
+    "yes": "Oui",
+    "no": "Non",
+    "all": "Tous",
+    "none": "Aucun",
+    "total": "Total",
+    "subtotal": "Sous-total",
+    "name": "Nom",
+    "description": "Description",
+    "status": "Statut",
+    "type": "Type",
+    "date": "Date",
+    "from": "Du",
+    "to": "Au",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "createdAt": "Créé le",
+    "updatedAt": "Modifié le",
+    "actions": "Actions",
+    "details": "Détails",
+    "summary": "Résumé",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "theme": "Thème"
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "Anglais"
+  },
+  "theme": {
+    "switchToLight": "Passer en mode clair",
+    "switchToDark": "Passer en mode sombre"
+  },
+  "sidebar": {
+    "collapse": "Réduire",
+    "expand": "Étendre",
+    "expandSidebar": "Étendre la barre latérale",
+    "collapseSidebar": "Réduire la barre latérale"
+  },
+  "breadcrumb": {
+    "home": "Accueil"
+  },
+  "pagination": {
+    "page": "Page",
+    "of": "sur",
+    "rowsPerPage": "Lignes par page",
+    "showing": "Affichage de",
+    "results": "résultats",
+    "first": "Première",
+    "last": "Dernière"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "project": {
+    "DRAFT": "Draft",
+    "WAITING_APPROVAL": "Awaiting approval",
+    "TO_PLAN": "To plan",
+    "PLANNING": "Planning",
+    "IN_PROGRESS": "In progress",
+    "COMPLETED": "Completed"
+  },
+  "period": {
+    "FROZEN": "Closed",
+    "CONSOLIDATION": "Consolidation",
+    "OPEN": "Open",
+    "FUTURE": "Future"
+  },
+  "quote": {
+    "DRAFT": "Draft",
+    "SENT": "Sent",
+    "VALIDATED": "Validated",
+    "REJECTED": "Rejected",
+    "CANCELLED": "Cancelled"
+  },
+  "timesheet": {
+    "DRAFT": "Draft",
+    "SUBMITTED": "Submitted",
+    "APPROVED": "Approved",
+    "REJECTED": "Rejected"
+  },
+  "task": {
+    "planned": "Planned",
+    "active": "Active",
+    "done": "Done"
+  },
+  "misc": {
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
+    "ACTUAL": "Actual",
+    "PLANNED": "Planned",
+    "CLOSED": "Closed"
+  },
+  "role": {
+    "ADMIN": "Admin",
+    "PM": "Project manager",
+    "CONSULTANT": "Consultant",
+    "FINANCE": "Finance",
+    "EXEC": "Executive"
+  }
+}
