@@ -349,6 +349,15 @@ export function useValidateQuote(projectId: string) {
   })
 }
 
+export function useUnvalidateQuote(projectId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (quoteId: string) =>
+      apiFetch<Quote>(`/api/projects/${projectId}/quotes/${quoteId}/unvalidate`, { method: 'POST' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
 export function useCloseProject(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({

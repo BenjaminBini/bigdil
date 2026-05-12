@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { MutedText } from '@/components/shared/muted-text'
 
-export type QuoteAction = 'send' | 'reject' | 'reopen'
+export type QuoteAction = 'send' | 'reject' | 'reopen' | 'unvalidate'
 
 interface QuoteActionDialogProps {
   action: QuoteAction
@@ -18,16 +18,17 @@ interface QuoteActionDialogProps {
   onClose: () => void
 }
 
-const DIALOG_KEY: Record<QuoteAction, 'sendDialog' | 'rejectDialog' | 'reopenDialog'> = {
+const DIALOG_KEY: Record<QuoteAction, 'sendDialog' | 'rejectDialog' | 'reopenDialog' | 'unvalidateDialog'> = {
   send: 'sendDialog',
   reject: 'rejectDialog',
   reopen: 'reopenDialog',
+  unvalidate: 'unvalidateDialog',
 }
 
 export function QuoteActionDialog({ action, open, onConfirm, onClose }: QuoteActionDialogProps) {
   const { t } = useTranslation(['pages', 'common'])
   const key = DIALOG_KEY[action]
-  const isDestructive = action === 'reject'
+  const isDestructive = action === 'reject' || action === 'unvalidate'
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <DialogContent size="sm">

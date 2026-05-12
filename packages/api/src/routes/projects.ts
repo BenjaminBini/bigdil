@@ -945,11 +945,13 @@ projectsRouter.delete('/:id/quotes/:quoteId/lines/:lineId', async (c) => {
 })
 
 // Quote workflow state machine (see ADR / docs):
-//   DRAFT --send--> SENT --validate--> VALIDATED (terminal)
+//   DRAFT --send--> SENT --validate--> VALIDATED --unvalidate--> SENT
 //                       \--reject----> REJECTED --reopen--> DRAFT
 //                                              \--cancel--> CANCELLED (terminal)
 //   DRAFT --cancel--> CANCELLED (terminal)
 //
+// A quote in any status may be hard-deleted iff it has no planned days
+// (sum of lines.days) and no tracked time on its tasks.
 // Transitions are enforced server-side; UI must mirror.
 
 // POST /api/projects/:id/quotes/:quoteId/send — DRAFT → SENT
@@ -980,6 +982,18 @@ projectsRouter.post('/:id/quotes/:quoteId/validate', async (c) => {
   const projectId = c.req.param('id')
   const quoteId = c.req.param('quoteId')
 
+  const body = await c.req.json<{ validatedAt?: string | null; effectiveAt?: string | null }>().catch(() => ({} as { validatedAt?: string | null; effectiveAt?: string | null }))
+  const effectiveAtRaw = body.effectiveAt?.trim()
+  if (!effectiveAtRaw) {
+    return c.json({ error: 'effectiveAt is required to validate a quote' }, 400)
+  }
+  const effectiveAt = fromIsoDate(effectiveAtRaw)
+  if (Number.isNaN(effectiveAt.getTime())) {
+    return c.json({ error: 'effectiveAt must be a valid ISO date (YYYY-MM-DD)' }, 400)
+  }
+
+  const validatedAt = body.validatedAt ? fromIsoDate(body.validatedAt) : new Date()
+
   const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
   if (!quote) return c.json({ error: 'Quote not found' }, 404)
   if (quote.status !== 'SENT') {
@@ -988,7 +1002,7 @@ projectsRouter.post('/:id/quotes/:quoteId/validate', async (c) => {
 
   const updated = await prisma.quote.update({
     where: { id: quoteId },
-    data: { status: 'VALIDATED', validatedAt: new Date() },
+    data: { status: 'VALIDATED', validatedAt, effectiveAt },
     include: { lines: true },
   })
   await auditLog({ entity: 'Quote', entityId: quoteId, action: 'UPDATE', before: quote, after: updated, metadata: { transition: 'VALIDATE' } })
@@ -1056,6 +1070,68 @@ projectsRouter.post('/:id/quotes/:quoteId/reopen', async (c) => {
   })
   await auditLog({ entity: 'Quote', entityId: quoteId, action: 'UPDATE', before: quote, after: updated, metadata: { transition: 'REOPEN' } })
   return c.json(quoteShape(updated))
+})
+
+// POST /api/projects/:id/quotes/:quoteId/unvalidate — VALIDATED → SENT
+// Clears validatedAt + effectiveAt so the quote can be re-validated (e.g.,
+// with a corrected effective date) or rejected.
+projectsRouter.post('/:id/quotes/:quoteId/unvalidate', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+
+  const quote = await prisma.quote.findFirst({ where: { id: quoteId, projectId } })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+  if (quote.status !== 'VALIDATED') {
+    return c.json({ error: `Cannot unvalidate a quote with status ${quote.status} (must be VALIDATED)` }, 400)
+  }
+
+  const updated = await prisma.quote.update({
+    where: { id: quoteId },
+    data: { status: 'SENT', validatedAt: null, effectiveAt: null },
+    include: { lines: true },
+  })
+  await auditLog({ entity: 'Quote', entityId: quoteId, action: 'UPDATE', before: quote, after: updated, metadata: { transition: 'UNVALIDATE' } })
+  return c.json(quoteShape(updated))
+})
+
+// DELETE /api/projects/:id/quotes/:quoteId — hard delete (any status)
+// Allowed only when the quote has zero planned days AND zero tracked time
+// against any of its tasks. Otherwise return 400 so the caller knows to
+// cancel/unvalidate instead.
+projectsRouter.delete('/:id/quotes/:quoteId', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+
+  const quote = await prisma.quote.findFirst({
+    where: { id: quoteId, projectId },
+    include: { lines: true },
+  })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+
+  const plannedDays = quote.lines.reduce((sum, line) => sum + line.days, 0)
+  if (plannedDays > 0) {
+    return c.json({ error: 'Cannot delete a quote with planned days. Remove its lines first.' }, 400)
+  }
+
+  const taskIds = quote.lines.map((line) => line.taskId)
+  if (taskIds.length > 0) {
+    const spentCount = await prisma.taskTimesheet.count({
+      where: {
+        days: { gt: 0 },
+        assignmentSlot: { projectId, taskId: { in: taskIds } },
+      },
+    })
+    if (spentCount > 0) {
+      return c.json({ error: 'Cannot delete a quote with tracked time on its tasks.' }, 400)
+    }
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.quoteLine.deleteMany({ where: { quoteId } })
+    await tx.quote.delete({ where: { id: quoteId } })
+  })
+  await auditLog({ entity: 'Quote', entityId: quoteId, action: 'DELETE', before: quote })
+  return c.json({ ok: true })
 })
 
 // GET /api/projects/:id/timesheets — one Timesheet bundle per (employee,

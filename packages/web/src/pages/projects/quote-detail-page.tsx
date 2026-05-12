@@ -8,11 +8,13 @@ import {
   useProject,
   useReferenceData,
   useValidateQuote,
+  useUnvalidateQuote,
   useDuplicateQuote,
   useSendQuote,
   useRejectQuote,
   useCancelQuote,
   useReopenQuote,
+  useDeleteQuote,
 } from '@/api/hooks'
 import { Card } from '@/components/ui/card'
 import { AlertBanner } from '@/components/shared/alert-banner'
@@ -26,6 +28,7 @@ import { QuoteDraftGrid } from './quote-detail/quote-draft-grid'
 import { QuoteTotalsCard } from './quote-detail/quote-totals-card'
 import { ValidateDialog } from './quote-detail/validate-dialog'
 import { CancelQuoteDialog } from './quote-detail/cancel-quote-dialog'
+import { DeleteQuoteDialog } from './quote-detail/delete-quote-dialog'
 import { QuoteActionDialog, type QuoteAction } from './quote-detail/quote-action-dialog'
 
 function buildValidatedRateKeys(referenceQuote: Quote): Set<string> {
@@ -203,17 +206,20 @@ export default function QuoteDetailPage() {
   const { t } = useTranslation('pages')
   const [validateDialogOpen, setValidateDialogOpen] = useState(false)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [actionDialog, setActionDialog] = useState<QuoteAction | null>(null)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
   const { data, isLoading, error } = useProject(projectId!)
   const { data: refData, isLoading: refLoading } = useReferenceData()
   const validateQuote = useValidateQuote(projectId!)
+  const unvalidateQuote = useUnvalidateQuote(projectId!)
   const duplicateQuote = useDuplicateQuote(projectId!)
   const sendQuote = useSendQuote(projectId!)
   const rejectQuote = useRejectQuote(projectId!)
   const cancelQuote = useCancelQuote(projectId!)
   const reopenQuote = useReopenQuote(projectId!)
+  const deleteQuote = useDeleteQuote(projectId!)
 
   if (isLoading || refLoading) return <LoadingState />
   if (error || !data || !refData) return <ErrorState />
@@ -236,9 +242,9 @@ export default function QuoteDetailPage() {
     setCollapsed((prev) => ({ ...prev, [rowId]: !prev[rowId] }))
   }
 
-  function handleValidate() {
+  function handleValidate(effectiveAt: string) {
     const today = new Date().toISOString().split('T')[0]
-    validateQuote.mutate({ quoteId: quoteId!, validatedAt: today, effectiveAt: today }, {
+    validateQuote.mutate({ quoteId: quoteId!, validatedAt: today, effectiveAt }, {
       onSuccess: () => {
         setValidateDialogOpen(false)
         toast.success(t('quotes.toasts.validated'), { description: t('quotes.toasts.validatedDesc') })
@@ -287,6 +293,30 @@ export default function QuoteDetailPage() {
     })
   }
 
+  function handleUnvalidate() {
+    unvalidateQuote.mutate(quoteId!, {
+      onSuccess: () => {
+        setActionDialog(null)
+        toast.success(t('quotes.toasts.unvalidated'))
+      },
+      onError: (err: Error) => toast.error(t('quotes.toasts.actionFailed'), { description: err.message }),
+    })
+  }
+
+  function handleDelete() {
+    deleteQuote.mutate(quoteId!, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false)
+        toast.success(t('quotes.toasts.deleted'))
+        void navigate(`/projects/${projectId}`)
+      },
+      onError: (err: Error) => toast.error(t('quotes.toasts.actionFailed'), { description: err.message }),
+    })
+  }
+
+  const plannedDays = quote.lines.reduce((sum, line) => sum + line.days, 0)
+  const canDelete = plannedDays === 0
+
   const gridRows = buildQuoteGrid(
     quote,
     data.phases,
@@ -318,8 +348,10 @@ export default function QuoteDetailPage() {
     <VStack gap="xl">
       <QuoteDetailHeader
         quote={quote}
+        canDelete={canDelete}
         onSend={() => setActionDialog('send')}
         onValidate={() => setValidateDialogOpen(true)}
+        onUnvalidate={() => setActionDialog('unvalidate')}
         onReject={() => setActionDialog('reject')}
         onCancel={() => setCancelDialogOpen(true)}
         onReopen={() => setActionDialog('reopen')}
@@ -332,10 +364,11 @@ export default function QuoteDetailPage() {
             onError: () => toast.error('Échec de la duplication'),
           })
         }}
+        onDelete={() => setDeleteDialogOpen(true)}
         onExport={() => toast.info('Export à venir')}
       />
 
-      {isChangeOrder && (
+      {isChangeOrder && isDraft && (
         <AlertBanner
           variant="warning"
           icon={<Info size={16} color="#d97706" />}
@@ -376,8 +409,14 @@ export default function QuoteDetailPage() {
         sellRatePerDay: null, costRatePerDay: null, isFrozenRate: false,
       }} />}
 
-      <ValidateDialog open={validateDialogOpen} onConfirm={handleValidate} onClose={() => setValidateDialogOpen(false)} />
+      <ValidateDialog
+        open={validateDialogOpen}
+        defaultEffectiveAt={quote.effectiveAt ?? new Date().toISOString().split('T')[0]}
+        onConfirm={handleValidate}
+        onClose={() => setValidateDialogOpen(false)}
+      />
       <CancelQuoteDialog open={cancelDialogOpen} onConfirm={handleCancel} onClose={() => setCancelDialogOpen(false)} />
+      <DeleteQuoteDialog open={deleteDialogOpen} onConfirm={handleDelete} onClose={() => setDeleteDialogOpen(false)} />
       <QuoteActionDialog
         action={actionDialog ?? 'send'}
         open={actionDialog !== null}
@@ -385,6 +424,7 @@ export default function QuoteDetailPage() {
           if (actionDialog === 'send') handleSend()
           else if (actionDialog === 'reject') handleReject()
           else if (actionDialog === 'reopen') handleReopen()
+          else if (actionDialog === 'unvalidate') handleUnvalidate()
         }}
         onClose={() => setActionDialog(null)}
       />
