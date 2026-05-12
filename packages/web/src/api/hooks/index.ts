@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '../client'
 import type {
   ProjectListItem, ProjectDetail, WorkTableData, Snapshot, Quote, QuoteLine,
-  TimesheetEntry, Timesheet, ReferenceData, DashboardData,
+  Timesheet, ReferenceData, DashboardData,
   EmployeeDetail, ProfileDetail, Profile, Phase, Task, Client, Employee,
   FinancialReportRow, UtilizationReportRow, GlobalTimesheetWindow,
   User, UserRole, CurrentUserSession, AssignableSlot, CellDetail,

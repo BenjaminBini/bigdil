@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, MouseEvent } from 'react'
 import { cn } from '@/lib/utils'
 
 interface QuoteThProps {
@@ -63,14 +63,15 @@ interface QuoteTdProps {
   children: ReactNode
   className?: string
   bold?: boolean
+  onClick?: (e: MouseEvent<HTMLTableCellElement>) => void
 }
 
 const QUOTE_TD_BASE = 'px-3 py-2 text-right tabular-nums'
 
 /** Standard quote grid data cell */
-export function QuoteTd({ children, className, bold }: QuoteTdProps) {
+export function QuoteTd({ children, className, bold, onClick }: QuoteTdProps) {
   return (
-    <td className={cn(QUOTE_TD_BASE, bold && 'font-medium', className)}>
+    <td className={cn(QUOTE_TD_BASE, bold && 'font-medium', className)} onClick={onClick}>
       {children}
     </td>
   )

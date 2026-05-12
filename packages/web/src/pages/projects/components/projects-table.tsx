@@ -12,6 +12,7 @@ import { StatusBadge } from '@/components/shared/status-badge'
 import { Card } from '@/components/ui/card'
 import type { ProjectListItem } from '@/api/types'
 import { formatCurrency, formatDate } from '@/lib/format'
+import { deriveProjectLifecycle } from '@/lib/constants'
 
 interface ProjectsTableProps {
   rows: ProjectListItem[]
@@ -41,7 +42,7 @@ export function ProjectsTable({ rows }: ProjectsTableProps) {
                 <TdDetail>{row.clientName ?? <NullCell />}</TdDetail>
                 <TdPrimary>{row.name}</TdPrimary>
                 <TdDetail>
-                  <StatusBadge status={row.status} />
+                  <StatusBadge status={deriveProjectLifecycle(row)} />
                 </TdDetail>
                 <TdNumericPrimary>{formatCurrency(row.contractValue)}</TdNumericPrimary>
                 <TdDetail>

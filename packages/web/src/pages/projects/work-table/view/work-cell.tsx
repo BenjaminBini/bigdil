@@ -33,7 +33,6 @@ export function WorkCell({
   days,
   periodStatus,
   rowKind,
-  isActual = false,
   showAggregateValue = false,
   projectId,
   taskId,

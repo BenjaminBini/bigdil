@@ -17,6 +17,9 @@ export interface QuoteGridRow {
   cost: number
   margin: number
   marginPct: number | null
+  // True when the row's rate is locked because the rate was frozen on a
+  // prior validated quote — surfaces a lock icon and disables editing.
+  isFrozenRate?: boolean
   lines?: QuoteLine[]
 }
 

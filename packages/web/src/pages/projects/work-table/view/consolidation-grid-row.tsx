@@ -50,7 +50,7 @@ export function ConsolidationGridRow({
         />
       </StickyColumnCell>
 
-      {FROZEN_COLS.map((col, index) => {
+      {FROZEN_COLS.map((col) => {
         const value = detail ? getFrozenValue(detail, col.key) : null
         const isMarginCol = col.format === 'margin'
         const isEmpty = value === null || value === 0

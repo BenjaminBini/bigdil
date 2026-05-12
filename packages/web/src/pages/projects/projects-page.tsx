@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useProjects } from '@/api/hooks'
+import type { ProjectListItem } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
 import { PageHeader } from '@/components/shared/page-header'
@@ -24,7 +25,7 @@ export default function ProjectsPage() {
   const uniqueClients = [...new Set(projects.map((project) => project.clientName).filter(Boolean) as string[])]
   // Lifecycle filter: derive a coarse label per project so the user can scope
   // the list to active / upcoming / closed without surfacing the old enum.
-  function projectLifecycle(p: typeof projects[number]): 'ACTIVE' | 'UPCOMING' | 'CLOSED' {
+  function projectLifecycle(p: ProjectListItem): 'ACTIVE' | 'UPCOMING' | 'CLOSED' {
     if (p.closedAt) return 'CLOSED'
     if (p.isActive) return 'ACTIVE'
     const today = new Date().toISOString().slice(0, 10)
