@@ -121,6 +121,132 @@
     --sidebar-ring: oklch(0.62 0.22 265 / 0.6);
 }
 
+/* ----------------------------------------------------------------------- */
+/* Alternate themes — toggled by [data-theme] on <html>.                   */
+/* Dark-leaning themes also receive the `.dark` class so Tailwind          */
+/* `dark:` utilities continue to apply.                                    */
+/* ----------------------------------------------------------------------- */
+
+/* BLUE — vivid sky-blue accent on a deep navy canvas (dark-leaning) */
+[data-theme="blue"] {
+    --background: oklch(0.16 0.05 245);
+    --foreground: oklch(0.96 0.012 240);
+    --card: oklch(0.23 0.06 245);
+    --card-foreground: oklch(0.96 0.012 240);
+    --popover: oklch(0.25 0.06 245);
+    --popover-foreground: oklch(0.96 0.012 240);
+    --primary: oklch(0.68 0.16 235);
+    --primary-foreground: oklch(0.13 0.04 245);
+    --secondary: oklch(0.28 0.05 245);
+    --secondary-foreground: oklch(0.96 0.012 240);
+    --muted: oklch(0.28 0.05 245);
+    --muted-foreground: oklch(0.7 0.025 240);
+    --accent: oklch(0.32 0.08 245);
+    --accent-foreground: oklch(0.85 0.12 235);
+    --destructive: oklch(0.65 0.22 22);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 14%);
+    --ring: oklch(0.68 0.16 235 / 0.6);
+    --sidebar: oklch(0.23 0.06 245);
+    --sidebar-foreground: oklch(0.96 0.012 240);
+    --sidebar-primary: oklch(0.68 0.16 235);
+    --sidebar-primary-foreground: oklch(0.13 0.04 245);
+    --sidebar-accent: oklch(0.3 0.06 245);
+    --sidebar-accent-foreground: oklch(0.96 0.012 240);
+    --sidebar-border: oklch(1 0 0 / 9%);
+    --sidebar-ring: oklch(0.68 0.16 235 / 0.6);
+}
+
+/* CAPPUCCINO — warm cream canvas with espresso accents (light-leaning) */
+[data-theme="cappuccino"] {
+    --background: oklch(0.965 0.022 80);
+    --foreground: oklch(0.24 0.04 50);
+    --card: oklch(0.99 0.012 80);
+    --card-foreground: oklch(0.24 0.04 50);
+    --popover: oklch(0.99 0.012 80);
+    --popover-foreground: oklch(0.24 0.04 50);
+    --primary: oklch(0.42 0.09 50);
+    --primary-foreground: oklch(0.98 0.01 80);
+    --secondary: oklch(0.93 0.025 75);
+    --secondary-foreground: oklch(0.24 0.04 50);
+    --muted: oklch(0.93 0.025 75);
+    --muted-foreground: oklch(0.5 0.04 55);
+    --accent: oklch(0.9 0.04 70);
+    --accent-foreground: oklch(0.32 0.06 50);
+    --destructive: oklch(0.55 0.22 25);
+    --border: oklch(0.85 0.03 70);
+    --input: oklch(0.85 0.03 70);
+    --ring: oklch(0.42 0.09 50 / 0.5);
+    --sidebar: oklch(0.94 0.028 75);
+    --sidebar-foreground: oklch(0.24 0.04 50);
+    --sidebar-primary: oklch(0.42 0.09 50);
+    --sidebar-primary-foreground: oklch(0.98 0.01 80);
+    --sidebar-accent: oklch(0.9 0.035 70);
+    --sidebar-accent-foreground: oklch(0.24 0.04 50);
+    --sidebar-border: oklch(0.85 0.03 70);
+    --sidebar-ring: oklch(0.42 0.09 50 / 0.5);
+}
+
+/* FOREST — deep evergreen canvas with emerald accent (dark-leaning) */
+[data-theme="forest"] {
+    --background: oklch(0.17 0.025 165);
+    --foreground: oklch(0.95 0.012 160);
+    --card: oklch(0.24 0.035 165);
+    --card-foreground: oklch(0.95 0.012 160);
+    --popover: oklch(0.26 0.035 165);
+    --popover-foreground: oklch(0.95 0.012 160);
+    --primary: oklch(0.65 0.14 155);
+    --primary-foreground: oklch(0.14 0.03 165);
+    --secondary: oklch(0.28 0.04 165);
+    --secondary-foreground: oklch(0.95 0.012 160);
+    --muted: oklch(0.28 0.04 165);
+    --muted-foreground: oklch(0.7 0.025 160);
+    --accent: oklch(0.32 0.05 165);
+    --accent-foreground: oklch(0.85 0.1 155);
+    --destructive: oklch(0.65 0.22 22);
+    --border: oklch(1 0 0 / 9%);
+    --input: oklch(1 0 0 / 12%);
+    --ring: oklch(0.65 0.14 155 / 0.6);
+    --sidebar: oklch(0.24 0.035 165);
+    --sidebar-foreground: oklch(0.95 0.012 160);
+    --sidebar-primary: oklch(0.65 0.14 155);
+    --sidebar-primary-foreground: oklch(0.14 0.03 165);
+    --sidebar-accent: oklch(0.3 0.04 165);
+    --sidebar-accent-foreground: oklch(0.95 0.012 160);
+    --sidebar-border: oklch(1 0 0 / 8%);
+    --sidebar-ring: oklch(0.65 0.14 155 / 0.6);
+}
+
+/* ROSE — ivory canvas with dusty rose accent (light-leaning) */
+[data-theme="rose"] {
+    --background: oklch(0.98 0.01 20);
+    --foreground: oklch(0.26 0.04 15);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.26 0.04 15);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.26 0.04 15);
+    --primary: oklch(0.6 0.16 10);
+    --primary-foreground: oklch(0.99 0.005 20);
+    --secondary: oklch(0.95 0.018 15);
+    --secondary-foreground: oklch(0.26 0.04 15);
+    --muted: oklch(0.95 0.018 15);
+    --muted-foreground: oklch(0.5 0.04 12);
+    --accent: oklch(0.93 0.035 15);
+    --accent-foreground: oklch(0.4 0.12 10);
+    --destructive: oklch(0.58 0.22 25);
+    --border: oklch(0.9 0.025 15);
+    --input: oklch(0.9 0.025 15);
+    --ring: oklch(0.6 0.16 10 / 0.5);
+    --sidebar: oklch(0.96 0.02 15);
+    --sidebar-foreground: oklch(0.26 0.04 15);
+    --sidebar-primary: oklch(0.6 0.16 10);
+    --sidebar-primary-foreground: oklch(0.99 0.005 20);
+    --sidebar-accent: oklch(0.93 0.035 15);
+    --sidebar-accent-foreground: oklch(0.26 0.04 15);
+    --sidebar-border: oklch(0.9 0.025 15);
+    --sidebar-ring: oklch(0.6 0.16 10 / 0.5);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

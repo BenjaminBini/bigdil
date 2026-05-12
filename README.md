@@ -1,17 +1,68 @@
-# BigDil — PSA Web Application (Phase 1: UI Mockups)
+# BigDil — PSA Web Application
 
 A Professional Services Automation (PSA) web application for IT consulting companies.
-This is **Phase 1** — interactive UI mockups with hardcoded realistic data.
+
+Phase 1 (UI mockups) shipped. Phase 2 is in flight: Prisma + PostgreSQL, Hono API with Zod, real auth + impersonation, Playwright E2E. See `docs/architecture.md` and `docs/data-model.md`.
 
 ## Quick Start
 
 ```bash
-cd packages/web
-pnpm install
-pnpm dev
+./dev.sh   # boots Postgres (docker compose) + db package + API + web
 ```
 
-Then open http://localhost:5173 in your browser.
+Then open http://localhost:7777 in your browser. API on http://localhost:3000.
+
+<!-- AUTO-GENERATED:SCRIPTS:START -->
+## Scripts
+
+Root (`package.json`):
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Boot db container + run db/api/web in parallel (concurrently) |
+| `pnpm e2e` | Run Playwright E2E suite |
+| `pnpm e2e:headed` | Run Playwright E2E in headed browser |
+
+Web (`packages/web`):
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Vite dev server (port 7777, strictPort) |
+| `pnpm build` | TypeScript build + Vite production build |
+| `pnpm lint` | ESLint over `src/` |
+| `pnpm preview` | Preview built bundle |
+| `pnpm check:component-size` | Fail if any first-party `.tsx` exceeds 150 lines (UI primitives excluded) |
+
+API (`packages/api`):
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | `tsx watch src/index.ts` (live reload) |
+| `pnpm build` | TypeScript compile to `dist/` |
+| `pnpm start` | Run compiled `dist/index.js` |
+
+DB (`packages/db`):
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | `tsc --watch` |
+| `pnpm build` | `prisma generate` + `tsc` |
+| `pnpm db:push` | Push Prisma schema to Postgres |
+| `pnpm db:seed` | Run seed script (`src/seed.ts`) |
+| `pnpm db:studio` | Open Prisma Studio |
+| `pnpm db:generate` | Regenerate Prisma client |
+<!-- AUTO-GENERATED:SCRIPTS:END -->
+
+<!-- AUTO-GENERATED:ENV:START -->
+## Environment Variables
+
+No `.env.example` shipped — defaults work for local dev with the bundled `docker-compose.yml`.
+
+| Variable | Required | Default | Used by | Description |
+|----------|----------|---------|---------|-------------|
+| `DATABASE_URL` | No | `postgresql://bigdil:bigdil@localhost:5433/bigdil` | `@bigdil/db` | Postgres connection string |
+| `PORT` | No | `3000` | `@bigdil/api` | API HTTP port |
+<!-- AUTO-GENERATED:ENV:END -->
 
 ## Stack
 
@@ -94,13 +145,14 @@ The app is viewed as **Marie Dupont (PM)** by default.
 6. **Snapshot-based history** — each period close creates a full-copy immutable snapshot.
 7. **PM is the default view** — sidebar shows Projects, Clients, Profiles, Employees, Timesheets, Approvals, Admin.
 
-## Phase 2 (Not Yet Built)
+## Phase 2 — In Progress
 
-After mockup validation:
-- Prisma schema + PostgreSQL
-- Fastify API with Zod validation
-- Real data persistence
-- Calculation engine (period close, metrics)
-- Seed data
-- E2E tests with Playwright
-- Docker Compose setup
+- [x] Prisma schema + PostgreSQL (`packages/db`)
+- [x] Hono API + Zod validation (`packages/api`) — was Fastify in original plan
+- [x] Real data persistence + seed data (`packages/db/src/seed.ts`)
+- [x] Auth + impersonation (`/auth`, `/users` routes)
+- [x] i18n (en/fr) scaffolding
+- [x] Playwright E2E setup (`tests/`, `playwright.config.ts`)
+- [x] Docker Compose for Postgres
+- [ ] Calculation engine (period close, metrics) — partial
+- [ ] Full timesheet lifecycle wiring
