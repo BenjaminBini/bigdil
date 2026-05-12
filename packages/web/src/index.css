@@ -54,18 +54,19 @@
 }
 
 /* Hierarchy tiers — phase darkest at the top, employee lightest near the leaves.
-   Grand-total keeps its own distinct emphasis. Fade target is --accent-foreground
-   so the gradient picks up each theme's accent hue (e.g. espresso in cappuccino,
-   emerald in forest) instead of a flat grey toward --foreground. */
+   Grand-total keeps its own distinct emphasis. Fade target is --muted-foreground:
+   it inherits each theme's tinted neutral (cream-tan in cappuccino, mint-grey
+   in forest, …) while staying purely neutral in light/dark monochromes, which
+   keeps the gradient harmonious with the rest of the surface in every theme. */
 :root {
-    --row-phase: color-mix(in oklch, var(--card) 70%, var(--accent-foreground) 30%);
-    --row-task: color-mix(in oklch, var(--card) 82%, var(--accent-foreground) 18%);
-    --row-profile: color-mix(in oklch, var(--card) 91%, var(--accent-foreground) 9%);
-    --row-employee: color-mix(in oklch, var(--card) 97%, var(--accent-foreground) 3%);
-    --row-total: color-mix(in oklch, var(--card) 50%, var(--accent-foreground) 50%);
+    --row-phase: color-mix(in oklch, var(--card) 62%, var(--muted-foreground) 38%);
+    --row-task: color-mix(in oklch, var(--card) 78%, var(--muted-foreground) 22%);
+    --row-profile: color-mix(in oklch, var(--card) 89%, var(--muted-foreground) 11%);
+    --row-employee: color-mix(in oklch, var(--card) 96%, var(--muted-foreground) 4%);
+    --row-total: color-mix(in oklch, var(--card) 45%, var(--muted-foreground) 55%);
     --row-quote: color-mix(in oklch, var(--card) 84%, var(--primary) 16%);
     /* Opaque divider — used on sticky columns so borders never look ghostly */
-    --row-divider: color-mix(in oklch, var(--card) 70%, var(--accent-foreground) 30%);
+    --row-divider: color-mix(in oklch, var(--card) 65%, var(--muted-foreground) 35%);
 }
 
 :root {
