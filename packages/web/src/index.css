@@ -59,14 +59,14 @@
    in forest, …) while staying purely neutral in light/dark monochromes, which
    keeps the gradient harmonious with the rest of the surface in every theme. */
 :root {
-    --row-phase: color-mix(in oklch, var(--card) 62%, var(--muted-foreground) 38%);
-    --row-task: color-mix(in oklch, var(--card) 78%, var(--muted-foreground) 22%);
-    --row-profile: color-mix(in oklch, var(--card) 89%, var(--muted-foreground) 11%);
-    --row-employee: color-mix(in oklch, var(--card) 96%, var(--muted-foreground) 4%);
-    --row-total: color-mix(in oklch, var(--card) 45%, var(--muted-foreground) 55%);
-    --row-quote: color-mix(in oklch, var(--card) 84%, var(--primary) 16%);
+    --row-phase: color-mix(in oklch, var(--card) 76%, var(--muted-foreground) 24%);
+    --row-task: color-mix(in oklch, var(--card) 87%, var(--muted-foreground) 13%);
+    --row-profile: color-mix(in oklch, var(--card) 94%, var(--muted-foreground) 6%);
+    --row-employee: color-mix(in oklch, var(--card) 98%, var(--muted-foreground) 2%);
+    --row-total: color-mix(in oklch, var(--card) 52%, var(--muted-foreground) 48%);
+    --row-quote: color-mix(in oklch, var(--card) 88%, var(--primary) 12%);
     /* Opaque divider — used on sticky columns so borders never look ghostly */
-    --row-divider: color-mix(in oklch, var(--card) 65%, var(--muted-foreground) 35%);
+    --row-divider: color-mix(in oklch, var(--card) 78%, var(--muted-foreground) 22%);
 }
 
 :root {
