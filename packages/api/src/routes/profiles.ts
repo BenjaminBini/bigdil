@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { prisma } from '@bigdil/db'
+import { auditLog } from '../lib/audit.js'
 
 export const profilesRouter = new Hono()
 
@@ -13,12 +14,12 @@ profilesRouter.post('/', async (c) => {
 
   const profile = await prisma.profile.create({
     data: {
-      id: crypto.randomUUID(),
       name: body.name.trim(),
       defaultSellRatePerDay: body.defaultSellRatePerDay,
       defaultCostRatePerDay: body.defaultCostRatePerDay,
     },
   })
+  await auditLog({ entity: 'Profile', entityId: profile.id, action: 'CREATE', after: profile })
 
   return c.json(profile, 201)
 })
@@ -39,6 +40,7 @@ profilesRouter.patch('/:id', async (c) => {
       ...(typeof body.defaultCostRatePerDay === 'number' ? { defaultCostRatePerDay: body.defaultCostRatePerDay } : {}),
     },
   })
+  await auditLog({ entity: 'Profile', entityId: profile.id, action: 'UPDATE', before: existing, after: profile })
 
   return c.json(profile)
 })
@@ -48,10 +50,8 @@ profilesRouter.get('/:id', async (c) => {
   const profileId = c.req.param('id')
 
   const profile = await prisma.profile.findUnique({ where: { id: profileId } })
-
   if (!profile) return c.json({ error: 'Profile not found' }, 404)
 
-  // Quote lines using this profile
   const quoteLineRows = await prisma.quoteLine.findMany({
     where: { profileId },
     include: { quote: { include: { project: true } } },
@@ -69,34 +69,33 @@ profilesRouter.get('/:id', async (c) => {
     revenueAmount: ql.revenueAmount,
   }))
 
-  // Active assignments (planned days with employees)
-  const plannedDayRows = await prisma.plannedDay.findMany({
+  // Active assignments are now expressed via AssignmentSlot. Pull slots for this
+  // profile that have a (non-null) employee, then summarise total planned days.
+  const slots = await prisma.assignmentSlot.findMany({
     where: { profileId, employeeId: { not: null } },
-    include: { employee: true, project: true },
+    include: { employee: true, project: true, plannedDays: true },
   })
 
-  const activeAssignments = plannedDayRows.map(pd => ({
-    employeeId: pd.employee!.id,
-    employeeName: pd.employee!.name,
-    projectName: pd.project.name,
-    days: pd.days,
+  const activeAssignments = slots.map(slot => ({
+    employeeId: slot.employee!.id,
+    employeeName: slot.employee!.name,
+    projectName: slot.project.name,
+    days: slot.plannedDays.reduce((sum, pd) => sum + pd.days, 0),
   }))
 
-  // Applied rates from approved timesheets
-  const timesheetEntryRows = await prisma.timesheetEntry.findMany({
-    where: { profileId, appliedCostRatePerDay: { not: null } },
+  // Applied rates from approved timesheets — slot.profileId is the link.
+  const taskTimesheetRows = await prisma.taskTimesheet.findMany({
+    where: {
+      assignmentSlot: { profileId },
+      appliedCostRatePerDay: { not: null },
+    },
     select: { appliedCostRatePerDay: true, appliedSellRatePerDay: true },
   })
 
-  const appliedRates = timesheetEntryRows.map(r => ({
+  const appliedRates = taskTimesheetRows.map(r => ({
     costRate: r.appliedCostRatePerDay,
     sellRate: r.appliedSellRatePerDay,
   }))
 
-  return c.json({
-    ...profile,
-    usage,
-    activeAssignments,
-    appliedRates,
-  })
+  return c.json({ ...profile, usage, activeAssignments, appliedRates })
 })

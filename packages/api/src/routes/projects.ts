@@ -262,35 +262,59 @@ projectsRouter.get('/:id/work-table', async (c) => {
       frozenAt: null as string | null,
     }))
 
-  // Settled month: snapshot taken, cells must come from approved timesheets.
-  const frozenMonthCodes = new Set(periods.filter(p => p.status === 'FROZEN').map(p => p.monthCode))
+  // Cell value rule:
+  //   - For FROZEN / CONSOLIDATION slices → always use TaskTimesheet sum
+  //     (any bundle status). Past slices reflect declared work.
+  //   - For OPEN slices → use TaskTimesheet sum ONLY if the bundle has
+  //     been SUBMITTED or APPROVED. Draft / Rejected drafts still show
+  //     the planning numbers so cells don't visibly "shrink" while the
+  //     consultant is mid-input.
+  //   - FUTURE → planning numbers.
+  const pastSliceKeys = new Set(
+    periods.filter(p => p.status === 'FROZEN' || p.status === 'CONSOLIDATION').map(p => p.periodKey),
+  )
 
+  type CellKey = string
+  const cellKey = (taskId: string, profileId: string, employeeId: string | null, periodKey: string) =>
+    `${taskId}|${profileId}|${employeeId ?? ''}|${periodKey}`
+
+  const timesheetTotals = new Map<CellKey, number>()
+  for (const ts of projectTimesheets) {
+    const isPast = pastSliceKeys.has(ts.timesheet.periodKey)
+    const isLockedOpen = ts.timesheet.status === 'SUBMITTED' || ts.timesheet.status === 'APPROVED'
+    if (!isPast && !isLockedOpen) continue
+    const key = cellKey(ts.assignmentSlot.taskId, ts.assignmentSlot.profileId, ts.assignmentSlot.employeeId, ts.timesheet.periodKey)
+    timesheetTotals.set(key, (timesheetTotals.get(key) ?? 0) + ts.days)
+  }
+
+  const timesheetCells = [...timesheetTotals.entries()].map(([key, days]) => {
+    const [taskId, profileId, employeeRaw, periodKey] = key.split('|')
+    const employeeId = employeeRaw === '' ? null : employeeRaw
+    const parsed = parsePeriodSliceKey(periodKey)
+    return {
+      taskId,
+      profileId,
+      employeeId,
+      periodCode: periodKey,
+      periodKey,
+      weekCode: parsed.weekCode,
+      monthCode: parsed.monthCode,
+      days,
+      isActual: true,
+    }
+  })
+
+  // Planned days suppressed for any (cell) already provided by a timesheet
+  // entry above — covers OPEN slices with SUBMITTED/APPROVED bundles too.
+  const timesheetCellKeys = new Set(timesheetTotals.keys())
   const cells = [
-    ...projectTimesheets
-      .filter(ts => {
-        const monthCode = parsePeriodSliceKey(ts.timesheet.periodKey).monthCode
-        return frozenMonthCodes.has(monthCode) && ts.timesheet.status === 'APPROVED'
-      })
-      .map(ts => {
-        const periodKey = ts.timesheet.periodKey
-        const parsed = parsePeriodSliceKey(periodKey)
-        return {
-          taskId: ts.assignmentSlot.taskId,
-          profileId: ts.assignmentSlot.profileId,
-          employeeId: ts.assignmentSlot.employeeId,
-          periodCode: periodKey,
-          periodKey,
-          weekCode: parsed.weekCode,
-          monthCode: parsed.monthCode,
-          days: ts.days,
-          isActual: true,
-        }
-      }),
+    ...timesheetCells,
     ...projectPlannedDays
-      .filter(pd => {
-        const monthCode = parsePeriodSliceKey(pd.periodKey).monthCode
-        return !frozenMonthCodes.has(monthCode)
-      })
+      .filter(pd =>
+        !timesheetCellKeys.has(
+          cellKey(pd.assignmentSlot.taskId, pd.assignmentSlot.profileId, pd.assignmentSlot.employeeId, pd.periodKey),
+        ),
+      )
       .map(pd => {
         const parsed = parsePeriodSliceKey(pd.periodKey)
         return {
