@@ -33,7 +33,7 @@ export function ColumnTotalsRow({ periods, byCellPeriod }: ColumnTotalsRowProps)
             className={cn(
               'border-r border-slate-200 px-1.5 py-1 text-right text-xs font-mono tabular-nums',
               period.status === 'FROZEN' && 'bg-slate-200 text-slate-700',
-              period.status === 'CONSOLIDATION' && 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
+              period.status === 'CONSOLIDATION' && 'bg-amber-500/8 text-amber-700/80 dark:text-amber-300/80',
               period.status === 'OPEN' && 'bg-primary/15 text-primary',
               period.status === 'FUTURE' && 'bg-slate-100 text-slate-700',
               total === 0 && 'text-slate-400',
