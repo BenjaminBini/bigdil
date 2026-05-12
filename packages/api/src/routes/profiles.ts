@@ -45,6 +45,36 @@ profilesRouter.patch('/:id', async (c) => {
   return c.json(profile)
 })
 
+// DELETE /api/profiles/:id — delete a profile, only if not referenced anywhere
+profilesRouter.delete('/:id', async (c) => {
+  const profileId = c.req.param('id')
+
+  const existing = await prisma.profile.findUnique({ where: { id: profileId } })
+  if (!existing) return c.json({ error: 'Profile not found' }, 404)
+
+  // Profile is "in use" if referenced by any of: AssignmentSlot,
+  // ProfileTaskPeriodStart, QuoteLine, SnapshotScopeLine, SnapshotWorkRow.
+  const [assignmentSlots, periodStarts, quoteLines, snapshotScopeLines, snapshotWorkRows] = await Promise.all([
+    prisma.assignmentSlot.count({ where: { profileId } }),
+    prisma.profileTaskPeriodStart.count({ where: { profileId } }),
+    prisma.quoteLine.count({ where: { profileId } }),
+    prisma.snapshotScopeLine.count({ where: { profileId } }),
+    prisma.snapshotWorkRow.count({ where: { profileId } }),
+  ])
+
+  const usage = { assignmentSlots, periodStarts, quoteLines, snapshotScopeLines, snapshotWorkRows }
+  const totalRefs = assignmentSlots + periodStarts + quoteLines + snapshotScopeLines + snapshotWorkRows
+
+  if (totalRefs > 0) {
+    return c.json({ error: 'Profile is in use', usage }, 409)
+  }
+
+  await prisma.profile.delete({ where: { id: profileId } })
+  await auditLog({ entity: 'Profile', entityId: profileId, action: 'DELETE', before: existing })
+
+  return c.json({ success: true })
+})
+
 // GET /api/profiles/:id — profile detail + usage across projects
 profilesRouter.get('/:id', async (c) => {
   const profileId = c.req.param('id')

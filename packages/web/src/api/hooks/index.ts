@@ -265,6 +265,15 @@ export function useUpdateProfile() {
   })
 }
 
+export function useDeleteProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<{ success: true }>(`/api/profiles/${id}`, { method: 'DELETE' }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.referenceData }) },
+  })
+}
+
 export function useCreatePhase(projectId: string) {
   const queryClient = useQueryClient()
   return useMutation({

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
-import { useReferenceData, useCreateProfile, useUpdateProfile } from '@/api/hooks'
+import { useReferenceData, useCreateProfile, useUpdateProfile, useDeleteProfile } from '@/api/hooks'
+import { ApiError } from '@/api/client'
 import type { Profile } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
@@ -9,6 +10,7 @@ import { FlexBetween } from '@/components/shared/layouts'
 import { PageTitle } from '@/components/shared/page-title'
 import { MutedText } from '@/components/shared/muted-text'
 import { TextCaption } from '@/components/shared/text-caption'
+import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import {
   ProfileFormDialog,
   type ProfileFormState,
@@ -25,10 +27,12 @@ export default function ProfilesPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
   const [form, setForm] = useState<ProfileFormState>(emptyForm)
+  const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null)
 
   const { data: refData, isLoading, error } = useReferenceData()
   const createProfile = useCreateProfile()
   const updateProfile = useUpdateProfile()
+  const deleteProfile = useDeleteProfile()
 
   if (isLoading) return <LoadingState />
   if (error || !refData) return <ErrorState />
@@ -94,7 +98,7 @@ export default function ProfilesPage() {
         </Button>
       </FlexBetween>
 
-      <ProfilesTable profiles={refData.profiles} onEdit={openEdit} />
+      <ProfilesTable profiles={refData.profiles} onEdit={openEdit} onDelete={setDeleteTarget} />
 
       <TextCaption>
         Ces taux sont des valeurs par défaut pour faciliter la création de devis. Ils ne modifient pas les devis validés ni les taux appliqués aux projets.
@@ -109,6 +113,33 @@ export default function ProfilesPage() {
         onSave={handleSave}
         saveLabel={editingProfile ? 'Enregistrer' : 'Créer le profil'}
         isPending={createProfile.isPending || updateProfile.isPending}
+      />
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}
+        title={`Supprimer "${deleteTarget?.name ?? ''}" ?`}
+        description="Le profil ne peut être supprimé que s'il n'est utilisé nulle part (devis, plannings, snapshots)."
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        destructive
+        onConfirm={() => {
+          if (!deleteTarget) return
+          const target = deleteTarget
+          deleteProfile.mutate(target.id, {
+            onSuccess: () => {
+              toast.success(`Profil "${target.name}" supprimé`)
+              setDeleteTarget(null)
+            },
+            onError: (err: unknown) => {
+              const message = err instanceof ApiError && err.status === 409
+                ? 'Ce profil est utilisé ailleurs et ne peut pas être supprimé.'
+                : 'Échec de la suppression du profil.'
+              toast.error(message)
+              setDeleteTarget(null)
+            },
+          })
+        }}
       />
     </PageContainer>
   )
