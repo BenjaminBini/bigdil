@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { useProject } from '@/api/hooks'
 import { cn } from '@/lib/utils'
@@ -7,6 +8,7 @@ interface ActivePeriodBadgeProps {
 }
 
 export function ActivePeriodBadge({ projectId }: ActivePeriodBadgeProps) {
+  const { t } = useTranslation('statuses')
   const { data: project, isLoading } = useProject(projectId)
 
   if (isLoading) {
@@ -30,17 +32,17 @@ export function ActivePeriodBadge({ projectId }: ActivePeriodBadgeProps) {
             'bg-green-100 text-green-800 border-green-200',
           )}
         >
-          W{openPeriod.periodNumber} Open
+          {openPeriod.label} {t('period.OPEN')}
         </Badge>
       )}
       {consolidationPeriod && (
         <Badge className="border-amber-200 bg-amber-100 text-xs font-semibold text-amber-700">
-          W{consolidationPeriod.periodNumber} Consolidation
+          {consolidationPeriod.label} {t('period.CONSOLIDATION')}
         </Badge>
       )}
       {frozenPeriod && (
         <Badge className="border-border bg-muted text-xs font-medium text-muted-foreground">
-          W{frozenPeriod.periodNumber} Frozen
+          {frozenPeriod.label} {t('period.FROZEN')}
         </Badge>
       )}
     </div>

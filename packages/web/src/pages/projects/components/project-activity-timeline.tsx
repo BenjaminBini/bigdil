@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TimelineItem } from '@/components/shared/timeline-item'
 import { ErrorState } from '@/components/shared/page-container'
 import { formatDate } from '@/lib/format'
-import type { Period } from '@/api/types'
+import type { PeriodInfo } from '@/api/types'
 
 interface ProjectActivityTimelineProps {
-  periods: Period[]
+  periods: PeriodInfo[]
 }
 
 export function ProjectActivityTimeline({ periods }: ProjectActivityTimelineProps) {
@@ -14,9 +14,9 @@ export function ProjectActivityTimeline({ periods }: ProjectActivityTimelineProp
     .filter((period) => period.status === 'FROZEN' && period.frozenAt)
     .sort((a, b) => (b.frozenAt! > a.frozenAt! ? 1 : -1))
     .map((period) => ({
-      id: period.id,
-      label: `Period ${period.periodNumber} closed`,
-      date: formatDate(period.frozenAt),
+      id: period.code,
+      label: `Period ${period.label} closed`,
+      date: formatDate(period.frozenAt!),
     }))
 
   return (
