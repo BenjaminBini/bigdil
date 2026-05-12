@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { CalendarClock } from 'lucide-react'
 import {
   useAddTaskTimesheet,
   useCurrentUser,
@@ -14,6 +15,7 @@ import {
 import type { Timesheet } from '@/api/types'
 import { PageHeader } from '@/components/shared/page-header'
 import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { EmptyState } from '@/components/shared/empty-state'
 import { FullHeightColumn } from '@/components/shared/layouts'
 import { ActiveBanner } from './my-timesheets/active-banner'
 import { PastPeriods } from './my-timesheets/past-periods'
@@ -246,30 +248,40 @@ export default function TimesheetsPage() {
       <PageHeader title={t('timesheets.title')} subtitle={subtitle} />
 
       <PageContainer size="lg">
-        <ActiveBanner periodLabel={periodLabel} />
-
-        {activeTimesheet ? (
-          <ScheduleGrid
-            periodLabel={periodLabel}
-            status={activeTimesheet.status}
-            days={days}
-            tasks={tasks}
-            cells={cells}
-            leaveByDate={leaveByDate}
-            availableSlots={availableSlots}
-            onCellSave={handleCellSave}
-            onLeaveSave={handleLeaveSave}
-            onAddTask={handleAddTask}
-            onSaveDraft={handleSaveDraft}
-            onSubmit={handleSubmit}
-            isSaving={upsertEntry.isPending || upsertLeave.isPending}
-            isSubmitting={submitTimesheet.isPending}
+        {timesheets.length === 0 ? (
+          <EmptyState
+            icon={CalendarClock}
+            title="Aucune feuille de temps"
+            description="Aucune feuille de temps n'a été générée pour vous. Demandez à votre manager d'ouvrir une période ou de vous affecter à un projet."
           />
         ) : (
-          <ErrorState message={t('timesheets.errorLoading')} variant="muted" />
-        )}
+          <>
+            <ActiveBanner periodLabel={periodLabel} />
 
-        <PastPeriods open={pastOpen} onOpenChange={setPastOpen} rows={closedPeriodRows} />
+            {activeTimesheet ? (
+              <ScheduleGrid
+                periodLabel={periodLabel}
+                status={activeTimesheet.status}
+                days={days}
+                tasks={tasks}
+                cells={cells}
+                leaveByDate={leaveByDate}
+                availableSlots={availableSlots}
+                onCellSave={handleCellSave}
+                onLeaveSave={handleLeaveSave}
+                onAddTask={handleAddTask}
+                onSaveDraft={handleSaveDraft}
+                onSubmit={handleSubmit}
+                isSaving={upsertEntry.isPending || upsertLeave.isPending}
+                isSubmitting={submitTimesheet.isPending}
+              />
+            ) : (
+              <ErrorState message={t('timesheets.errorLoading')} variant="muted" />
+            )}
+
+            <PastPeriods open={pastOpen} onOpenChange={setPastOpen} rows={closedPeriodRows} />
+          </>
+        )}
       </PageContainer>
     </FullHeightColumn>
   )
