@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bigdil Work Table System Model</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fb;
+      --ink: #172033;
+      --muted: #63708a;
+      --line: #d9dfeb;
+      --panel: #ffffff;
+      --quote: #315bff;
+      --plan: #008b7a;
+      --actual: #c2410c;
+      --period: #7c3aed;
+      --freeze: #475569;
+      --soft-quote: #edf1ff;
+      --soft-plan: #e8f7f3;
+      --soft-actual: #fff2e8;
+      --soft-period: #f2ebff;
+      --soft-freeze: #eef2f7;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    header {
+      margin-bottom: 28px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 820px;
+      font-size: clamp(2rem, 5vw, 4.75rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    header p {
+      max-width: 760px;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    section {
+      margin-top: 26px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 18px 46px rgb(27 39 70 / 7%);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .stage {
+      min-height: 168px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--accent);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+
+    .stage small {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stage h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .stage p {
+      color: #2f3b51;
+      font-size: 0.9rem;
+    }
+
+    .quote { --accent: var(--quote); --soft: var(--soft-quote); }
+    .plan { --accent: var(--plan); --soft: var(--soft-plan); }
+    .actual { --accent: var(--actual); --soft: var(--soft-actual); }
+    .period { --accent: var(--period); --soft: var(--soft-period); }
+    .freeze { --accent: var(--freeze); --soft: var(--soft-freeze); }
+
+    .model-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .entity-column {
+      display: grid;
+      gap: 12px;
+    }
+
+    .entity {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .entity h3 {
+      padding: 12px 14px;
+      background: var(--soft);
+      color: var(--accent);
+      font-size: 0.95rem;
+    }
+
+    .entity ul {
+      margin: 0;
+      padding: 10px 14px 12px;
+      list-style: none;
+      color: #344057;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+    }
+
+    .entity li + li {
+      margin-top: 4px;
+    }
+
+    .join {
+      display: grid;
+      place-items: center;
+      min-height: 100%;
+      padding: 18px;
+      border: 1px dashed #aab4c6;
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, transparent 0 18%, #dbe3f0 18% 18.4%, transparent 18.4% 81.6%, #dbe3f0 81.6% 82%, transparent 82%),
+        #fbfcff;
+      text-align: center;
+    }
+
+    .join strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 1.25rem;
+    }
+
+    .join code {
+      display: inline-block;
+      margin: 4px;
+      padding: 4px 7px;
+      border-radius: 5px;
+      background: #edf2f8;
+      color: #27344b;
+      font-size: 0.8rem;
+    }
+
+    .worktable {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 860px;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+      min-width: 280px;
+    }
+
+    th {
+      background: #f2f5fa;
+      color: #42506a;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .phase-row td {
+      background: #eaf0fb;
+      font-weight: 800;
+    }
+
+    .task-row td {
+      background: #f7f9fd;
+      font-weight: 700;
+    }
+
+    .profile-row td {
+      background: #fbfcff;
+      color: #4f5c72;
+      font-weight: 700;
+    }
+
+    .employee-row td:first-child {
+      padding-left: 42px;
+    }
+
+    .unassigned td:first-child {
+      color: #7a8598;
+      font-style: italic;
+    }
+
+    .locked {
+      background: #f1f3f6;
+      color: #69758a;
+    }
+
+    .editable {
+      background: #eefbf6;
+      color: #075f52;
+      font-weight: 700;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .period-state {
+      position: relative;
+      min-height: 120px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .period-state::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      border-radius: 8px 8px 0 0;
+      background: var(--accent);
+    }
+
+    .period-state h3 {
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .period-state p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .flows {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .flow {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .flow h3 {
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    .flow ol {
+      margin: 0;
+      padding-left: 18px;
+      color: #344057;
+      font-size: 0.92rem;
+    }
+
+    .flow li + li {
+      margin-top: 8px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #42506a;
+      font-size: 0.82rem;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    @media (max-width: 920px) {
+      .pipeline,
+      .model-grid,
+      .timeline,
+      .flows {
+        grid-template-columns: 1fr;
+      }
+
+      .join {
+        min-height: 180px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Work Table, Assignment, Timesheet, and Period Model</h1>
+      <p>
+        Bigdil models sold scope, planned staffing, actual work, and period closing as separate
+        layers. The work table is the reconciliation view that groups those layers by phase,
+        task, profile, employee, and period.
+      </p>
+    </header>
+
+    <section>
+      <div class="section-title">
+        <h2>System Pipeline</h2>
+        <p class="note">From commercial baseline to frozen actuals</p>
+      </div>
+      <div class="pipeline">
+        <article class="stage quote">
+          <small>Sold scope</small>
+          <h3>QuoteLine</h3>
+          <p>Defines the budget for a task/profile pair: sold days, sell rate, assumed cost, revenue, and budget cost.</p>
+        </article>
+        <article class="stage plan">
+          <small>Planning</small>
+          <h3>PlannedDay</h3>
+          <p>Stores forecast days per project, period, task, profile, and optional employee assignment.</p>
+        </article>
+        <article class="stage actual">
+          <small>Execution</small>
+          <h3>TimesheetEntry</h3>
+          <p>Records actual employee work. Approval freezes applied cost and sell rates onto the entry.</p>
+        </article>
+        <article class="stage period">
+          <small>Control</small>
+          <h3>ProjectPeriodStatus</h3>
+          <p>Controls period state: future, open, consolidation, or frozen. This decides whether the table shows plan or actuals.</p>
+        </article>
+        <article class="stage freeze">
+          <small>Reporting</small>
+          <h3>Snapshot</h3>
+          <p>Captures immutable metrics, scope, and work rows when a period is frozen.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>Data Model</h2>
+        <p class="note">The work table is derived from these persisted records</p>
+      </div>
+      <div class="model-grid">
+        <div class="entity-column">
+          <article class="entity quote">
+            <h3>Project</h3>
+            <ul>
+              <li>id</li>
+              <li>status</li>
+              <li>startDate / endDate</li>
+              <li>periodGranularity</li>
+            </ul>
+          </article>
+          <article class="entity quote">
+            <h3>Task</h3>
+            <ul>
+              <li>projectId</li>
+              <li>parentTaskId</li>
+              <li>name</li>
+              <li>sortOrder</li>
+            </ul>
+          </article>
+          <article class="entity quote">
+            <h3>QuoteLine</h3>
+            <ul>
+              <li>taskId</li>
+              <li>profileId</li>
+              <li>days</li>
+              <li>sellRatePerDay</li>
+              <li>costRateAssumptionPerDay</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="join">
+          <div>
+            <strong>Work table cell identity</strong>
+            <code>projectId</code>
+            <code>periodCode</code>
+            <code>taskId</code>
+            <code>profileId</code>
+            <code>employeeId?</code>
+            <p class="note" style="margin-top: 12px;">
+              Null employee means unassigned capacity. A real employee means assigned forecast.
+            </p>
+          </div>
+        </div>
+
+        <div class="entity-column">
+          <article class="entity plan">
+            <h3>PlannedDay</h3>
+            <ul>
+              <li>projectId</li>
+              <li>periodCode</li>
+              <li>taskId</li>
+              <li>profileId</li>
+              <li>employeeId nullable</li>
+              <li>days</li>
+            </ul>
+          </article>
+          <article class="entity actual">
+            <h3>TimesheetEntry</h3>
+            <ul>
+              <li>employeeId</li>
+              <li>projectId</li>
+              <li>periodCode</li>
+              <li>taskId</li>
+              <li>profileId</li>
+              <li>workDate</li>
+              <li>status</li>
+            </ul>
+          </article>
+          <article class="entity period">
+            <h3>ProjectPeriodStatus</h3>
+            <ul>
+              <li>projectId</li>
+              <li>periodCode</li>
+              <li>status</li>
+              <li>frozenAt</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>Work Table Shape</h2>
+        <p class="note">Grouped from rows into a planning grid</p>
+      </div>
+      <div class="worktable">
+        <table>
+          <thead>
+            <tr>
+              <th>Hierarchy</th>
+              <th>Sold</th>
+              <th>2026M1 Frozen</th>
+              <th>2026M2 Open</th>
+              <th>2026M3 Future</th>
+              <th>Total</th>
+              <th>Variance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="phase-row">
+              <td>Phase 2 - Design</td>
+              <td>19.0d</td>
+              <td class="locked">7.5d actual</td>
+              <td>11.5d plan</td>
+              <td>0.0d</td>
+              <td>19.0d</td>
+              <td>0.0d</td>
+            </tr>
+            <tr class="task-row">
+              <td>Solution Architecture</td>
+              <td>8.0d</td>
+              <td class="locked">4.5d actual</td>
+              <td>3.5d plan</td>
+              <td>0.0d</td>
+              <td>8.0d</td>
+              <td>0.0d</td>
+            </tr>
+            <tr class="profile-row">
+              <td>Technical Architect</td>
+              <td>8.0d</td>
+              <td class="locked">4.5d</td>
+              <td>3.5d</td>
+              <td>0.0d</td>
+              <td>8.0d</td>
+              <td>0.0d</td>
+            </tr>
+            <tr class="employee-row">
+              <td>Paul Girard</td>
+              <td></td>
+              <td class="locked">4.5d</td>
+              <td class="editable">3.5d</td>
+              <td class="editable">0.0d</td>
+              <td>8.0d</td>
+              <td></td>
+            </tr>
+            <tr class="task-row">
+              <td>Project Management</td>
+              <td>10.0d</td>
+              <td class="locked">2.25d actual</td>
+              <td>3.0d plan</td>
+              <td>2.0d plan</td>
+              <td>7.25d</td>
+              <td>-2.75d</td>
+            </tr>
+            <tr class="profile-row">
+              <td>Project Manager</td>
+              <td>10.0d</td>
+              <td class="locked">2.25d</td>
+              <td>3.0d</td>
+              <td>2.0d</td>
+              <td>7.25d</td>
+              <td>-2.75d</td>
+            </tr>
+            <tr class="employee-row unassigned">
+              <td>Unassigned</td>
+              <td></td>
+              <td class="locked">2.25d</td>
+              <td class="editable">3.0d</td>
+              <td class="editable">2.0d</td>
+              <td>7.25d</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="legend">
+        <span class="chip" style="--accent: var(--quote);"><span class="dot"></span>QuoteLine baseline</span>
+        <span class="chip" style="--accent: var(--plan);"><span class="dot"></span>PlannedDay forecast</span>
+        <span class="chip" style="--accent: var(--actual);"><span class="dot"></span>Approved timesheet actual</span>
+        <span class="chip" style="--accent: var(--period);"><span class="dot"></span>Period status controls display</span>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>Period Lifecycle</h2>
+        <p class="note">How a column changes behavior</p>
+      </div>
+      <div class="timeline">
+        <article class="period-state" style="--accent: #64748b;">
+          <h3>FUTURE</h3>
+          <p>Planner edits forecast cells. Work table reads and writes PlannedDay rows.</p>
+        </article>
+        <article class="period-state" style="--accent: #0284c7;">
+          <h3>OPEN</h3>
+          <p>Current delivery period. Forecast remains editable while employees submit timesheets.</p>
+        </article>
+        <article class="period-state" style="--accent: #d97706;">
+          <h3>CONSOLIDATION</h3>
+          <p>Planning is locked. Approved timesheets become the displayed work table values.</p>
+        </article>
+        <article class="period-state" style="--accent: #475569;">
+          <h3>FROZEN</h3>
+          <p>Period is closed. A snapshot stores immutable reporting rows and financial metrics.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>Operational Flows</h2>
+        <p class="note">What happens in common workflows</p>
+      </div>
+      <div class="flows">
+        <article class="flow">
+          <h3>Assign Employee</h3>
+          <ol>
+            <li>Planner picks an employee on an unassigned work table row.</li>
+            <li>API moves existing unassigned PlannedDay rows to that employee.</li>
+            <li>If no real row exists yet, API seeds a zero-day PlannedDay row in the first assignable period.</li>
+            <li>Frontend reloads the work table and shows the employee row.</li>
+          </ol>
+        </article>
+        <article class="flow">
+          <h3>Edit Planned Days</h3>
+          <ol>
+            <li>Planner edits an employee or unassigned leaf cell.</li>
+            <li>API upserts PlannedDay for the exact period, task, profile, employee key.</li>
+            <li>Totals roll up to profile, task, phase, and project rows.</li>
+            <li>Closed periods ignore plan and show actuals instead.</li>
+          </ol>
+        </article>
+        <article class="flow">
+          <h3>Approve Timesheet</h3>
+          <ol>
+            <li>Employee submits work against project, task, profile, and period.</li>
+            <li>Approver approves the TimesheetEntry.</li>
+            <li>Approval freezes applied cost and sell rates.</li>
+            <li>When period closes, approved actuals replace plan in the work table.</li>
+          </ol>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

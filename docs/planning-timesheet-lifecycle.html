@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Planning / Timesheet / Consolidation / Snapshot Lifecycle</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --panel-2: #f8fbff;
+      --ink: #162132;
+      --muted: #627085;
+      --line: #d7dfeb;
+      --shadow: 0 18px 50px rgba(27, 39, 70, 0.08);
+      --blue: #2d5bff;
+      --blue-soft: #eaf0ff;
+      --green: #0f8b72;
+      --green-soft: #e7f6f1;
+      --amber: #b26a00;
+      --amber-soft: #fff5df;
+      --slate: #5d6b80;
+      --slate-soft: #eef2f7;
+      --purple: #6d4bff;
+      --purple-soft: #f1ecff;
+      --teal: #117a8b;
+      --teal-soft: #e8f7fa;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: radial-gradient(circle at top, #ffffff 0, #f3f6fb 28%, #eef3f9 100%); color: var(--ink); }
+    body { line-height: 1.45; }
+    main { max-width: 1360px; margin: 0 auto; padding: 28px 18px 60px; }
+
+    h1, h2, h3, p, dl, dt, dd { margin: 0; }
+
+    .hero {
+      display: grid;
+      gap: 18px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,251,255,0.98));
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    h1 {
+      max-width: 980px;
+      font-size: clamp(2rem, 4vw, 4.6rem);
+      line-height: 0.97;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 1040px;
+      font-size: 1.03rem;
+      color: var(--muted);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #314055;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    section {
+      margin-top: 22px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.88);
+      box-shadow: var(--shadow);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-head h2 {
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #2d3a50;
+    }
+
+    .note {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .pipe-card {
+      position: relative;
+      min-height: 190px;
+      padding: 16px 16px 18px;
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--accent);
+      border-radius: 16px;
+      background: var(--soft);
+    }
+
+    .pipe-card::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -18px;
+      width: 16px;
+      height: 16px;
+      transform: translateY(-50%);
+      border-right: 4px solid #b1bdd1;
+      border-top: 4px solid #b1bdd1;
+      rotate: 45deg;
+    }
+
+    .pipe-card:last-child::after { display: none; }
+
+    .pipe-card small {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .pipe-card h3 {
+      margin-bottom: 10px;
+      font-size: 1.02rem;
+    }
+
+    .pipe-card p {
+      color: #304056;
+      font-size: 0.91rem;
+    }
+
+    .quote { --accent: var(--blue); --soft: var(--blue-soft); }
+    .plan { --accent: var(--green); --soft: var(--green-soft); }
+    .actual { --accent: var(--teal); --soft: var(--teal-soft); }
+    .consol { --accent: var(--amber); --soft: var(--amber-soft); }
+    .snap { --accent: var(--purple); --soft: var(--purple-soft); }
+
+    .rhythm-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .rhythm-card {
+      min-height: 150px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rhythm-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 6px;
+      background: var(--accent);
+    }
+
+    .rhythm-card small {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .rhythm-card h3 {
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .rhythm-card p {
+      color: #304056;
+      font-size: 0.9rem;
+    }
+
+    .week-frozen { --accent: var(--purple); background: linear-gradient(180deg, #ffffff, #f8f4ff); }
+    .week-consol { --accent: var(--amber); background: linear-gradient(180deg, #ffffff, #fffaf0); }
+    .week-open { --accent: var(--green); background: linear-gradient(180deg, #ffffff, #f6fbf9); }
+    .week-future { --accent: var(--blue); background: linear-gradient(180deg, #ffffff, #f5f8ff); }
+
+    .callout {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfdff;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .diagram {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .lane {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(249,251,255,0.92));
+      overflow: hidden;
+    }
+
+    .lane-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfdff;
+    }
+
+    .lane-head h3 {
+      font-size: 1.02rem;
+    }
+
+    .lane-head span {
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .lane.employee .lane-head span { background: var(--blue-soft); color: var(--blue); }
+    .lane.manager .lane-head span { background: var(--green-soft); color: var(--green); }
+
+    .steps {
+      display: grid;
+      gap: 0;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .steps li {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .steps li:last-child { border-bottom: 0; }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      font-weight: 800;
+      background: #f0f4fb;
+      color: #324055;
+    }
+
+    .employee .step-num { background: var(--blue-soft); color: var(--blue); }
+    .manager .step-num { background: var(--green-soft); color: var(--green); }
+
+    .steps h4 {
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+
+    .steps p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 260px 1.05fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .state-column {
+      display: grid;
+      gap: 12px;
+    }
+
+    .state-card {
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--accent);
+      border-radius: 16px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .state-card small {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .state-card h4 {
+      margin-bottom: 8px;
+      font-size: 0.98rem;
+    }
+
+    .state-card p, .state-card li {
+      color: #334055;
+      font-size: 0.9rem;
+    }
+
+    .state-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .state-card li + li { margin-top: 6px; }
+
+    .live { --accent: var(--green); background: linear-gradient(180deg, #ffffff, #f6fbf9); }
+    .approval { --accent: var(--amber); background: linear-gradient(180deg, #ffffff, #fffaf0); }
+    .frozen { --accent: var(--purple); background: linear-gradient(180deg, #ffffff, #f8f4ff); }
+
+    .global-window {
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff, #f6f9ff);
+      padding: 16px;
+    }
+
+    .global-window h4 {
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .global-window p, .global-window li {
+      color: #334055;
+      font-size: 0.9rem;
+    }
+
+    .connector {
+      display: grid;
+      place-items: center;
+      padding: 8px 0;
+    }
+
+    .connector svg {
+      width: 100%;
+      max-width: 220px;
+      height: auto;
+    }
+
+    .datasheet {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .datasheet th, .datasheet td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.92rem;
+    }
+
+    .datasheet th {
+      background: #f4f7fb;
+      color: #405066;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .datasheet tr:last-child td { border-bottom: 0; }
+
+    .tag {
+      display: inline-block;
+      margin-right: 6px;
+      margin-top: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      background: #eef2f7;
+      color: #334155;
+    }
+
+    .tag.blue { background: var(--blue-soft); color: var(--blue); }
+    .tag.green { background: var(--green-soft); color: var(--green); }
+    .tag.amber { background: var(--amber-soft); color: var(--amber); }
+    .tag.purple { background: var(--purple-soft); color: var(--purple); }
+    .tag.teal { background: var(--teal-soft); color: var(--teal); }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 1100px) {
+      .pipeline,
+      .diagram,
+      .state-grid,
+      .rhythm-strip { grid-template-columns: 1fr; }
+      .pipe-card::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Illustrated lifecycle guide</div>
+      <h1>Planning, timesheets, consolidation and snapshots</h1>
+      <p>
+        This page shows the data lifecycle from two angles. Employees submit one weekly timesheet that can span
+        multiple projects. Managers turn quote scope into weekly planning, approve or reject submitted time,
+        re-estimate the remaining work, and freeze the closed week into an immutable snapshot.
+      </p>
+      <div class="chips">
+        <span class="chip">Weekly employee submission window is global</span>
+        <span class="chip">Employee POV: draft → submit → resubmit while open</span>
+        <span class="chip">Manager POV: plan → validate → re-estimate → freeze</span>
+        <span class="chip">Month end closes the last week then creates a snapshot</span>
+      </div>
+    </header>
+
+    <section>
+      <div class="section-head">
+        <h2>Lifecycle at a glance</h2>
+        <div class="note">How one month advances week by week</div>
+      </div>
+      <div class="pipeline">
+        <article class="pipe-card quote">
+          <small>1. Sold baseline</small>
+          <h3>Validated quote</h3>
+          <p>Quote lines define the sold scope. Task + profile days and rates are the baseline for project planning.</p>
+        </article>
+        <article class="pipe-card plan">
+          <small>2. Manager planning</small>
+          <h3>Planned days</h3>
+          <p>Managers enter planned days per weekly slice. Those rows stay live and can be revised while the week is open or in consolidation.</p>
+        </article>
+        <article class="pipe-card actual">
+          <small>3. Weekly actuals</small>
+          <h3>Cross-project timesheet</h3>
+          <p>The employee fills the open week with assigned tasks from all projects. Tasks appear even when no days were pre-provisioned.</p>
+        </article>
+        <article class="pipe-card consol">
+          <small>4. Consolidation</small>
+          <h3>Approval and re-estimation</h3>
+          <p>Submitted timesheets move into the global consolidation queue. PMs approve or reject rows and update the remaining work forecast.</p>
+        </article>
+        <article class="pipe-card snap">
+          <small>5. Freeze</small>
+          <h3>Snapshot</h3>
+          <p>When the week is closed, the system writes an immutable snapshot with metrics, scope lines and work rows.</p>
+        </article>
+      </div>
+      <div class="callout">
+        Weekly rhythm: the previous week enters consolidation, the current week is open for submission, and future weeks stay planned.
+        At the end of the month, the last week of the month is consolidated, the remaining work for the coming month is checked,
+        and then the closed periods are frozen into a snapshot.
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Weekly calendar rhythm</h2>
+        <div class="note">The company-wide submission window is not project-specific</div>
+      </div>
+      <div class="rhythm-strip">
+        <article class="rhythm-card week-frozen">
+          <small>Older weeks</small>
+          <h3>Frozen history</h3>
+          <p>Past weeks are read-only. Their approved actuals already live in snapshots and reporting tables.</p>
+        </article>
+        <article class="rhythm-card week-consol">
+          <small>Previous week</small>
+          <h3>Consolidation</h3>
+          <p>Employees can no longer submit. PMs validate pending lines and may still adjust future planned days.</p>
+        </article>
+        <article class="rhythm-card week-open">
+          <small>Current week</small>
+          <h3>Open for submission</h3>
+          <p>Employees fill and resubmit their weekly timesheet until it is accepted or the week rolls forward.</p>
+        </article>
+        <article class="rhythm-card week-future">
+          <small>Future weeks</small>
+          <h3>Planned only</h3>
+          <p>Managers can edit planned days for future weeks. Employees cannot submit actuals until the week opens.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Swimlanes</h2>
+        <div class="note">Employee and manager responsibilities, side by side</div>
+      </div>
+      <div class="diagram">
+        <article class="lane employee">
+          <div class="lane-head">
+            <h3>Employee POV</h3>
+            <span>Actuals</span>
+          </div>
+          <ol class="steps">
+            <li>
+              <div class="step-num">1</div>
+              <div>
+                <h4>See the open week</h4>
+                <p>The employee sees one weekly timesheet that spans all assigned projects. The sheet is pre-populated with the tasks they are assigned to for that period, even when planned days are zero.</p>
+              </div>
+            </li>
+            <li>
+              <div class="step-num">2</div>
+              <div>
+                <h4>Create a draft timesheet entry</h4>
+                <p>Each line starts as <strong>DRAFT</strong>. It stays editable until the employee submits the weekly sheet for approval.</p>
+              </div>
+            </li>
+            <li>
+              <div class="step-num">3</div>
+              <div>
+                <h4>Submit</h4>
+                <p>Submission moves the row to <strong>SUBMITTED</strong>. From the employee side, the week is now waiting for manager validation.</p>
+              </div>
+            </li>
+            <li>
+              <div class="step-num">4</div>
+              <div>
+                <h4>Edit and resubmit while the week is open</h4>
+                <p>If the manager rejects the entry, the employee edits it and resubmits it as many times as needed while the submission window stays open. Past weeks remain read-only.</p>
+              </div>
+            </li>
+          </ol>
+        </article>
+
+        <article class="lane manager">
+          <div class="lane-head">
+            <h3>Manager POV</h3>
+            <span>Planning</span>
+          </div>
+          <ol class="steps">
+            <li>
+              <div class="step-num">1</div>
+              <div>
+                <h4>Turn scope into planning</h4>
+                <p>After quote validation, the manager creates <strong>planned days</strong> for each weekly period and task/profile pair. Future weeks remain editable.</p>
+              </div>
+            </li>
+            <li>
+              <div class="step-num">2</div>
+              <div>
+                <h4>Review submitted timesheets</h4>
+                <p>Submitted weekly timesheets are checked against scope, progress and the remaining forecast. The manager approves or rejects each entry.</p>
+              </div>
+            </li>
+            <li>
+              <div class="step-num">3</div>
+              <div>
+                <h4>Re-estimate the remaining work</h4>
+                <p>As approvals accumulate, the PM adjusts future planned days and the remaining work view. That is the live forecast, not the frozen history.</p>
+              </div>
+            </li>
+            <li>
+              <div class="step-num">4</div>
+              <div>
+                <h4>Start consolidation and freeze</h4>
+                <p>At week end, the manager closes the consolidated week. At month end, the final consolidated week is closed, the remaining work is verified, and the system writes the snapshot.</p>
+              </div>
+            </li>
+          </ol>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Data state machine</h2>
+        <div class="note">What changes, what stays live, what becomes immutable</div>
+      </div>
+      <article class="global-window">
+        <small class="eyebrow" style="display:block;margin-bottom:6px;color:var(--blue);">Global weekly submission window</small>
+        <h4><code>WeeklySubmissionWindow</code> <span class="tag blue">conceptual</span></h4>
+        <p style="margin-top:8px;">The employee gate is company-wide and weekly, not tied to a single project. The current week is open, the previous week is in consolidation, and older weeks are already frozen.</p>
+      </article>
+      <div class="state-grid">
+        <div class="state-column">
+          <article class="state-card live">
+            <small>Live planning</small>
+            <h4><code>PlannedDay</code></h4>
+            <ul>
+              <li>Created and adjusted by the manager.</li>
+              <li>Describes the forecasted load for a project week.</li>
+              <li>Mutates while the week is future, open or in consolidation.</li>
+            </ul>
+          </article>
+          <article class="state-card live">
+            <small>Live actuals</small>
+            <h4><code>TimesheetEntry</code></h4>
+            <ul>
+              <li>Created by the employee as <strong>DRAFT</strong> on the open weekly sheet.</li>
+              <li>Moves to <strong>SUBMITTED</strong>, then <strong>APPROVED</strong> or <strong>REJECTED</strong>.</li>
+              <li>Approved rows freeze the cost and sell rates that applied at the time.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="connector" aria-hidden="true">
+          <svg viewBox="0 0 240 520" role="img" aria-label="Lifecycle connector">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1">
+                <stop offset="0%" stop-color="#0f8b72"/>
+                <stop offset="100%" stop-color="#6d4bff"/>
+              </linearGradient>
+            </defs>
+            <line x1="120" y1="22" x2="120" y2="498" stroke="#c9d3e4" stroke-width="4" stroke-dasharray="8 10"/>
+            <circle cx="120" cy="70" r="30" fill="#e7f6f1" stroke="#0f8b72" stroke-width="4"/>
+            <text x="120" y="79" text-anchor="middle" font-size="18" font-weight="800" fill="#0f8b72">1</text>
+            <circle cx="120" cy="210" r="30" fill="#fff5df" stroke="#b26a00" stroke-width="4"/>
+            <text x="120" y="219" text-anchor="middle" font-size="18" font-weight="800" fill="#b26a00">2</text>
+            <circle cx="120" cy="350" r="30" fill="#f1ecff" stroke="#6d4bff" stroke-width="4"/>
+            <text x="120" y="359" text-anchor="middle" font-size="18" font-weight="800" fill="#6d4bff">3</text>
+            <path d="M120 100 L120 180" stroke="url(#g1)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M120 240 L120 320" stroke="url(#g1)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M120 380 L120 458" stroke="url(#g1)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M114 448 L120 466 L126 448" fill="none" stroke="#6d4bff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <div class="state-column">
+          <article class="state-card approval">
+            <small>Consolidation</small>
+            <h4><code>ProjectPeriodStatus</code> = OPEN &rarr; CONSOLIDATION</h4>
+            <ul>
+              <li>The submission window is closed for employees.</li>
+              <li>The PM validates submitted timesheets and revises the remaining forecast.</li>
+              <li>This is where live planning and actuals are reconciled before the freeze.</li>
+            </ul>
+          </article>
+          <article class="state-card frozen">
+            <small>Frozen history</small>
+            <h4><code>Snapshot</code></h4>
+            <ul>
+              <li>The freeze transaction creates the snapshot.</li>
+              <li>It stores metrics, scope lines, and work rows for historical reporting.</li>
+              <li>Later edits to planning or rates do not change it.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>What each table means</h2>
+        <div class="note">Data ownership and mutability by object</div>
+      </div>
+      <table class="datasheet">
+        <thead>
+          <tr>
+            <th>Object</th>
+            <th>Owned by</th>
+            <th>Purpose</th>
+            <th>Mutable until</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>QuoteLine</code></td>
+            <td>Manager / commercial</td>
+            <td>Sold scope baseline. Feeds contract value, sold days and rate assumptions.</td>
+            <td>Quote validation or later amendments.</td>
+          </tr>
+          <tr>
+            <td><code>PlannedDay</code></td>
+            <td>Manager</td>
+            <td>Forecasted work for a project week. Used for capacity planning and remaining work.</td>
+            <td>Period freeze.</td>
+          </tr>
+          <tr>
+            <td><code>TimesheetEntry</code></td>
+            <td>Employee first, then manager</td>
+            <td>Weekly actual work across the employee's assigned tasks and projects. Captures submitted, approved or rejected time.</td>
+            <td>Approval, rejection, or the weekly submission window closing.</td>
+          </tr>
+          <tr>
+            <td><code>ProjectPeriodStatus</code></td>
+            <td>Manager / system</td>
+            <td>Controls the project planning period: FUTURE, OPEN, CONSOLIDATION, FROZEN. This is separate from the company-wide employee submission gate.</td>
+            <td>State transition itself.</td>
+          </tr>
+          <tr>
+            <td><code>WeeklySubmissionWindow</code> <span class="tag blue">conceptual</span></td>
+            <td>System / HR operations</td>
+            <td>Company-wide weekly gate for employee submissions. The current week is open, the previous week is in consolidation, and closed weeks are read-only.</td>
+            <td>Week roll-over or month-end close.</td>
+          </tr>
+          <tr>
+            <td><code>ProfileTaskPeriodStart</code></td>
+            <td>System at freeze</td>
+            <td>Stores sold and remaining work at the start of the next period.</td>
+            <td>Each new period close.</td>
+          </tr>
+          <tr>
+            <td><code>Snapshot</code> + snapshot children</td>
+            <td>System</td>
+            <td>Immutable historical view used for finance and reporting.</td>
+            <td>Never, once created.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="footer-note">
+        Rule of thumb: planning is predictive, timesheets are weekly actuals, consolidation resolves the gap, and the snapshot locks history.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
