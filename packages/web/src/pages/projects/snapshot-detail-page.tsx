@@ -1,4 +1,5 @@
 import { useParams } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -19,6 +20,7 @@ import { WorkTableTab } from './snapshot-detail/work-table-tab'
 import { ActualsTab } from './snapshot-detail/actuals-tab'
 
 export default function SnapshotDetailPage() {
+  const { t } = useTranslation('pages')
   const { id: projectId, snapshotId } = useParams()
 
   const { data: snapshot, isLoading: snapLoading, error: snapError } = useSnapshot(projectId!, snapshotId!)
@@ -31,16 +33,16 @@ export default function SnapshotDetailPage() {
 
   if (isLoading) return <LoadingState />
   if (hasError || !snapshot || !project || !refData || !allTimesheets) {
-    return <ErrorState message="Snapshot not found." />
+    return <ErrorState message={t('snapshots.notFound')} />
   }
 
-  const getTaskName = (taskId: string) => project.flatTasks.find(t => t.id === taskId)?.name ?? taskId
+  const getTaskName = (taskId: string) => project.flatTasks.find(task => task.id === taskId)?.name ?? taskId
   const getProfileName = (profileId: string) => refData.profiles.find(p => p.id === profileId)?.name ?? profileId
   const getEmployeeName = (employeeId: string | null) =>
     employeeId ? (refData.employees.find(e => e.id === employeeId)?.name ?? employeeId) : '—'
 
   function handleExport() {
-    toast.info('Exporting CSV bundle…')
+    toast.info(t('snapshots.exporting'))
   }
 
   const marginPct =
@@ -53,41 +55,41 @@ export default function SnapshotDetailPage() {
       <FlexBetween align="start" gap="lg" wrap>
         <VStack gap="xs">
           <FlexRow>
-            <PageTitle>Snapshot — Period {snapshot.periodNumber}</PageTitle>
+            <PageTitle>{t('snapshots.detailTitle', { periodCode: snapshot.periodCode })}</PageTitle>
             <StatusBadge status="CLOSED" />
           </FlexRow>
           <MutedText>
-            Snapshot recorded: {formatDate(snapshot.snapshotAt)}
+            {t('snapshots.snapshotRecorded', { date: formatDate(snapshot.snapshotAt) })}
             {snapshot.notes && (
               <HintText> "{snapshot.notes}"</HintText>
             )}
           </MutedText>
           {snapshot.metrics && (
             <TextCaption>
-              Margin: {formatCurrency(snapshot.metrics.marginForecast)} ({marginPct.toFixed(1)}%)
+              {t('snapshots.margin', { value: formatCurrency(snapshot.metrics.marginForecast), pct: marginPct.toFixed(1) })}
             </TextCaption>
           )}
         </VStack>
 
         <Button variant="outline" onClick={handleExport}>
           <Download size={16} />
-          Export CSV Bundle
+          {t('snapshots.exportBundle')}
         </Button>
       </FlexBetween>
 
       <Tabs defaultValue="metrics">
         <TabsList>
-          <TabsTrigger value="metrics">Metrics</TabsTrigger>
-          <TabsTrigger value="scope">Scope</TabsTrigger>
-          <TabsTrigger value="work-table">Work Table</TabsTrigger>
-          <TabsTrigger value="actuals">Actuals</TabsTrigger>
+          <TabsTrigger value="metrics">{t('snapshots.tabs.metrics')}</TabsTrigger>
+          <TabsTrigger value="scope">{t('snapshots.tabs.scope')}</TabsTrigger>
+          <TabsTrigger value="work-table">{t('snapshots.tabs.workTable')}</TabsTrigger>
+          <TabsTrigger value="actuals">{t('snapshots.tabs.actuals')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="metrics">
           {snapshot.metrics ? (
             <MetricsTab metrics={snapshot.metrics} />
           ) : (
-            <ErrorState message="No metrics available for this snapshot." variant="muted" />
+            <ErrorState message={t('snapshots.noMetrics')} variant="muted" />
           )}
         </TabsContent>
 

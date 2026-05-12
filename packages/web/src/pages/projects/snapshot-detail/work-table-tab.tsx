@@ -23,7 +23,7 @@ interface WorkTableTabProps {
 }
 
 export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmployeeName }: WorkTableTabProps) {
-  const asOfPeriodNumber = snapshot.periodNumber
+  const asOfPeriodCode = snapshot.periodCode
   const rows = snapshot.workTableRows
 
   const aggMap = new Map<
@@ -54,7 +54,7 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
         variant="info"
         icon={<Lock size={16} color="#3b82f6" />}
         title="Work table as-of this snapshot — READ ONLY"
-        description={`This is a frozen view. Showing all periods up to Period ${asOfPeriodNumber}.`}
+        description={`This is a frozen view. Showing all periods up to ${asOfPeriodCode}.`}
       />
 
       <Card variant="flush">

@@ -17,7 +17,7 @@ export function SnapshotSummaryStrip({ snapshots }: SnapshotSummaryStripProps) {
         {snapshots.map((snapshot) => (
           <KpiCard
             key={snapshot.id}
-            label={`Period ${snapshot.periodNumber}`}
+            label={snapshot.periodCode}
             value={snapshot.metrics ? formatCurrency(snapshot.metrics.producedExecutionValuePeriod) : '—'}
             description={formatDate(snapshot.snapshotAt)}
             variant="inline"
