@@ -1,8 +1,7 @@
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
-import type { Employee, PeriodInfo, ProfileTaskPeriodStart } from '@/api/types'
-import { AssignEmployeePopover } from './assign-employee-popover'
+import type { PeriodInfo, ProfileTaskPeriodStart } from '@/api/types'
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { TreeRowLabel } from '@/components/shared/tree-row-label'
 import { cn } from '@/lib/utils'
@@ -171,10 +170,7 @@ interface WorkGridRowProps {
   setExpandedProfileId: (id: string | null) => void
   frozenData: Map<string, FrozenData>
   periodStartMap: Map<string, ProfileTaskPeriodStart>
-  employees: Employee[]
-  assignedEmployeesByProfile: Map<string, Set<string>>
   onSaveCell?: (params: { taskId: string; profileId: string; employeeId?: string; periodCode: string; days: number }) => void
-  onAssignEmployee?: (params: { taskId: string; profileId: string; employeeId: string }) => void
 }
 
 export function WorkGridRow({
@@ -189,10 +185,7 @@ export function WorkGridRow({
   setExpandedProfileId,
   frozenData,
   periodStartMap,
-  employees,
-  assignedEmployeesByProfile,
   onSaveCell,
-  onAssignEmployee,
 }: WorkGridRowProps) {
   const { t } = useTranslation('pages')
   const isProfile = row.kind === 'profile'
@@ -242,16 +235,6 @@ export function WorkGridRow({
                   : undefined
             }
           />
-          {/* Only affordance on the work-table itself: a small always-visible
-            * "+" next to a profile row to assign another collaborator. */}
-          {row.kind === 'profile' && row.taskId && row.profileId && onAssignEmployee && (
-            <AssignEmployeePopover
-              employees={employees}
-              triggerTitle={t('workTable.addEmployeeToProfile', 'Ajouter un collaborateur')}
-              excludeIds={Array.from(assignedEmployeesByProfile.get(`${row.taskId}:${row.profileId}`) ?? [])}
-              onAssign={(employeeId) => onAssignEmployee({ taskId: row.taskId!, profileId: row.profileId!, employeeId })}
-            />
-          )}
         </WorkGridLabelCell>
 
         <SummaryCells row={row} />
