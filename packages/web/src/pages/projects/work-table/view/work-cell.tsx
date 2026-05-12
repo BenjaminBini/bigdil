@@ -98,9 +98,13 @@ export function WorkCell({
               : rowKind === 'quote' ? 'bg-row-quote'
                 : 'bg-card'
 
+  // Borders on period cells: every kind except employee shows a faint grid;
+  // employee rows render flat so the per-day band reads as one surface.
+  const periodCellBorders = rowKind === 'employee' ? '' : 'border-b border-r border-border/50'
+
   if (editing) {
     return (
-      <td className={cn('border-b border-r border-border/50 p-0 min-w-[56px] w-14', cellBg)}>
+      <td className={cn(periodCellBorders, 'p-0 min-w-[56px] w-14', cellBg)}>
         <CompactInput
           ref={inputRef}
           type="text"
@@ -116,7 +120,8 @@ export function WorkCell({
   }
 
   const cellClasses = cn(
-    'min-w-[56px] w-14 border-b border-r border-border/50 px-1.5 py-1 text-right font-mono tabular-nums',
+    'min-w-[56px] w-14 px-1.5 py-1 text-right font-mono tabular-nums',
+    periodCellBorders,
     cellBg,
     // Row-kind hierarchy — aggregates loud, employee row distinctly recessed.
     rowKind === 'phase' && 'text-[13px] font-bold text-foreground',
