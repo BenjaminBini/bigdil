@@ -126,10 +126,9 @@ function WorkGridLabelCell({ row, children }: { row: GridRow; children: ReactNod
       noShadow
       className={cn(
         getRowPaddingY(row),
-        // Phase + grand-total keep an emphasised divider; task/profile/employee
-        // rely on tier colour alone so the sticky panel reads as a unified
-        // surface with no horizontal gap lines.
-        row.kind === 'phase' && 'border-b-2 border-row-divider',
+        // Only grand-total keeps an emphasised bottom divider. Phase rows
+        // are already marked by the left accent stripe + bold typography +
+        // tier colour, so they don't need a heavy horizontal line.
         row.kind === 'grand-total' && 'border-b-2 border-row-divider',
         getSolidRowBackground(row),
         KIND_ACCENT[row.kind] ?? '',
