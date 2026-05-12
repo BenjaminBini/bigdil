@@ -84,7 +84,8 @@ export function PastPeriods({ open, onOpenChange, rows }: PastPeriodsProps) {
                 return (
                   <Fragment key={row.periodCode}>
                     <TableRow
-                      className="cursor-pointer hover:bg-muted/40"
+                      variant="interactive"
+                      className="hover:bg-accent"
                       onClick={() => toggle(row.periodCode)}
                     >
                       <TableCell className="w-8 pr-0">
