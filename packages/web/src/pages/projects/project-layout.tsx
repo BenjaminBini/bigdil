@@ -13,10 +13,12 @@ export default function ProjectLayout() {
   if (isLoading) return <LoadingState />
   if (error || !data) return <ErrorState message="Error loading project" />
 
+  // KPI block only reflects VALIDATED quotes. Drafts and rejected quotes are
+  // hypothetical — including them in the estimated cost on the project header
+  // would imply commitments that haven't been signed off.
   const validatedQuotes = data.quotes.filter((quote) => quote.status === 'VALIDATED')
-  const quotesForKpi = validatedQuotes.length > 0 ? validatedQuotes : (data.quotes[0] ? [data.quotes[0]] : [])
-  const estimatedCost = quotesForKpi.length > 0
-    ? quotesForKpi.reduce((sum, q) => sum + q.lines.reduce((s, l) => s + l.budgetCostAmount, 0), 0)
+  const estimatedCost = validatedQuotes.length > 0
+    ? validatedQuotes.reduce((sum, q) => sum + q.lines.reduce((s, l) => s + l.budgetCostAmount, 0), 0)
     : null
   const estimatedMarginEur = estimatedCost != null ? data.contractValue - estimatedCost : null
   const estimatedMarginPct =
@@ -29,9 +31,9 @@ export default function ProjectLayout() {
     {
       label: 'Estimated Cost',
       value: estimatedCost != null ? formatCurrency(estimatedCost) : '—',
-      sub: quotesForKpi.length > 0
-        ? quotesForKpi.length > 1 ? `from ${quotesForKpi.length} quotes` : 'from quote'
-        : undefined,
+      sub: validatedQuotes.length > 0
+        ? validatedQuotes.length > 1 ? `from ${validatedQuotes.length} validated quotes` : 'from validated quote'
+        : 'no validated quote',
     },
     {
       label: 'Estimated Margin',
