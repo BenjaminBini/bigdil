@@ -44,7 +44,7 @@ function SummaryHeaderCell({ label, tooltip, index }: { label: string; tooltip: 
     <th
       rowSpan={2}
       title={tooltip}
-      className="border-b border-r border-border/70 bg-muted px-1 py-2 align-middle text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+      className="border-b border-r border-row-divider bg-muted px-1 py-2 align-middle text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
       style={stickySummaryStyle(index)}
     >
       <span
@@ -72,7 +72,7 @@ export function WorkGridHeader({ periods }: WorkGridHeaderProps) {
           as="th"
           zIndex={30}
           noShadow
-          className="border-b border-border bg-muted text-left font-semibold"
+          className="border-b border-row-divider bg-muted text-left font-semibold"
         >
           <span className="flex items-center">
             {t('workTable.taskPhaseColumn', 'Task / Phase')}
