@@ -9,8 +9,8 @@
       // Apply persisted theme before React mounts to avoid flash.
       (function () {
         try {
-          var DARK_THEMES = { dark: 1, blue: 1, forest: 1 };
-          var ALL = { light: 1, dark: 1, blue: 1, cappuccino: 1, forest: 1, rose: 1 };
+          var DARK_THEMES = { dark: 1, blue: 1, forest: 1, black: 1, mocha: 1, midnight: 1 };
+          var ALL = { light: 1, dark: 1, blue: 1, cappuccino: 1, forest: 1, rose: 1, black: 1, orange: 1, mocha: 1, lavender: 1, midnight: 1 };
           var stored = localStorage.getItem('bigdil-theme');
           if (stored === 'system') {
             stored = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
