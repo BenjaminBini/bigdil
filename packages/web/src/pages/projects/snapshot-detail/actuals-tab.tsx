@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Table,
   TableBody,
@@ -31,6 +32,7 @@ export function ActualsTab({
   getProfileName,
   getEmployeeName,
 }: ActualsTabProps) {
+  const { t } = useTranslation('pages')
   const periodCode = snapshot.periodCode
 
   const periodActuals = allTimesheets.filter(
@@ -49,7 +51,7 @@ export function ActualsTab({
   function renderRows(entries: TimesheetEntry[]) {
     if (entries.length === 0) {
       return (
-        <EmptyRow colSpan={8} message="No approved timesheets" />
+        <EmptyRow colSpan={8} message={t('snapshots.actuals.noApproved')} />
       )
     }
     return entries.map((entry) => (
@@ -83,14 +85,14 @@ export function ActualsTab({
 
   const colHeaders = (
     <TableRow variant="header">
-      <TableHead>Employee</TableHead>
-      <TableHead>Task</TableHead>
-      <TableHead>Profile</TableHead>
-      <ThRight>Days</ThRight>
-      <ThRight>Cost Rate/day</ThRight>
-      <ThRight>Cost Amount</ThRight>
-      <ThRight>Sell Rate/day</ThRight>
-      <ThRight>Sell Amount</ThRight>
+      <TableHead>{t('snapshots.actuals.employee')}</TableHead>
+      <TableHead>{t('snapshots.actuals.task')}</TableHead>
+      <TableHead>{t('snapshots.actuals.profile')}</TableHead>
+      <ThRight>{t('snapshots.actuals.days')}</ThRight>
+      <ThRight>{t('snapshots.actuals.costRatePerDay')}</ThRight>
+      <ThRight>{t('snapshots.actuals.costAmount')}</ThRight>
+      <ThRight>{t('snapshots.actuals.sellRatePerDay')}</ThRight>
+      <ThRight>{t('snapshots.actuals.sellAmount')}</ThRight>
     </TableRow>
   )
 
@@ -98,10 +100,10 @@ export function ActualsTab({
     <VStack gap="xl" pt="md">
       <VStack>
         <FlexBetween>
-          <SectionTitle>{snapshot.periodCode} — Approved Timesheets</SectionTitle>
+          <SectionTitle>{t('snapshots.actuals.periodTitle', { periodCode: snapshot.periodCode })}</SectionTitle>
           <MetricStrip items={[
-            { label: 'Cost', value: <MetricValue>{formatCurrency(periodCost)}</MetricValue> },
-            { label: 'Sell', value: <MetricValue>{formatCurrency(periodSell)}</MetricValue> },
+            { label: t('snapshots.actuals.cost'), value: <MetricValue>{formatCurrency(periodCost)}</MetricValue> },
+            { label: t('snapshots.actuals.sell'), value: <MetricValue>{formatCurrency(periodSell)}</MetricValue> },
           ]} />
         </FlexBetween>
         <Card variant="flush">
@@ -114,10 +116,10 @@ export function ActualsTab({
 
       <VStack>
         <FlexBetween>
-          <SectionTitle>Cumulative — up to {snapshot.periodCode}</SectionTitle>
+          <SectionTitle>{t('snapshots.actuals.cumulativeTitle', { periodCode: snapshot.periodCode })}</SectionTitle>
           <MetricStrip items={[
-            { label: 'Cost', value: <MetricValue>{formatCurrency(cumCost)}</MetricValue> },
-            { label: 'Sell', value: <MetricValue>{formatCurrency(cumSell)}</MetricValue> },
+            { label: t('snapshots.actuals.cost'), value: <MetricValue>{formatCurrency(cumCost)}</MetricValue> },
+            { label: t('snapshots.actuals.sell'), value: <MetricValue>{formatCurrency(cumSell)}</MetricValue> },
           ]} />
         </FlexBetween>
         <Card variant="flush">

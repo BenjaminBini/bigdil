@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ColorValue } from '@/components/shared/color-value'
 import { AppLink } from '@/components/shared/app-link'
@@ -9,31 +10,32 @@ import { formatCurrency } from '@/lib/format'
 import { LoadingState, ErrorState } from '@/components/shared/page-container'
 
 export function FinancialTab() {
+  const { t } = useTranslation('pages')
   const { data, isLoading, error } = useFinancialReport()
 
   if (isLoading) return <LoadingState />
-  if (error || !data) return <ErrorState message="Error loading financial data" />
+  if (error || !data) return <ErrorState message={t('reports.financial.errorLoading')} />
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Financial Overview</CardTitle>
+        <CardTitle>{t('reports.financial.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
-          <MutedText>No financial data available yet</MutedText>
+          <MutedText>{t('reports.financial.noData')}</MutedText>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead>Client</TableHead>
-                <ThRight>Contract Value</ThRight>
-                <ThRight>EAC Cost</ThRight>
-                <ThRight>Margin Forecast</ThRight>
-                <ThRight>Margin %</ThRight>
-                <ThRight>Actual Cost</ThRight>
-                <ThRight>Produced Value</ThRight>
+                <TableHead>{t('reports.financial.table.project')}</TableHead>
+                <TableHead>{t('reports.financial.table.client')}</TableHead>
+                <ThRight>{t('reports.financial.table.contractValue')}</ThRight>
+                <ThRight>{t('reports.financial.table.eacCost')}</ThRight>
+                <ThRight>{t('reports.financial.table.marginForecast')}</ThRight>
+                <ThRight>{t('reports.financial.table.marginPct')}</ThRight>
+                <ThRight>{t('reports.financial.table.actualCost')}</ThRight>
+                <ThRight>{t('reports.financial.table.producedValue')}</ThRight>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -59,7 +61,7 @@ export function FinancialTab() {
                   <TdRight>{formatCurrency(row.producedValueToDate)}</TdRight>
                 </TableRow>
               ))}
-              <TotalsRow data={data} />
+              <TotalsRow data={data} totalLabel={t('reports.financial.table.total')} />
             </TableBody>
           </Table>
         )}
@@ -68,11 +70,16 @@ export function FinancialTab() {
   )
 }
 
-function TotalsRow({ data }: { data: Awaited<ReturnType<typeof useFinancialReport>>['data'] }) {
+interface TotalsRowProps {
+  data: Awaited<ReturnType<typeof useFinancialReport>>['data']
+  totalLabel: string
+}
+
+function TotalsRow({ data, totalLabel }: TotalsRowProps) {
   if (!data) return null
   return (
     <TableRow variant="total">
-      <TableCell colSpan={2}>Total</TableCell>
+      <TableCell colSpan={2}>{totalLabel}</TableCell>
       <TdRight>{formatCurrency(data.reduce((s, r) => s + r.contractValue, 0))}</TdRight>
       <TdRight>{formatCurrency(data.reduce((s, r) => s + r.eacCost, 0))}</TdRight>
       <TdRight>{formatCurrency(data.reduce((s, r) => s + r.marginForecast, 0))}</TdRight>
@@ -82,4 +89,3 @@ function TotalsRow({ data }: { data: Awaited<ReturnType<typeof useFinancialRepor
     </TableRow>
   )
 }
-

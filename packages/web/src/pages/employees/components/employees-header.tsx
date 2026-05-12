@@ -1,4 +1,5 @@
 import { Download, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/page-header'
 
@@ -7,19 +8,20 @@ interface EmployeesHeaderProps {
 }
 
 export function EmployeesHeader({ onNew }: EmployeesHeaderProps) {
+  const { t } = useTranslation(['pages', 'common'])
   return (
     <PageHeader
-      title="Collaborateurs"
-      subtitle="Gérez vos collaborateurs et leur historique de taux de coût."
+      title={t('pages:employees.title')}
+      subtitle={t('pages:employees.subtitle')}
       actions={
         <>
-          <Button variant="outline" disabled title="Export non disponible">
+          <Button variant="outline" disabled title={t('pages:employees.exportUnavailable')}>
             <Download />
-            Exporter CSV
+            {t('common:actions.export')} CSV
           </Button>
           <Button onClick={onNew}>
             <Plus />
-            Nouveau collaborateur
+            {t('pages:employees.newEmployee')}
           </Button>
         </>
       }

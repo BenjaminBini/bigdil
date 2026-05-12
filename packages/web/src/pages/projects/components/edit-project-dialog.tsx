@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useUpdateProject } from '@/api/hooks'
 import type { ProjectDetail } from '@/api/types'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,7 @@ interface EditProjectDialogProps {
 }
 
 export function EditProjectDialog({ project, open, onClose }: EditProjectDialogProps) {
+  const { t } = useTranslation('pages')
   const [name, setName] = useState(project.name)
   const [currency, setCurrency] = useState(project.currency)
   const [startDate, setStartDate] = useState(project.startDate ?? '')
@@ -44,8 +46,8 @@ export function EditProjectDialog({ project, open, onClose }: EditProjectDialogP
   }
 
   function handleSave() {
-    if (!name.trim()) { toast.error('Project name is required'); return }
-    if (!currency.trim()) { toast.error('Currency is required'); return }
+    if (!name.trim()) { toast.error(t('projects.dialog.nameRequired')); return }
+    if (!currency.trim()) { toast.error(t('projects.dialog.currencyRequired')); return }
 
     updateProject.mutate(
       {
@@ -56,10 +58,10 @@ export function EditProjectDialog({ project, open, onClose }: EditProjectDialogP
       },
       {
         onSuccess: () => {
-          toast.success('Project updated')
+          toast.success(t('projects.dialog.updatedToast'))
           handleClose()
         },
-        onError: () => toast.error('Failed to update project'),
+        onError: () => toast.error(t('projects.dialog.updateFailed')),
       },
     )
   }
@@ -69,11 +71,11 @@ export function EditProjectDialog({ project, open, onClose }: EditProjectDialogP
       <DialogContent size="sm">
         <form onSubmit={(e) => { e.preventDefault(); handleSave() }}>
         <DialogHeader>
-          <DialogTitle>Edit Project</DialogTitle>
+          <DialogTitle>{t('projects.dialog.editTitle')}</DialogTitle>
         </DialogHeader>
 
         <VStack gap="xl">
-          <FormField label="Project Name" htmlFor="ep-name">
+          <FormField label={t('projects.dialog.projectName')} htmlFor="ep-name">
             <Input
               id="ep-name"
               value={name}
@@ -81,7 +83,7 @@ export function EditProjectDialog({ project, open, onClose }: EditProjectDialogP
             />
           </FormField>
 
-          <FormField label="Currency" htmlFor="ep-currency">
+          <FormField label={t('projects.dialog.currency')} htmlFor="ep-currency">
             <select
               id="ep-currency"
               value={currency}
@@ -95,7 +97,7 @@ export function EditProjectDialog({ project, open, onClose }: EditProjectDialogP
           </FormField>
 
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Start Date" htmlFor="ep-start">
+            <FormField label={t('projects.dialog.startDate')} htmlFor="ep-start">
               <Input
                 id="ep-start"
                 type="date"
@@ -103,7 +105,7 @@ export function EditProjectDialog({ project, open, onClose }: EditProjectDialogP
                 onChange={e => setStartDate(e.target.value)}
               />
             </FormField>
-            <FormField label="End Date" htmlFor="ep-end">
+            <FormField label={t('projects.dialog.endDate')} htmlFor="ep-end">
               <Input
                 id="ep-end"
                 type="date"
@@ -115,9 +117,9 @@ export function EditProjectDialog({ project, open, onClose }: EditProjectDialogP
         </VStack>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={handleClose}>{t('projects.dialog.cancel')}</Button>
           <Button type="submit" disabled={updateProject.isPending}>
-            {updateProject.isPending ? 'Saving…' : 'Save Changes'}
+            {updateProject.isPending ? t('projects.dialog.saving') : t('projects.dialog.save')}
           </Button>
         </DialogFooter>
         </form>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Table,
   TableBody,
@@ -21,6 +22,7 @@ interface ScopeTabProps {
 }
 
 export function ScopeTab({ rows, getTaskName, getProfileName }: ScopeTabProps) {
+  const { t } = useTranslation('pages')
   const totalRevenue = rows.reduce((s, r) => s + r.baselineRevenueTotal, 0)
   const totalBudgetCost = rows.reduce((s, r) => s + r.baselineBudgetCostTotal, 0)
   const totalDays = rows.reduce((s, r) => s + r.baselineDaysTotalAsofSnapshot, 0)
@@ -28,19 +30,19 @@ export function ScopeTab({ rows, getTaskName, getProfileName }: ScopeTabProps) {
   return (
     <VStack gap="xl" pt="md">
       <MutedText>
-        Scope lines as of this snapshot — all validated quotes effective at this date.
+        {t('snapshots.scope.intro')}
       </MutedText>
       <Card variant="flush">
         <Table>
           <TableHeader>
             <TableRow variant="header">
-              <TableHead>Task</TableHead>
-              <TableHead>Profile</TableHead>
-              <ThRight>Baseline Days</ThRight>
-              <ThRight>Sell Rate/day</ThRight>
-              <ThRight>Cost Rate Assumption/day</ThRight>
-              <ThRight>Revenue</ThRight>
-              <ThRight>Budget Cost</ThRight>
+              <TableHead>{t('snapshots.scope.task')}</TableHead>
+              <TableHead>{t('snapshots.scope.profile')}</TableHead>
+              <ThRight>{t('snapshots.scope.baselineDays')}</ThRight>
+              <ThRight>{t('snapshots.scope.sellRatePerDay')}</ThRight>
+              <ThRight>{t('snapshots.scope.costRateAssumption')}</ThRight>
+              <ThRight>{t('snapshots.scope.revenue')}</ThRight>
+              <ThRight>{t('snapshots.scope.budgetCost')}</ThRight>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -70,10 +72,10 @@ export function ScopeTab({ rows, getTaskName, getProfileName }: ScopeTabProps) {
       </Card>
 
       <FlexRow wrap gap="lg">
-        <KpiCard label="Total Days" value={formatDays(totalDays)} />
-        <KpiCard label="Total Revenue" value={formatCurrency(totalRevenue)} />
-        <KpiCard label="Total Budget Cost" value={formatCurrency(totalBudgetCost)} />
-        <KpiCard label="Total Margin" value={formatCurrency(totalRevenue - totalBudgetCost)} variant="highlight" />
+        <KpiCard label={t('snapshots.scope.totalDays')} value={formatDays(totalDays)} />
+        <KpiCard label={t('snapshots.scope.totalRevenue')} value={formatCurrency(totalRevenue)} />
+        <KpiCard label={t('snapshots.scope.totalBudgetCost')} value={formatCurrency(totalBudgetCost)} />
+        <KpiCard label={t('snapshots.scope.totalMargin')} value={formatCurrency(totalRevenue - totalBudgetCost)} variant="highlight" />
       </FlexRow>
     </VStack>
   )

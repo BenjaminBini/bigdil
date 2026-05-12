@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { SearchInput } from '@/components/shared/search-input'
 import { FlexRow } from '@/components/shared/layouts'
 import { FilterWrapper } from '@/components/shared/filter-wrapper'
@@ -8,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { projectLifecycleLabels, type ProjectLifecycle } from '@/lib/constants'
+import type { ProjectLifecycle } from '@/lib/constants'
 
 interface ProjectsFiltersProps {
   search: string
@@ -31,11 +32,17 @@ export function ProjectsFilters({
   onClientFilterChange,
   onStatusFilterChange,
 }: ProjectsFiltersProps) {
+  const { t } = useTranslation(['pages', 'statuses'])
+  const lifecycleLabel = (status: ProjectLifecycle): string => {
+    if (status === 'ACTIVE') return t('statuses:misc.ACTIVE')
+    if (status === 'UPCOMING') return t('statuses:misc.UPCOMING')
+    return t('statuses:misc.CLOSED')
+  }
   return (
     <FlexRow wrap>
       <FilterWrapper>
         <SearchInput
-          placeholder="Rechercher un projet..."
+          placeholder={`${t('pages:projects.filters.search')}…`}
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
@@ -43,9 +50,9 @@ export function ProjectsFilters({
 
       <FilterWrapper size="md">
         <Select value={clientFilter} onValueChange={onClientFilterChange}>
-          <SelectTrigger><SelectValue placeholder="Tous les clients" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={t('pages:projects.filters.allClients')} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all-clients">Tous les clients</SelectItem>
+            <SelectItem value="all-clients">{t('pages:projects.filters.allClients')}</SelectItem>
             {clients.map((name) => (
               <SelectItem key={name} value={name}>{name}</SelectItem>
             ))}
@@ -55,11 +62,11 @@ export function ProjectsFilters({
 
       <FilterWrapper size="md">
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-          <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={t('pages:projects.filters.allStatuses')} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all-statuses">Tous les statuts</SelectItem>
+            <SelectItem value="all-statuses">{t('pages:projects.filters.allStatuses')}</SelectItem>
             {statuses.map((status) => (
-              <SelectItem key={status} value={status}>{projectLifecycleLabels[status]}</SelectItem>
+              <SelectItem key={status} value={status}>{lifecycleLabel(status)}</SelectItem>
             ))}
           </SelectContent>
         </Select>

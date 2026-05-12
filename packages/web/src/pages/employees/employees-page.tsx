@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useReferenceData } from '@/api/hooks'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
@@ -12,6 +13,7 @@ import { EmployeeRow } from './components/employee-row'
 import { NewEmployeeDialog } from './components/new-employee-dialog'
 
 export default function EmployeesPage() {
+  const { t } = useTranslation('pages')
   const [showNewEmployee, setShowNewEmployee] = useState(false)
   const { data: refData, isLoading, error } = useReferenceData()
 
@@ -25,12 +27,12 @@ export default function EmployeesPage() {
         {refData.employees.length === 0 ? (
           <EmptyState
             icon={Users}
-            title="Aucun collaborateur"
-            description="Ajoutez vos collaborateurs pour pouvoir les affecter aux projets et suivre leurs feuilles de temps."
+            title={t('employees.empty')}
+            description={t('employees.emptyDescription')}
             action={
               <Button onClick={() => setShowNewEmployee(true)}>
                 <Plus />
-                Ajouter le premier collaborateur
+                {t('employees.createFirst')}
               </Button>
             }
           />
@@ -40,10 +42,10 @@ export default function EmployeesPage() {
               <TableHeader>
                 <TableRow variant="header">
                   <TableHead className="w-8 pr-0" />
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Actif</TableHead>
-                  <ThRight>Taux de coût/jour</ThRight>
-                  <ThRight>Projets assignés</ThRight>
+                  <TableHead>{t('employees.table.name')}</TableHead>
+                  <TableHead>{t('employees.table.active')}</TableHead>
+                  <ThRight>{t('employees.table.costRate')}</ThRight>
+                  <ThRight>{t('employees.table.assignedProjects')}</ThRight>
                 </TableRow>
               </TableHeader>
               <TableBody>

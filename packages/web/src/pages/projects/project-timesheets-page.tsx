@@ -302,17 +302,17 @@ export default function ProjectTimesheetsPage() {
             <TableHeader>
               <TableRow variant="header">
                 <HeadCell label="" width="32px" />
-                <HeadCell label="Period" />
-                <HeadCell label="Statut" align="right" width="220px" />
-                <HeadCell label="Employees" align="right" width="120px" />
-                <HeadCell label="Total Days" align="right" width="112px" />
+                <HeadCell label={t('projectTimesheetsPage.table.period')} />
+                <HeadCell label={t('projectTimesheetsPage.table.status')} align="right" width="220px" />
+                <HeadCell label={t('projectTimesheetsPage.table.employees')} align="right" width="120px" />
+                <HeadCell label={t('projectTimesheetsPage.table.totalDays')} align="right" width="112px" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {groups.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={colSpan} className="text-center text-sm text-muted-foreground py-6">
-                    No timesheet touches this project yet.
+                    {t('projectTimesheetsPage.table.empty')}
                   </TableCell>
                 </TableRow>
               ) : (

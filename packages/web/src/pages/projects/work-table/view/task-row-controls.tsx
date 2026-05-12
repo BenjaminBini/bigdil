@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { useCreateTask, useUpdateTask, useDeleteTask, useUpdatePhase, useDeletePhase } from '@/api/hooks'
 import type { GridRow } from '@/lib/work-table/types'
@@ -11,6 +12,7 @@ interface TaskRowControlsProps {
 }
 
 export function TaskRowControls({ projectId, row }: TaskRowControlsProps) {
+  const { t } = useTranslation('pages')
   const createTask = useCreateTask(projectId)
   const updateTask = useUpdateTask(projectId)
   const deleteTask = useDeleteTask(projectId)
@@ -93,7 +95,7 @@ export function TaskRowControls({ projectId, row }: TaskRowControlsProps) {
         <input
           ref={newTaskRef}
           autoFocus
-          placeholder="Nom de la tâche…"
+          placeholder={t('workTable.placeholders.taskName')}
           value={newTaskName}
           onChange={(e) => setNewTaskName(e.target.value)}
           onBlur={commitAddTask}
@@ -111,7 +113,7 @@ export function TaskRowControls({ projectId, row }: TaskRowControlsProps) {
           <Button
             variant="ghost"
             size="icon-sm"
-            title="Ajouter une tâche"
+            title={t('workTable.tooltips.addTask')}
             onClick={(e) => { e.stopPropagation(); setAddingTask(true) }}
           >
             <Plus size={12} />
@@ -120,7 +122,7 @@ export function TaskRowControls({ projectId, row }: TaskRowControlsProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          title="Renommer"
+          title={t('workTable.tooltips.rename')}
           onClick={(e) => { e.stopPropagation(); setRenaming(true) }}
         >
           <Pencil size={12} />
@@ -128,7 +130,7 @@ export function TaskRowControls({ projectId, row }: TaskRowControlsProps) {
         <Button
           variant="ghost-destructive"
           size="icon-sm"
-          title="Supprimer"
+          title={t('workTable.tooltips.delete')}
           onClick={(e) => { e.stopPropagation(); handleDelete() }}
         >
           <Trash2 size={12} />

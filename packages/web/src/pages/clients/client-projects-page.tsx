@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router";
 import { FolderKanban } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useProjects } from "@/api/hooks";
 import { LoadingState, ErrorState } from "@/components/shared/page-container";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -18,6 +19,7 @@ interface ProjectRow {
 }
 
 export default function ClientProjectsPage() {
+  const { t } = useTranslation("pages");
   const { id } = useParams<{ id: string }>();
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -39,8 +41,8 @@ export default function ClientProjectsPage() {
     return (
       <EmptyState
         icon={FolderKanban}
-        title="Aucun projet pour ce client"
-        description="Créez un projet depuis la liste des projets pour le rattacher à ce client."
+        title={t("clients.emptyProjects")}
+        description={t("clients.emptyProjectsDescription")}
       />
     );
   }

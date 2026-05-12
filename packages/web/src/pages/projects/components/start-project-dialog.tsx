@@ -1,3 +1,4 @@
+import { useTranslation, Trans } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { SuccessButton } from '@/components/shared/button-adapters'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
@@ -28,24 +29,30 @@ interface StartProjectDialogProps {
 }
 
 export function StartProjectDialog({ open, startDate, endDate, isPending, onConfirm, onClose }: StartProjectDialogProps) {
+  const { t } = useTranslation('pages')
   const periods = startDate && endDate ? previewPeriods(startDate, endDate) : []
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Démarrer le projet &amp; générer les périodes</DialogTitle>
+          <DialogTitle>{t('projects.startDialog.title')}</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Génère <strong>{periods.length} période{periods.length !== 1 ? 's' : ''} hebdomadaire{periods.length !== 1 ? 's' : ''}</strong> et passe le projet en <strong>In Progress</strong>.
+          <Trans
+            i18nKey="projects.startDialog.description"
+            count={periods.length}
+            ns="pages"
+            components={{ 1: <strong /> }}
+          />
         </p>
         <div className="max-h-48 overflow-y-auto rounded border text-sm">
           <table className="w-full">
             <thead className="bg-muted text-xs text-muted-foreground">
               <tr>
                 <th className="px-3 py-1.5 text-left">#</th>
-                <th className="px-3 py-1.5 text-left">Début</th>
-                <th className="px-3 py-1.5 text-left">Fin</th>
+                <th className="px-3 py-1.5 text-left">{t('projects.startDialog.startCol')}</th>
+                <th className="px-3 py-1.5 text-left">{t('projects.startDialog.endCol')}</th>
               </tr>
             </thead>
             <tbody>
@@ -60,9 +67,9 @@ export function StartProjectDialog({ open, startDate, endDate, isPending, onConf
           </table>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Annuler</Button>
+          <Button variant="outline" onClick={onClose}>{t('projects.startDialog.cancel')}</Button>
           <SuccessButton disabled={isPending} onClick={onConfirm}>
-            {isPending ? 'Démarrage…' : 'Confirmer & Démarrer'}
+            {isPending ? t('projects.startDialog.starting') : t('projects.startDialog.confirm')}
           </SuccessButton>
         </DialogFooter>
       </DialogContent>

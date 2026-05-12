@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import type { Employee, User, UserRole } from "@/api/types";
 import { useUpdateUser } from "@/api/hooks";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export function EditUserDialog({
   employees,
   onClose,
 }: EditUserDialogProps) {
+  const { t } = useTranslation(["pages", "statuses"]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<UserRole>("CONSULTANT");
@@ -53,7 +55,7 @@ export function EditUserDialog({
   function handleSave() {
     if (!user) return;
     if (!name.trim() || !email.trim()) {
-      toast.error("Name and email are required");
+      toast.error(t("pages:users.dialog.validation"));
       return;
     }
 
@@ -67,11 +69,11 @@ export function EditUserDialog({
       },
       {
         onSuccess: (updated) => {
-          toast.success(`User "${updated.name}" updated`);
+          toast.success(t("pages:users.dialog.updatedToast", { name: updated.name }));
           onClose();
         },
         onError: (err) => {
-          toast.error(err instanceof Error ? err.message : "Failed to update user");
+          toast.error(err instanceof Error ? err.message : t("pages:users.dialog.updateFailed"));
         },
       },
     );
@@ -82,30 +84,28 @@ export function EditUserDialog({
       <DialogContent size="sm">
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
         <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
+          <DialogTitle>{t("pages:users.dialog.editTitle")}</DialogTitle>
         </DialogHeader>
 
         <VStack gap="xl">
-          <FormField label="Full Name" htmlFor="eu-name">
+          <FormField label={t("pages:users.dialog.fullName")} htmlFor="eu-name">
             <Input
               id="eu-name"
-              placeholder="e.g. Marie Dupont"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </FormField>
 
-          <FormField label="Email" htmlFor="eu-email">
+          <FormField label={t("pages:users.dialog.email")} htmlFor="eu-email">
             <Input
               id="eu-email"
               type="email"
-              placeholder="e.g. marie.dupont@acme.fr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </FormField>
 
-          <FormField label="Role" htmlFor="eu-role">
+          <FormField label={t("pages:users.dialog.role")} htmlFor="eu-role">
             <Select
               value={role}
               onValueChange={(value) => setRole(value as UserRole)}
@@ -116,20 +116,20 @@ export function EditUserDialog({
               <SelectContent>
                 {ROLE_OPTIONS.map((roleOption) => (
                   <SelectItem key={roleOption} value={roleOption}>
-                    {roleOption}
+                    {t(`statuses:role.${roleOption}`, { defaultValue: roleOption })}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </FormField>
 
-          <FormField label="Linked Employee" htmlFor="eu-employee">
+          <FormField label={t("pages:users.dialog.linkedEmployee")} htmlFor="eu-employee">
             <Select value={employeeLink} onValueChange={setEmployeeLink}>
               <SelectTrigger id="eu-employee">
-                <SelectValue placeholder="None (admin/PM/exec)" />
+                <SelectValue placeholder={t("pages:users.dialog.nonePlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">- None -</SelectItem>
+                <SelectItem value="none">{t("pages:users.dialog.none")}</SelectItem>
                 {employees
                   .filter(
                     (employee) =>
@@ -143,17 +143,17 @@ export function EditUserDialog({
               </SelectContent>
             </Select>
             <TextCaption>
-              Link to an employee record for timesheet access
+              {t("pages:users.dialog.linkedCaption")}
             </TextCaption>
           </FormField>
         </VStack>
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={updateUser.isPending}>
-            Cancel
+            {t("pages:users.dialog.cancel")}
           </Button>
           <Button type="submit" disabled={updateUser.isPending}>
-            {updateUser.isPending ? "Saving..." : "Save Changes"}
+            {updateUser.isPending ? t("pages:users.dialog.saving") : t("pages:users.dialog.save")}
           </Button>
         </DialogFooter>
         </form>

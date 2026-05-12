@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle, Copy, Download, Lock, Send, Undo2, Ban, XCircle } from 'lucide-react'
+import { CheckCircle, Copy, Download, Lock, Send, Trash2, Undo2, Ban, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatDate } from '@/lib/format'
 import type { Quote } from '@/api/types'
@@ -13,12 +13,15 @@ import { QuoteStatusBadge } from './quote-status-badge'
 
 interface QuoteDetailHeaderProps {
   quote: Quote
+  canDelete: boolean
   onSend: () => void
   onValidate: () => void
+  onUnvalidate: () => void
   onReject: () => void
   onCancel: () => void
   onReopen: () => void
   onDuplicate: () => void
+  onDelete: () => void
   onExport: () => void
 }
 
@@ -36,12 +39,15 @@ function ActionsRow({ children }: { children: ReactNode }) {
 
 export function QuoteDetailHeader({
   quote,
+  canDelete,
   onSend,
   onValidate,
+  onUnvalidate,
   onReject,
   onCancel,
   onReopen,
   onDuplicate,
+  onDelete,
   onExport,
 }: QuoteDetailHeaderProps) {
   const { t } = useTranslation('pages')
@@ -63,32 +69,32 @@ export function QuoteDetailHeader({
           {isReadOnly && (
             <InlineStack gap="xs">
               <Lock size={12} className="text-muted-foreground" />
-              <TextCaption>Lecture seule</TextCaption>
+              <TextCaption>{t('quotes.detail.readOnly')}</TextCaption>
             </InlineStack>
           )}
         </FlexRow>
         <FlexRow gap="lg">
           <MetaText>
-            Date d'effet : <MetaValue>{quote.effectiveAt ? formatDate(quote.effectiveAt) : '—'}</MetaValue>
+            {t('quotes.detail.effectiveAtLabel')}<MetaValue>{quote.effectiveAt ? formatDate(quote.effectiveAt) : '—'}</MetaValue>
           </MetaText>
           {quote.sentAt && (
             <MetaText>
-              Envoyé le : <MetaValue>{formatDate(quote.sentAt)}</MetaValue>
+              {t('quotes.detail.sentAtLabel')}<MetaValue>{formatDate(quote.sentAt)}</MetaValue>
             </MetaText>
           )}
           {quote.validatedAt && (
             <MetaText>
-              Validé le : <MetaValue>{formatDate(quote.validatedAt)}</MetaValue>
+              {t('quotes.detail.validatedAtLabel')}<MetaValue>{formatDate(quote.validatedAt)}</MetaValue>
             </MetaText>
           )}
           {quote.rejectedAt && (
             <MetaText>
-              Refusé le : <MetaValue>{formatDate(quote.rejectedAt)}</MetaValue>
+              {t('quotes.detail.rejectedAtLabel')}<MetaValue>{formatDate(quote.rejectedAt)}</MetaValue>
             </MetaText>
           )}
           {quote.cancelledAt && (
             <MetaText>
-              Annulé le : <MetaValue>{formatDate(quote.cancelledAt)}</MetaValue>
+              {t('quotes.detail.cancelledAtLabel')}<MetaValue>{formatDate(quote.cancelledAt)}</MetaValue>
             </MetaText>
           )}
         </FlexRow>
@@ -119,6 +125,12 @@ export function QuoteDetailHeader({
             </Button>
           </>
         )}
+        {isValidated && (
+          <Button variant="outline" size="sm" onClick={onUnvalidate}>
+            <Undo2 size={14} />
+            {t('quotes.actions.unvalidate')}
+          </Button>
+        )}
         {isRejected && (
           <>
             <Button onClick={onReopen}>
@@ -139,6 +151,12 @@ export function QuoteDetailHeader({
           <Download size={14} />
           {t('quotes.actions.export')}
         </Button>
+        {canDelete && (
+          <Button variant="outline" size="sm" onClick={onDelete}>
+            <Trash2 size={14} />
+            {t('quotes.actions.delete')}
+          </Button>
+        )}
       </ActionsRow>
     </FlexBetween>
   )

@@ -1,4 +1,5 @@
 import { Archive, ChevronDown, ChevronRight, GripVertical, Pencil, Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { ReactNode } from 'react'
@@ -58,6 +59,7 @@ export function TaskNodeRow({
   onEdit,
   onDelete,
 }: TaskNodeRowProps) {
+  const { t } = useTranslation(['common', 'pages'])
   return (
     <TaskNodeLayout>
       <TaskNodeGrip />
@@ -67,7 +69,7 @@ export function TaskNodeRow({
           variant="ghost"
           size="icon-sm"
           onClick={onToggle}
-          aria-label={isExpanded ? 'Collapse' : 'Expand'}
+          aria-label={isExpanded ? t('common:sidebar.collapse') : t('common:sidebar.expand')}
         >
           {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </Button>
@@ -80,14 +82,14 @@ export function TaskNodeRow({
 
       <TaskNodeActions>
         {isPhase && onAddSubTask && (
-          <Button variant="ghost" size="icon-sm" onClick={onAddSubTask} aria-label="Add sub-task" title="Add Sub-task">
+          <Button variant="ghost" size="icon-sm" onClick={onAddSubTask} aria-label={t('pages:workTable.tooltips.addSubTask')} title={t('pages:workTable.tooltips.addSubTask')}>
             <Plus size={14} />
           </Button>
         )}
-        <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label="Edit task" title="Edit">
+        <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label={t('pages:workTable.tooltips.edit')} title={t('pages:workTable.tooltips.edit')}>
           <Pencil size={14} />
         </Button>
-        <Button variant="ghost-destructive" size="icon-sm" onClick={onDelete} aria-label="Delete task" title="Supprimer">
+        <Button variant="ghost-destructive" size="icon-sm" onClick={onDelete} aria-label={t('pages:workTable.tooltips.delete')} title={t('pages:workTable.tooltips.delete')}>
           <Archive size={14} />
         </Button>
       </TaskNodeActions>

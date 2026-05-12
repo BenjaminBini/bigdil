@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/shared/status-badge'
 import { MutedText } from '@/components/shared/muted-text'
@@ -23,10 +24,11 @@ interface ActiveProjectsCardProps {
 }
 
 export function ActiveProjectsCard({ projects }: ActiveProjectsCardProps) {
+  const { t } = useTranslation('pages')
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Projets en cours</CardTitle>
+        <CardTitle>{t('dashboard.activeProjectsTitle')}</CardTitle>
       </CardHeader>
       <CardContent>
         <VStack>
@@ -39,7 +41,7 @@ export function ActiveProjectsCard({ projects }: ActiveProjectsCardProps) {
               <StatusBadge status="ACTIVE" />
             </CardLink>
           ))}
-          {projects.length === 0 && <MutedText>Aucun projet en cours</MutedText>}
+          {projects.length === 0 && <MutedText>{t('dashboard.noActiveProjects')}</MutedText>}
         </VStack>
       </CardContent>
     </Card>

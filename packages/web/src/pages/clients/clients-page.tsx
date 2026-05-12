@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { SearchInput } from '@/components/shared/search-input'
 import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
@@ -70,6 +71,7 @@ function filterAndSortClientRows(
 }
 
 export default function ClientsPage() {
+  const { t } = useTranslation('pages')
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<ClientSortKey>('name')
@@ -100,19 +102,19 @@ export default function ClientsPage() {
     <>
       <PageHeader
         variant="section"
-        title="Clients"
-        subtitle="Gérez votre portefeuille clients"
+        title={t('clients.title')}
+        subtitle={t('clients.subtitle')}
         actions={
           <Button onClick={() => setShowNewClient(true)}>
             <Plus />
-            Nouveau client
+            {t('clients.newClient')}
           </Button>
         }
       />
       <PageContainer size="lg">
       <SearchInput
         maxWidth="md"
-        placeholder="Rechercher un client..."
+        placeholder={t('clients.search')}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
       />

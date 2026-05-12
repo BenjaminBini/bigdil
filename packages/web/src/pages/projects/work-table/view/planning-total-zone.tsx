@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { FrozenData } from '@/lib/work-table/types'
 import { FormulaBlock, ZoneTitle, MarginRow, MarginPctSuffix } from '@/components/shared/metric-display'
 import { ColorValue } from '@/components/shared/color-value'
@@ -11,19 +12,20 @@ interface PlanningTotalZoneProps {
 }
 
 export function PlanningTotalZone({ data, sellRate, formatDays, formatCurrency }: PlanningTotalZoneProps) {
+  const { t } = useTranslation('pages')
   return (
     <div className="flex-1 min-w-[200px]">
-      <ZoneTitle>Total</ZoneTitle>
+      <ZoneTitle>{t('workTable.planningTotal.title')}</ZoneTitle>
       <VStack gap="md">
         <FormulaBlock
-          label="Cost"
+          label={t('workTable.planningTotal.cost')}
           value={formatCurrency(data.tcAmount)}
-          formula={`= ${formatDays(data.tcTotalDays)}d (spent+rem.) × avg cost/d`}
+          formula={t('workTable.planningTotal.costFormula', { days: formatDays(data.tcTotalDays) })}
         />
         <FormulaBlock
-          label="Revenue"
+          label={t('workTable.planningTotal.revenue')}
           value={formatCurrency(data.trAmount)}
-          formula={`= ${formatDays(data.trDaysSold)}d (sold) × ${formatCurrency(sellRate)}/d`}
+          formula={t('workTable.planningTotal.revenueFormula', { days: formatDays(data.trDaysSold), rate: formatCurrency(sellRate) })}
         />
 
         <MarginRow
@@ -31,7 +33,7 @@ export function PlanningTotalZone({ data, sellRate, formatDays, formatCurrency }
             <ColorValue value={data.trMargin} format="currency" />
             {data.trMarginPct != null && <MarginPctSuffix>{data.trMarginPct.toFixed(1)}%</MarginPctSuffix>}
           </>}
-          formula={`= ${formatCurrency(data.trAmount)} (rev.) - ${formatCurrency(data.tcAmount)} (cost)`}
+          formula={t('workTable.planningTotal.marginFormula', { revenue: formatCurrency(data.trAmount), cost: formatCurrency(data.tcAmount) })}
         />
       </VStack>
     </div>

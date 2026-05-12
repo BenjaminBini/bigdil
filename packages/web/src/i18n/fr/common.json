@@ -41,7 +41,11 @@
   },
   "user": {
     "myProfile": "Mon profil",
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "stopImpersonating": "Arrêter l'impersonation",
+    "impersonatingAs": "Impersonation — utilisateur réel : {{name}}",
+    "stoppedImpersonating": "Impersonation arrêtée",
+    "failed": "Échec"
   },
   "labels": {
     "yes": "Oui",
@@ -93,5 +97,11 @@
     "results": "résultats",
     "first": "Première",
     "last": "Dernière"
+  },
+  "period": {
+    "week": "Semaine {{num}}, {{year}}",
+    "weekShort": "S{{num}}",
+    "sliceSame": "S{{num}} — du {{startDay}} au {{endDay}} {{month}} {{year}}",
+    "sliceCross": "S{{num}} — du {{startDay}} {{startMonth}} au {{endDay}} {{endMonth}} {{year}}"
   }
 }

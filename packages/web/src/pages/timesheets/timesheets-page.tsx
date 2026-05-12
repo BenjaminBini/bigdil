@@ -251,8 +251,8 @@ export default function TimesheetsPage() {
         {timesheets.length === 0 ? (
           <EmptyState
             icon={CalendarClock}
-            title="Aucune feuille de temps"
-            description="Aucune feuille de temps n'a été générée pour vous. Demandez à votre manager d'ouvrir une période ou de vous affecter à un projet."
+            title={t('timesheetsPage.empty')}
+            description={t('timesheetsPage.emptyDescription')}
           />
         ) : (
           <>

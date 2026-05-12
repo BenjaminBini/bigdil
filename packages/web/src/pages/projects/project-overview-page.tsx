@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useParams } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { useProject } from '@/api/hooks'
 import { LoadingState, ErrorState } from '@/components/shared/page-container'
 import { DetailGrid } from '@/components/shared/layouts'
@@ -19,12 +20,13 @@ function MainColumn({ children }: { children: ReactNode }) {
 }
 
 export default function ProjectOverviewPage() {
+  const { t } = useTranslation('pages')
   const { id: projectId } = useParams<{ id: string }>()
   const [showEdit, setShowEdit] = useState(false)
   const { data, isLoading, error } = useProject(projectId ?? '')
 
   if (isLoading) return <LoadingState />
-  if (error || !data) return <ErrorState message="Erreur lors du chargement du projet" />
+  if (error || !data) return <ErrorState message={t('projectLayout.errorLoading')} />
 
   const detailsCard = <ProjectDetailsCard project={data} onEdit={() => setShowEdit(true)} />
 

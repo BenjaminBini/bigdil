@@ -1,4 +1,5 @@
 import { Lock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   Table,
   TableBody,
@@ -23,6 +24,7 @@ interface WorkTableTabProps {
 }
 
 export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmployeeName }: WorkTableTabProps) {
+  const { t } = useTranslation('pages')
   const asOfPeriodCode = snapshot.periodCode
   const rows = snapshot.workTableRows
 
@@ -53,19 +55,19 @@ export function WorkTableTab({ snapshot, getTaskName, getProfileName, getEmploye
       <AlertBanner
         variant="info"
         icon={<Lock size={16} color="#3b82f6" />}
-        title="Work table as-of this snapshot — READ ONLY"
-        description={`This is a frozen view. Showing all periods up to ${asOfPeriodCode}.`}
+        title={t('snapshots.workTableTab.title')}
+        description={t('snapshots.workTableTab.description', { periodCode: asOfPeriodCode })}
       />
 
       <Card variant="flush">
         <Table>
           <TableHeader>
             <TableRow variant="header">
-              <TableHead>Task</TableHead>
-              <TableHead>Profile</TableHead>
-              <TableHead>Employee</TableHead>
-              <ThRight>Total Days</ThRight>
-              <TableHead>Type</TableHead>
+              <TableHead>{t('snapshots.workTableTab.task')}</TableHead>
+              <TableHead>{t('snapshots.workTableTab.profile')}</TableHead>
+              <TableHead>{t('snapshots.workTableTab.employee')}</TableHead>
+              <ThRight>{t('snapshots.workTableTab.totalDays')}</ThRight>
+              <TableHead>{t('snapshots.workTableTab.type')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

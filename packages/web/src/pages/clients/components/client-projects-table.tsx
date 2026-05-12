@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
 import { Card } from '@/components/ui/card'
 import { TdPrimary, TdNumericPrimary, TdNumeric } from '@/components/shared/table-cells'
@@ -27,6 +28,7 @@ interface ClientProjectsTableProps {
 }
 
 export function ClientProjectsTable({ rows, sortKey, sortDir, onSort }: ClientProjectsTableProps) {
+  const { t } = useTranslation('pages')
   const navigate = useNavigate()
 
   return (
@@ -34,10 +36,10 @@ export function ClientProjectsTable({ rows, sortKey, sortDir, onSort }: ClientPr
       <Table>
         <TableHeader>
           <TableRow variant="header">
-            <SortableHead label="Name" col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
-            <SortableHead label="Status" col="status" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
-            <SortableHead label="Contract Value" col="contractValue" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
-            <SortableHead label="Margin Forecast" col="marginForecast" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableHead label={t('clients.table.name')} col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+            <SortableHead label={t('projects.table.status')} col="status" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+            <SortableHead label={t('clients.table.contractValue')} col="contractValue" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableHead label={t('clients.table.marginForecast')} col="marginForecast" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
           </TableRow>
         </TableHeader>
         <TableBody>

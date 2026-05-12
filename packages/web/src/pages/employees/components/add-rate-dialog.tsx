@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useAddEmployeeRate } from '@/api/hooks'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,6 +22,7 @@ interface AddRateDialogProps {
 }
 
 export function AddRateDialog({ employeeId, employeeName, open, onClose }: AddRateDialogProps) {
+  const { t } = useTranslation('pages')
   const today = new Date().toISOString().split('T')[0]
   const [validFrom, setValidFrom] = useState(today)
   const [costRatePerDay, setCostRatePerDay] = useState('')
@@ -34,18 +36,18 @@ export function AddRateDialog({ employeeId, employeeName, open, onClose }: AddRa
   }
 
   function handleSave() {
-    if (!validFrom) { toast.error('Valid from date is required'); return }
+    if (!validFrom) { toast.error(t('employees.rateDialog.fromRequired')); return }
     const rate = Number(costRatePerDay)
-    if (!costRatePerDay || rate < 0) { toast.error('Rate must be a non-negative number'); return }
+    if (!costRatePerDay || rate < 0) { toast.error(t('employees.rateDialog.rateRequired')); return }
 
     addRate.mutate(
       { validFrom, costRatePerDay: rate },
       {
         onSuccess: () => {
-          toast.success(`New rate added for ${employeeName}`)
+          toast.success(t('employees.rateDialog.addedToast', { name: employeeName }))
           handleClose()
         },
-        onError: () => toast.error('Failed to add rate period'),
+        onError: () => toast.error(t('employees.rateDialog.saveFailed')),
       },
     )
   }
@@ -55,11 +57,11 @@ export function AddRateDialog({ employeeId, employeeName, open, onClose }: AddRa
       <DialogContent size="sm">
         <form onSubmit={(e) => { e.preventDefault(); handleSave() }}>
         <DialogHeader>
-          <DialogTitle>Add Rate Period — {employeeName}</DialogTitle>
+          <DialogTitle>{t('employees.rateDialog.title', { name: employeeName })}</DialogTitle>
         </DialogHeader>
 
         <VStack gap="xl">
-          <FormField label="Effective From" htmlFor="ar-from">
+          <FormField label={t('employees.rateDialog.effectiveFrom')} htmlFor="ar-from">
             <Input
               id="ar-from"
               type="date"
@@ -68,13 +70,12 @@ export function AddRateDialog({ employeeId, employeeName, open, onClose }: AddRa
             />
           </FormField>
 
-          <FormField label="Cost Rate / Day" htmlFor="ar-rate">
+          <FormField label={t('employees.rateDialog.costRatePerDay')} htmlFor="ar-rate">
             <Input
               id="ar-rate"
               type="number"
               min="0"
               step="0.01"
-              placeholder="e.g. 650"
               value={costRatePerDay}
               onChange={e => setCostRatePerDay(e.target.value)}
             />
@@ -82,9 +83,9 @@ export function AddRateDialog({ employeeId, employeeName, open, onClose }: AddRa
         </VStack>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={handleClose}>{t('employees.rateDialog.cancel')}</Button>
           <Button type="submit" disabled={addRate.isPending}>
-            {addRate.isPending ? 'Saving…' : 'Add Rate'}
+            {addRate.isPending ? t('employees.rateDialog.saving') : t('employees.rateDialog.save')}
           </Button>
         </DialogFooter>
         </form>

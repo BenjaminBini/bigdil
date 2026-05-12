@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { Employee, PeriodInfo, ProfileTaskPeriodStart } from '@/api/types'
 import { GridTable } from '@/components/shared/grid-table'
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
@@ -40,6 +41,7 @@ interface AssignerRowProps {
 // Carries the "Assigner +" affordance that previously lived as a small
 // "+" icon inside the profile label cell.
 function AssignerRow({ periodCount, employees, excludeIds, onAssign }: AssignerRowProps) {
+  const { t } = useTranslation('pages')
   return (
     <tr className="bg-card">
       <StickyColumnCell noShadow className="bg-card">
@@ -53,7 +55,7 @@ function AssignerRow({ periodCount, employees, excludeIds, onAssign }: AssignerR
               className="flex items-center gap-1.5 pl-[54px] text-xs text-muted-foreground transition-colors hover:text-primary"
             >
               <Plus size={12} strokeWidth={2.5} />
-              <span>Assigner</span>
+              <span>{t('workTable.assign')}</span>
             </button>
           }
         />

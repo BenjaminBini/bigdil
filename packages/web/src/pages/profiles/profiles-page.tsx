@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, IdCard } from 'lucide-react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useReferenceData, useCreateProfile, useUpdateProfile, useDeleteProfile } from '@/api/hooks'
 import { ApiError } from '@/api/client'
 import type { Profile } from '@/api/types'
@@ -25,6 +26,7 @@ const emptyForm: ProfileFormState = {
 }
 
 export default function ProfilesPage() {
+  const { t } = useTranslation('pages')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
   const [form, setForm] = useState<ProfileFormState>(emptyForm)
@@ -63,24 +65,24 @@ export default function ProfilesPage() {
   function handleSave() {
     const sellRate = parseFloat(form.sellRate)
     const costRate = parseFloat(form.costRate)
-    if (!form.name.trim()) { toast.error('Le nom est requis'); return }
-    if (isNaN(sellRate) || sellRate < 0) { toast.error('Taux de vente invalide'); return }
-    if (isNaN(costRate) || costRate < 0) { toast.error('Taux de coût invalide'); return }
+    if (!form.name.trim()) { toast.error(t('profiles.validation.nameRequired')); return }
+    if (isNaN(sellRate) || sellRate < 0) { toast.error(t('profiles.validation.sellRateInvalid')); return }
+    if (isNaN(costRate) || costRate < 0) { toast.error(t('profiles.validation.costRateInvalid')); return }
 
     if (editingProfile) {
       updateProfile.mutate(
         { id: editingProfile.id, name: form.name, defaultSellRatePerDay: sellRate, defaultCostRatePerDay: costRate },
         {
-          onSuccess: () => { toast.success(`Profil "${form.name}" mis à jour`); closeDialog() },
-          onError: () => toast.error('Échec de la mise à jour du profil'),
+          onSuccess: () => { toast.success(t('profiles.toasts.updateSuccess', { name: form.name })); closeDialog() },
+          onError: () => toast.error(t('profiles.toasts.updateFailed')),
         },
       )
     } else {
       createProfile.mutate(
         { name: form.name, defaultSellRatePerDay: sellRate, defaultCostRatePerDay: costRate },
         {
-          onSuccess: () => { toast.success(`Profil "${form.name}" créé`); closeDialog() },
-          onError: () => toast.error('Échec de la création du profil'),
+          onSuccess: () => { toast.success(t('profiles.toasts.createSuccess', { name: form.name })); closeDialog() },
+          onError: () => toast.error(t('profiles.toasts.createFailed')),
         },
       )
     }
@@ -90,24 +92,24 @@ export default function ProfilesPage() {
     <PageContainer size="md">
       <FlexBetween>
         <div>
-          <PageTitle>Profils</PageTitle>
-          <MutedText spacing="tight">Profils de facturation avec taux journaliers par défaut pour la création des devis.</MutedText>
+          <PageTitle>{t('profiles.title')}</PageTitle>
+          <MutedText spacing="tight">{t('profiles.subtitle')}</MutedText>
         </div>
         <Button onClick={openNew}>
           <Plus />
-          Nouveau profil
+          {t('profiles.newProfile')}
         </Button>
       </FlexBetween>
 
       {refData.profiles.length === 0 ? (
         <EmptyState
           icon={IdCard}
-          title="Aucun profil"
-          description="Créez un profil de facturation pour commencer à rédiger des devis avec des taux journaliers par défaut."
+          title={t('profiles.empty')}
+          description={t('profiles.emptyDescription')}
           action={
             <Button onClick={openNew}>
               <Plus />
-              Créer le premier profil
+              {t('profiles.createFirst')}
             </Button>
           }
         />
@@ -116,40 +118,40 @@ export default function ProfilesPage() {
       )}
 
       <TextCaption>
-        Ces taux sont des valeurs par défaut pour faciliter la création de devis. Ils ne modifient pas les devis validés ni les taux appliqués aux projets.
+        {t('profiles.footer')}
       </TextCaption>
 
       <ProfileFormDialog
         open={dialogOpen}
-        title={editingProfile ? 'Modifier le profil' : 'Nouveau profil'}
+        title={editingProfile ? t('profiles.dialog.editTitle') : t('profiles.dialog.newTitle')}
         form={form}
         onChange={setForm}
         onClose={closeDialog}
         onSave={handleSave}
-        saveLabel={editingProfile ? 'Enregistrer' : 'Créer le profil'}
+        saveLabel={editingProfile ? t('profiles.saveLabel') : t('profiles.createLabel')}
         isPending={createProfile.isPending || updateProfile.isPending}
       />
 
       <ConfirmDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}
-        title={`Supprimer "${deleteTarget?.name ?? ''}" ?`}
-        description="Le profil ne peut être supprimé que s'il n'est utilisé nulle part (devis, plannings, snapshots)."
-        confirmLabel="Supprimer"
-        cancelLabel="Annuler"
+        title={t('profiles.deleteTitle', { name: deleteTarget?.name ?? '' })}
+        description={t('profiles.deleteDescription')}
+        confirmLabel={t('profiles.deleteConfirm')}
+        cancelLabel={t('profiles.deleteCancel')}
         destructive
         onConfirm={() => {
           if (!deleteTarget) return
           const target = deleteTarget
           deleteProfile.mutate(target.id, {
             onSuccess: () => {
-              toast.success(`Profil "${target.name}" supprimé`)
+              toast.success(t('profiles.deleteSuccess', { name: target.name }))
               setDeleteTarget(null)
             },
             onError: (err: unknown) => {
               const message = err instanceof ApiError && err.status === 409
-                ? 'Ce profil est utilisé ailleurs et ne peut pas être supprimé.'
-                : 'Échec de la suppression du profil.'
+                ? t('profiles.deleteConflict')
+                : t('profiles.deleteFailed')
               toast.error(message)
               setDeleteTarget(null)
             },

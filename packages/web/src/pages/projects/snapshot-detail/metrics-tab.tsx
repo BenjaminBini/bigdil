@@ -1,42 +1,45 @@
+import { useTranslation } from 'react-i18next'
 import { KpiCard } from '@/components/shared/kpi-card'
 import { KpiGrid } from '@/components/shared/layouts'
 import { formatCurrency, formatDays } from '@/lib/format'
 import type { SnapshotMetrics } from '@/api/types'
 import type { KpiCardProps } from '@/components/shared/kpi-card'
+import type { TFunction } from 'i18next'
 
-function buildKpis(m: SnapshotMetrics): KpiCardProps[] {
+function buildKpis(m: SnapshotMetrics, t: TFunction): KpiCardProps[] {
   const contractValue = m.contractValue
   const marginPct = contractValue > 0 ? (m.marginForecast / contractValue) * 100 : 0
   return [
-    { label: 'Contract Value', value: formatCurrency(m.contractValue) },
-    { label: 'Actual Cost to Date', value: formatCurrency(m.actualCostToDate) },
-    { label: 'ETC Cost', value: formatCurrency(m.etcCost) },
-    { label: 'EAC Cost', value: formatCurrency(m.eacCost) },
+    { label: t('snapshots.metrics.contractValue'), value: formatCurrency(m.contractValue) },
+    { label: t('snapshots.metrics.actualCostToDate'), value: formatCurrency(m.actualCostToDate) },
+    { label: t('snapshots.metrics.etcCost'), value: formatCurrency(m.etcCost) },
+    { label: t('snapshots.metrics.eacCost'), value: formatCurrency(m.eacCost) },
     {
-      label: 'Margin Forecast',
+      label: t('snapshots.metrics.marginForecast'),
       value: formatCurrency(m.marginForecast),
-      description: `${marginPct.toFixed(1)}% of contract`,
+      description: t('projectLayout.kpi.ofContract', { pct: marginPct.toFixed(1) }),
       variant: 'highlight',
     },
     {
-      label: 'Executed Days',
-      value: `${formatDays(m.executedDaysPeriod)} days`,
-      description: 'This period',
+      label: t('snapshots.metrics.executedDays'),
+      value: formatDays(m.executedDaysPeriod),
+      description: t('snapshots.metrics.thisPeriod'),
     },
     {
-      label: 'Produced Value (period)',
+      label: t('snapshots.metrics.producedValuePeriod'),
       value: formatCurrency(m.producedExecutionValuePeriod),
       variant: 'highlight',
     },
     {
-      label: 'Produced to Date',
+      label: t('snapshots.metrics.producedToDate'),
       value: formatCurrency(m.producedExecutionValueToDate),
     },
   ]
 }
 
 export function MetricsTab({ metrics }: { metrics: SnapshotMetrics }) {
-  const kpis = buildKpis(metrics)
+  const { t } = useTranslation('pages')
+  const kpis = buildKpis(metrics, t)
   return (
     <KpiGrid className="pt-4">
       {kpis.map((kpi) => (

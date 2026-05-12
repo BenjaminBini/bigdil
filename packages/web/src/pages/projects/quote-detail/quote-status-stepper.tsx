@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { quoteStatusColors } from '@/lib/constants'
 import type { QuoteStatus } from '@/api/types'
@@ -42,17 +43,18 @@ function Arrow({ char = '→' }: { char?: string }) {
  * Each column is min-content so nodes in r1 and r3 stay aligned.
  */
 export function QuoteStatusStepper({ status }: QuoteStatusStepperProps) {
+  const { t } = useTranslation('pages')
   return (
     <div
       className="inline-grid items-center text-xs gap-y-0"
       style={{ gridTemplateColumns: 'repeat(5, min-content)' }}
     >
       {/* Row 1 — main path */}
-      <Node label="Brouillon" status="DRAFT" current={status} />
+      <Node label={t('quotes.stepper.draft')} status="DRAFT" current={status} />
       <Arrow />
-      <Node label="Envoyée" status="SENT" current={status} />
+      <Node label={t('quotes.stepper.sent')} status="SENT" current={status} />
       <Arrow />
-      <Node label="Validée" status="VALIDATED" current={status} terminal />
+      <Node label={t('quotes.stepper.validated')} status="VALIDATED" current={status} terminal />
 
       {/* Row 2 — vertical connectors */}
       <Arrow char="↓" />
@@ -61,10 +63,10 @@ export function QuoteStatusStepper({ status }: QuoteStatusStepperProps) {
       <span />
       <span />
 
-      {/* Row 3 — side states: Annulée (col1) ← Refusée (col3) */}
-      <Node label="Annulée" status="CANCELLED" current={status} />
+      {/* Row 3 — side states: Cancelled (col1) ← Rejected (col3) */}
+      <Node label={t('quotes.stepper.cancelled')} status="CANCELLED" current={status} />
       <Arrow char="←" />
-      <Node label="Refusée" status="REJECTED" current={status} />
+      <Node label={t('quotes.stepper.rejected')} status="REJECTED" current={status} />
       <span />
       <span />
     </div>

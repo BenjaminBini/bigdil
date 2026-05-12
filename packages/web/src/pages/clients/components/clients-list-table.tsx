@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Table,
   TableBody,
@@ -25,21 +26,22 @@ interface ClientsListTableProps {
 }
 
 export function ClientsListTable({ rows, sortKey, sortDir, onSort, onOpenClient }: ClientsListTableProps) {
+  const { t } = useTranslation('pages')
   return (
     <Card variant="flush">
       <Table>
         <TableHeader>
           <TableRow variant="header">
-            <SortableHead label="Nom" col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
-            <SortableHead label="Projets en cours" col="activeProjects" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
-            <SortableHead label="Valeur contractuelle" col="contractValue" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
-            <SortableHead label="Marge prévisionnelle" col="marginForecast" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
-            <SortableHead label="Dernière activité" col="lastActivity" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+            <SortableHead label={t('clients.table.name')} col="name" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+            <SortableHead label={t('clients.table.activeProjects')} col="activeProjects" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableHead label={t('clients.table.contractValue')} col="contractValue" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableHead label={t('clients.table.marginForecast')} col="marginForecast" sortKey={sortKey} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableHead label={t('clients.table.lastActivity')} col="lastActivity" sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.length === 0 ? (
-            <EmptyRow colSpan={5} message="Aucun client trouvé" />
+            <EmptyRow colSpan={5} message={t('clients.empty')} />
           ) : (
             rows.map(({ client, activeProjects, totalProjects, contractValue, marginForecast, lastActivity }) => (
               <TableRow
@@ -50,7 +52,7 @@ export function ClientsListTable({ rows, sortKey, sortDir, onSort, onOpenClient 
                 <TdPrimary>
                   {client.name}
                   <AnnotationText>
-                    {totalProjects} projet{totalProjects !== 1 ? 's' : ''}
+                    {t('clients.table.projectsCount', { count: totalProjects })}
                   </AnnotationText>
                 </TdPrimary>
                 <TdNumeric>{activeProjects}</TdNumeric>

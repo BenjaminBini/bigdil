@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import {
   Table,
   TableBody,
@@ -19,6 +20,7 @@ interface ProjectsTableProps {
 }
 
 export function ProjectsTable({ rows }: ProjectsTableProps) {
+  const { t } = useTranslation('pages')
   const navigate = useNavigate()
 
   return (
@@ -26,16 +28,16 @@ export function ProjectsTable({ rows }: ProjectsTableProps) {
       <Table>
         <TableHeader>
           <TableRow variant="header">
-            <HeadCell label="Client" />
-            <HeadCell label="Projet" />
-            <HeadCell label="Statut" />
-            <HeadCell label="Valeur contractuelle" align="right" />
-            <HeadCell label="Période active" />
+            <HeadCell label={t('projects.table.client')} />
+            <HeadCell label={t('projects.table.project')} />
+            <HeadCell label={t('projects.table.status')} />
+            <HeadCell label={t('projects.table.contractValue')} align="right" />
+            <HeadCell label={t('projects.table.activePeriod')} />
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.length === 0 ? (
-            <EmptyRow colSpan={5} message="Aucun projet trouvé" />
+            <EmptyRow colSpan={5} message={t('projects.empty')} />
           ) : (
             rows.map((row) => (
               <TableRow key={row.id} variant="interactive" onClick={() => navigate(`/projects/${row.id}`)}>

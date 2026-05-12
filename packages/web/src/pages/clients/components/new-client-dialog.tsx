@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useCreateClient } from '@/api/hooks'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,6 +42,7 @@ const emptyForm: FormState = {
 }
 
 export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
+  const { t } = useTranslation('pages')
   const [form, setForm] = useState<FormState>(emptyForm)
   const createClient = useCreateClient()
 
@@ -54,13 +56,13 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
   }
 
   function handleCreate() {
-    if (!form.name.trim()) { toast.error('Le nom est requis'); return }
-    if (!form.contactName.trim()) { toast.error('Le nom du contact est requis'); return }
-    if (!form.contactEmail.trim()) { toast.error('L\'email du contact est requis'); return }
-    if (!form.addressLine1.trim()) { toast.error('L\'adresse est requise'); return }
-    if (!form.postalCode.trim()) { toast.error('Le code postal est requis'); return }
-    if (!form.city.trim()) { toast.error('La ville est requise'); return }
-    if (!form.country.trim()) { toast.error('Le pays est requis (code ISO 2 lettres)'); return }
+    if (!form.name.trim()) { toast.error(t('clients.dialog.nameRequired')); return }
+    if (!form.contactName.trim()) { toast.error(t('clients.dialog.contactNameRequired')); return }
+    if (!form.contactEmail.trim()) { toast.error(t('clients.dialog.contactEmailRequired')); return }
+    if (!form.addressLine1.trim()) { toast.error(t('clients.dialog.addressRequired')); return }
+    if (!form.postalCode.trim()) { toast.error(t('clients.dialog.postalRequired')); return }
+    if (!form.city.trim()) { toast.error(t('clients.dialog.cityRequired')); return }
+    if (!form.country.trim()) { toast.error(t('clients.dialog.countryRequired')); return }
 
     createClient.mutate(
       {
@@ -75,10 +77,10 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
       },
       {
         onSuccess: (client) => {
-          toast.success(`Client "${client.name}" créé`)
+          toast.success(t('clients.dialog.createdToast', { name: client.name }))
           handleClose()
         },
-        onError: () => toast.error('Échec de la création du client'),
+        onError: () => toast.error(t('clients.dialog.createFailed')),
       },
     )
   }
@@ -88,11 +90,11 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
       <DialogContent size="sm">
         <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); handleCreate() }}>
           <DialogHeader>
-            <DialogTitle>Nouveau client</DialogTitle>
+            <DialogTitle>{t('clients.dialog.newTitle')}</DialogTitle>
           </DialogHeader>
 
           <VStack gap="xl">
-            <FormField label="Nom de l'entreprise" htmlFor="nc-name">
+            <FormField label={t('clients.dialog.companyName')} htmlFor="nc-name">
               <Input
                 id="nc-name"
                 placeholder="ex. Acme Corp"
@@ -101,7 +103,7 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
               />
             </FormField>
 
-            <FormField label="Nom du contact" htmlFor="nc-contact-name">
+            <FormField label={t('clients.dialog.contactName')} htmlFor="nc-contact-name">
               <Input
                 id="nc-contact-name"
                 placeholder="ex. Marie Dupont"
@@ -110,7 +112,7 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
               />
             </FormField>
 
-            <FormField label="Email du contact" htmlFor="nc-contact-email">
+            <FormField label={t('clients.dialog.contactEmail')} htmlFor="nc-contact-email">
               <Input
                 id="nc-contact-email"
                 type="email"
@@ -120,7 +122,7 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
               />
             </FormField>
 
-            <FormField label="Adresse" htmlFor="nc-address-line1">
+            <FormField label={t('clients.dialog.address')} htmlFor="nc-address-line1">
               <Input
                 id="nc-address-line1"
                 placeholder="ex. 42 rue de Rivoli"
@@ -129,7 +131,7 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
               />
             </FormField>
 
-            <FormField label="Complément d'adresse (optionnel)" htmlFor="nc-address-line2">
+            <FormField label={t('clients.dialog.addressLine2')} htmlFor="nc-address-line2">
               <Input
                 id="nc-address-line2"
                 placeholder="ex. Bâtiment B, 3e étage"
@@ -139,7 +141,7 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
             </FormField>
 
             <div className="grid grid-cols-3 gap-3">
-              <FormField label="Code postal" htmlFor="nc-postal">
+              <FormField label={t('clients.dialog.postalCode')} htmlFor="nc-postal">
                 <Input
                   id="nc-postal"
                   placeholder="75001"
@@ -148,7 +150,7 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
                 />
               </FormField>
 
-              <FormField label="Ville" htmlFor="nc-city">
+              <FormField label={t('clients.dialog.city')} htmlFor="nc-city">
                 <Input
                   id="nc-city"
                   placeholder="Paris"
@@ -157,7 +159,7 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
                 />
               </FormField>
 
-              <FormField label="Pays (ISO)" htmlFor="nc-country">
+              <FormField label={t('clients.dialog.country')} htmlFor="nc-country">
                 <Input
                   id="nc-country"
                   maxLength={2}
@@ -170,9 +172,9 @@ export function NewClientDialog({ open, onClose }: NewClientDialogProps) {
           </VStack>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>Annuler</Button>
+            <Button type="button" variant="outline" onClick={handleClose}>{t('clients.dialog.cancel')}</Button>
             <Button type="submit" disabled={createClient.isPending}>
-              {createClient.isPending ? 'Création…' : 'Créer le client'}
+              {createClient.isPending ? t('clients.dialog.creating') : t('clients.dialog.create')}
             </Button>
           </DialogFooter>
         </form>

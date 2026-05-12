@@ -46,11 +46,58 @@
     "subtitle_one": "{{count}} project",
     "subtitle_other": "{{count}} projects",
     "errorLoading": "Error loading projects",
-    "newProject": "New project"
+    "newProject": "New project",
+    "empty": "No project found",
+    "table": {
+      "client": "Client",
+      "project": "Project",
+      "status": "Status",
+      "contractValue": "Contract value",
+      "activePeriod": "Active period",
+      "name": "Name",
+      "activeProjects": "Active projects",
+      "marginForecast": "Margin forecast",
+      "lastActivity": "Last activity"
+    },
+    "filters": {
+      "allClients": "All clients",
+      "allStatuses": "All statuses",
+      "search": "Search"
+    },
+    "dialog": {
+      "editTitle": "Edit project",
+      "projectName": "Project name",
+      "currency": "Currency",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "cancel": "Cancel",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "nameRequired": "Project name is required",
+      "currencyRequired": "Currency is required",
+      "updatedToast": "Project updated",
+      "updateFailed": "Failed to update project"
+    },
+    "startDialog": {
+      "title": "Start project & generate periods",
+      "description_one": "Will generate <strong>{{count}} weekly period</strong> and set the project to <strong>In Progress</strong>.",
+      "description_other": "Will generate <strong>{{count}} weekly periods</strong> and set the project to <strong>In Progress</strong>.",
+      "startCol": "Start",
+      "endCol": "End",
+      "cancel": "Cancel",
+      "confirm": "Confirm & Start",
+      "starting": "Starting…"
+    }
   },
   "projectLayout": {
     "errorLoading": "Error loading project",
     "client": "Client",
+    "detailsTitle": "Project details",
+    "editProject": "Edit project",
+    "status": "Status",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "currency": "Currency",
     "tabs": {
       "overview": "Overview",
       "quotes": "Quotes",
@@ -67,7 +114,10 @@
       "produced": "Produced to date",
       "fromQuote": "from quote",
       "fromQuotes": "from {{count}} quotes",
-      "ofContract": "{{pct}}% of contract"
+      "ofContract": "{{pct}}% of contract",
+      "fromValidatedQuote": "from validated quote",
+      "fromValidatedQuotes": "from {{count}} validated quotes",
+      "noValidatedQuote": "no validated quote"
     }
   },
   "quotes": {
@@ -86,6 +136,24 @@
       "margin": "Margin",
       "marginPct": "Margin %"
     },
+    "grid": {
+      "taskProfile": "Task / Profile",
+      "days": "Days",
+      "revenue": "Revenue",
+      "cost": "Cost",
+      "margin": "Margin",
+      "sellRate": "Sell rate",
+      "costRate": "Cost rate",
+      "amount": "Amount",
+      "pct": "%"
+    },
+    "stepper": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "validated": "Validated",
+      "cancelled": "Cancelled",
+      "rejected": "Rejected"
+    },
     "totals": {
       "totalDays": "Total days",
       "revenue": "Total revenue",
@@ -98,13 +166,23 @@
       "showAllTasksHint": "Display every phase and task of the project, including those not in this quote.",
       "addProfile": "Add profile"
     },
+    "detail": {
+      "readOnly": "Read only",
+      "effectiveAtLabel": "Effective date: ",
+      "sentAtLabel": "Sent on: ",
+      "validatedAtLabel": "Validated on: ",
+      "rejectedAtLabel": "Refused on: ",
+      "cancelledAtLabel": "Cancelled on: "
+    },
     "actions": {
       "send": "Send to client",
       "validate": "Mark as validated",
+      "unvalidate": "Unvalidate",
       "reject": "Mark as refused",
       "cancel": "Cancel",
       "reopen": "Reopen",
       "duplicate": "Duplicate",
+      "delete": "Delete",
       "export": "Export"
     },
     "cancelDialog": {
@@ -137,6 +215,11 @@
       "description": "Move this quote back to draft for editing?",
       "confirm": "Reopen"
     },
+    "unvalidateDialog": {
+      "title": "Unvalidate quote",
+      "description": "Revoke the validation and move this quote back to \"sent\"? Both the validation date and the effective date will be cleared.",
+      "confirm": "Unvalidate"
+    },
     "toasts": {
       "sent": "Quote sent to client",
       "validated": "Quote validated",
@@ -144,6 +227,8 @@
       "rejected": "Quote marked as refused",
       "cancelled": "Quote cancelled",
       "reopened": "Quote reopened",
+      "unvalidated": "Quote unvalidated",
+      "deleted": "Quote deleted",
       "actionFailed": "Action failed"
     },
     "empty": "No quotes"
@@ -187,6 +272,7 @@
       "toPlanTooltip": "Sold days (validated quotes) not yet distributed into weeks."
     },
     "addEmployeeToProfile": "Add employee to this profile",
+    "assign": "Assign",
     "addPhaseTitle": "Add phase",
     "phaseNamePlaceholder": "Phase name",
     "phaseCreated": "Phase \"{{name}}\" created",
@@ -218,6 +304,169 @@
       "cost": "Cost",
       "costFormula": "{{days}} days",
       "marginFormula": "{{revenue}} − cost"
+    },
+    "states": {
+      "projectNotFound": "Project not found.",
+      "dataUnavailable": "Work table data not available for this project.",
+      "datesRequiredTitle": "Dates required",
+      "datesRequiredDescription": "Set the project start and end dates to enable planning.",
+      "setDates": "Set dates"
+    },
+    "tooltips": {
+      "viewDailyDetail": "View day-by-day detail",
+      "clickToEdit": "Click to edit",
+      "addTask": "Add task",
+      "rename": "Rename",
+      "delete": "Delete",
+      "addSubTask": "Add sub-task",
+      "edit": "Edit"
+    },
+    "placeholders": {
+      "taskName": "Task name…"
+    },
+    "cellDetail": {
+      "total": "Total",
+      "saveFailed": "Failed to save",
+      "weekDetail": "Week detail",
+      "loading": "Loading…",
+      "loadFailed": "Failed to load",
+      "noBundle": "No timesheet bundle for this week",
+      "daysSuffix": "d"
+    },
+    "planningTotal": {
+      "title": "Total",
+      "cost": "Cost",
+      "revenue": "Revenue",
+      "costFormula": "= {{days}}d (spent+rem.) × avg cost/d",
+      "revenueFormula": "= {{days}}d (sold) × {{rate}}/d",
+      "marginFormula": "= {{revenue}} (rev.) - {{cost}} (cost)"
+    },
+    "consolidationTable": {
+      "title": "Consolidation on {{date}}",
+      "viewFormula": "View formula"
+    },
+    "marginInsight": {
+      "title": "Margin Insight",
+      "totalEtcCost": "Total ETC Cost",
+      "contractValue": "Contract Value",
+      "marginForecast": "Margin Forecast",
+      "daysRemaining": "{{days}}d remaining",
+      "rateComparison": "{{actual}}€/d (actual) vs {{assumed}}€/d (assumed)",
+      "rateImpact": "→ {{sign}}{{impact}}€/d impact",
+      "etc": "ETC: {{value}}"
+    },
+    "frozenHeader": {
+      "groups": {
+        "Total": "Total",
+        "Period": "Period"
+      },
+      "subgroups": {
+        "Cost": "Cost",
+        "Revenue": "Revenue",
+        "Margin": "Margin"
+      },
+      "cols": {
+        "tc_spent": "Spent",
+        "tc_rem": "Rem.",
+        "tc_total": "Total",
+        "tc_amount": "Amount",
+        "tr_sold": "Sold",
+        "tr_rate": "Rate",
+        "tr_amount": "Amount",
+        "tr_margin": "Margin",
+        "pc_spent": "Spent",
+        "pc_cost": "Cost",
+        "pc_amount": "Amount",
+        "pr_produced": "Prod.",
+        "pr_amount": "Amount",
+        "pr_margin": "Margin"
+      }
+    },
+    "formulaPopover": {
+      "total": "Total",
+      "childrenSum": "Σ {{count}} child(ren)",
+      "detailBy": "Detail by {{level}}",
+      "levels": {
+        "employee": "employee",
+        "profile": "profile",
+        "task": "task",
+        "phase": "phase",
+        "grand-total": "grand total"
+      },
+      "titles": {
+        "tc_spent": "Total · Cost · Days spent",
+        "tc_rem": "Total · Cost · Remaining",
+        "tc_total": "Total · Cost · Total days",
+        "tc_amount": "Total · Cost · Amount",
+        "tr_sold": "Total · Revenue · Days sold",
+        "tr_rate": "Total · Revenue · Daily rate",
+        "tr_amount": "Total · Revenue · Amount",
+        "tr_margin": "Total · Margin",
+        "pc_spent": "Period · Cost · Days spent",
+        "pc_cost": "Period · Cost · Average rate",
+        "pc_amount": "Period · Cost · Amount",
+        "pr_produced": "Period · Revenue · Days produced",
+        "pr_amount": "Period · Revenue · Amount",
+        "pr_margin": "Period · Margin"
+      },
+      "symbolic": {
+        "tc_spent": "Σ days (FROZEN + CONSOLIDATION)",
+        "tc_rem": "Σ planned days (OPEN + FUTURE)",
+        "tc_total": "Spent + Remaining",
+        "tc_amount_employee": "Total days × Cost rate/d",
+        "tc_amount_aggregate": "Σ (Total days × Cost rate/d) of children",
+        "tr_sold_quotes": "Σ days on VALIDATED quote lines",
+        "tr_sold_aggregate": "Σ sold days of sub-lines",
+        "tr_rate_quotes": "sellRatePerDay (1st VALIDATED quote line)",
+        "tr_rate_aggregate": "N/A at this level (aggregate)",
+        "tr_amount_profile": "Days sold × Sell rate/d",
+        "tr_amount_aggregate": "Σ revenue of sub-lines",
+        "tr_margin": "Total revenue − Total cost",
+        "pc_spent": "Σ cells on CONSOLIDATION weeks",
+        "pc_cost": "Period cost amount ÷ Period days",
+        "pc_amount_employee": "Period days × Cost rate/d",
+        "pc_amount_aggregate": "Σ (Period days × Cost rate/d) of children",
+        "pr_produced_profile": "max(0, previous remaining − current remaining)",
+        "pr_produced_employee": "Σ employee cells on CONSOLIDATION weeks",
+        "pr_produced_aggregate": "Σ produced days of sub-lines",
+        "pr_amount_profile": "Days produced × Sell rate/d",
+        "pr_amount_aggregate": "Σ (Days produced × Sell rate/d) of children",
+        "pr_margin": "Period revenue − Period cost"
+      },
+      "sources": {
+        "frozen": "Source — entries & snapshots (FROZEN + CONSOLIDATION)",
+        "planning": "Source — planning (OPEN + FUTURE)",
+        "consolidation": "Source — timesheets & planning (CONSOLIDATION)",
+        "quoteLines": "Sources — quote lines"
+      },
+      "tags": {
+        "actual": "declared",
+        "planned": "planned",
+        "mixed": "mixed"
+      },
+      "factors": {
+        "costRate": "Cost rate/d",
+        "sellRate": "Sell rate/d",
+        "marginPct": "% margin",
+        "prevRaf": "Previous remaining",
+        "currentRaf": "Current remaining"
+      },
+      "hints": {
+        "costRateEmployee": "currentCostRatePerDay (employee)",
+        "costRateProfile": "defaultCostRatePerDay (profile)",
+        "marginPctFormula": "margin / revenue × 100",
+        "effective": "effective {{date}}",
+        "quoteShort": "quote {{id}}…",
+        "openFutureCells": "cells OPEN + FUTURE",
+        "sellRateFromQuote": "sellRatePerDay from quote",
+        "noPrevSnapshot": "no previous snapshot → fallback to sold days (quotedDays)",
+        "prevSnapshot": "previous snapshot",
+        "snapshotCode": "snapshot {{code}}"
+      },
+      "descriptions": {
+        "prProduced": "Remaining = days left to execute. Difference between two snapshots = work consumed during the period.",
+        "prAmount": "Days produced = max(0, previous remaining − current remaining)."
+      }
     }
   },
   "snapshots": {
@@ -241,6 +490,55 @@
       "scope": "Scope",
       "workTable": "Work table",
       "actuals": "Actuals"
+    },
+    "scope": {
+      "intro": "Scope lines as of this snapshot — all validated quotes effective at this date.",
+      "task": "Task",
+      "profile": "Profile",
+      "baselineDays": "Baseline Days",
+      "sellRatePerDay": "Sell Rate/day",
+      "costRateAssumption": "Cost Rate Assumption/day",
+      "revenue": "Revenue",
+      "budgetCost": "Budget Cost",
+      "totalDays": "Total Days",
+      "totalRevenue": "Total Revenue",
+      "totalBudgetCost": "Total Budget Cost",
+      "totalMargin": "Total Margin"
+    },
+    "metrics": {
+      "contractValue": "Contract Value",
+      "actualCostToDate": "Actual Cost to Date",
+      "etcCost": "ETC Cost",
+      "eacCost": "EAC Cost",
+      "marginForecast": "Margin Forecast",
+      "executedDays": "Executed Days",
+      "thisPeriod": "This period",
+      "producedValuePeriod": "Produced Value (period)",
+      "producedToDate": "Produced to Date"
+    },
+    "workTableTab": {
+      "title": "Work table as-of this snapshot — READ ONLY",
+      "description": "This is a frozen view. Showing all periods up to {{periodCode}}.",
+      "task": "Task",
+      "profile": "Profile",
+      "employee": "Employee",
+      "totalDays": "Total Days",
+      "type": "Type"
+    },
+    "actuals": {
+      "noApproved": "No approved timesheets",
+      "cost": "Cost",
+      "sell": "Sell",
+      "periodTitle": "{{periodCode}} — Approved timesheets",
+      "cumulativeTitle": "Cumulative — up to {{periodCode}}",
+      "employee": "Employee",
+      "task": "Task",
+      "profile": "Profile",
+      "days": "Days",
+      "costRatePerDay": "Cost rate/day",
+      "costAmount": "Cost amount",
+      "sellRatePerDay": "Sell rate/day",
+      "sellAmount": "Sell amount"
     }
   },
   "periodClose": {
@@ -270,6 +568,15 @@
       "perDayPct": "{{value}} ({{pct}}%)"
     }
   },
+  "projectTimesheetsPage": {
+    "table": {
+      "period": "Period",
+      "status": "Status",
+      "employees": "Employees",
+      "totalDays": "Total Days",
+      "empty": "No timesheet touches this project yet."
+    }
+  },
   "projectTimesheets": {
     "title": "Timesheets",
     "subtitle": "All entries for {{project}}",
@@ -287,16 +594,90 @@
     "subtitle": "Manage your client portfolio",
     "newClient": "New client",
     "search": "Search for a client...",
-    "notFound": "Client not found"
+    "notFound": "Client not found",
+    "empty": "No client found",
+    "emptyProjects": "No project for this client",
+    "emptyProjectsDescription": "Create a project from the projects list to link it to this client.",
+    "table": {
+      "name": "Name",
+      "activeProjects": "Active projects",
+      "contractValue": "Contract value",
+      "marginForecast": "Margin forecast",
+      "lastActivity": "Last activity",
+      "projectsCount_one": "{{count}} project",
+      "projectsCount_other": "{{count}} projects"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "projects": "Projects"
+    },
+    "backToAll": "All clients",
+    "dialog": {
+      "newTitle": "New client",
+      "editTitle": "Edit client",
+      "companyName": "Company name",
+      "contactName": "Contact name",
+      "contactEmail": "Contact email",
+      "address": "Address",
+      "addressLine2": "Address line 2 (optional)",
+      "postalCode": "Postal code",
+      "city": "City",
+      "country": "Country (ISO)",
+      "name": "Name",
+      "save": "Save",
+      "create": "Create client",
+      "creating": "Creating…",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "nameRequired": "Name is required",
+      "contactNameRequired": "Contact name is required",
+      "contactEmailRequired": "Contact email is required",
+      "addressRequired": "Address is required",
+      "postalRequired": "Postal code is required",
+      "cityRequired": "City is required",
+      "countryRequired": "Country is required (ISO 2-letter code)",
+      "createdToast": "Client \"{{name}}\" created",
+      "createFailed": "Failed to create client",
+      "updatedToast": "Client \"{{name}}\" updated",
+      "updateFailed": "Failed to update client"
+    },
+    "editAction": "Edit",
+    "projectsCount_one": "{{count}} project",
+    "projectsCount_other": "{{count}} projects"
   },
   "profiles": {
     "title": "Profiles",
     "subtitle": "Billing profiles with default daily rates for quote creation.",
     "newProfile": "New profile",
     "footer": "These rates serve as defaults to speed up quote creation. They do not change validated quotes or rates already applied to projects.",
+    "empty": "No profile",
+    "emptyDescription": "Create a billing profile to start drafting quotes with default daily rates.",
+    "createFirst": "Create first profile",
+    "saveLabel": "Save",
+    "createLabel": "Create profile",
+    "deleteTitle": "Delete \"{{name}}\"?",
+    "deleteDescription": "Profile can only be deleted if not used anywhere (quotes, planning, snapshots).",
+    "deleteConfirm": "Delete",
+    "deleteCancel": "Cancel",
+    "deleteSuccess": "Profile \"{{name}}\" deleted",
+    "deleteFailed": "Failed to delete profile.",
+    "deleteConflict": "This profile is used elsewhere and cannot be deleted.",
+    "errorLoading": "Error loading profile",
+    "validation": {
+      "nameRequired": "Name is required",
+      "sellRateInvalid": "Invalid sell rate",
+      "costRateInvalid": "Invalid cost rate"
+    },
     "dialog": {
       "newTitle": "New profile",
-      "editTitle": "Edit profile"
+      "editTitle": "Edit profile",
+      "name": "Profile name",
+      "sellRate": "Default sell rate / day (EUR)",
+      "costRate": "Default cost rate / day (EUR)",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "marginLabel": "Computed margin: ",
+      "perDay": "/day"
     },
     "toasts": {
       "createSuccess": "Profile \"{{name}}\" created",
@@ -309,6 +690,41 @@
     "title": "Employees",
     "subtitle": "Manage your team members and their cost rate history.",
     "newEmployee": "New employee",
+    "empty": "No employee",
+    "emptyDescription": "Add team members to assign them to projects and track their timesheets.",
+    "createFirst": "Create first employee",
+    "rateHistory": {
+      "validFrom": "Valid from",
+      "validTo": "Valid to",
+      "costRatePerDay": "Cost rate / day",
+      "present": "Present",
+      "addRate": "Add rate"
+    },
+    "dialog": {
+      "newTitle": "New employee",
+      "fullName": "Full name",
+      "costRatePerDay": "Cost rate / day (EUR)",
+      "costRateCaption": "Starting cost rate. You can add rate history from the employee detail page.",
+      "cancel": "Cancel",
+      "create": "Create employee",
+      "creating": "Creating…",
+      "nameRequired": "Name is required",
+      "rateInvalid": "Valid cost rate is required",
+      "createFailed": "Failed to create employee",
+      "createdToast": "Employee \"{{name}}\" created"
+    },
+    "rateDialog": {
+      "title": "Add rate period — {{name}}",
+      "effectiveFrom": "Effective from",
+      "costRatePerDay": "Cost rate / day",
+      "cancel": "Cancel",
+      "save": "Add rate",
+      "saving": "Saving…",
+      "fromRequired": "Valid from date is required",
+      "rateRequired": "Rate must be a non-negative number",
+      "saveFailed": "Failed to add rate period",
+      "addedToast": "New rate added for {{name}}"
+    },
     "exportUnavailable": "Export unavailable",
     "errorLoading": "Error loading employee",
     "employeeId": "Employee ID: {{id}}",
@@ -318,6 +734,10 @@
       "costRate": "Cost rate / day",
       "assignedProjects": "Assigned projects"
     }
+  },
+  "timesheetsPage": {
+    "empty": "No timesheet",
+    "emptyDescription": "No timesheet has been generated for you. Ask your manager to open a period or assign you to a project."
   },
   "timesheets": {
     "title": "My timesheets",
@@ -395,6 +815,22 @@
     }
   },
   "users": {
+    "dialog": {
+      "editTitle": "Edit user",
+      "fullName": "Full name",
+      "email": "Email",
+      "role": "Role",
+      "linkedEmployee": "Linked employee",
+      "linkedCaption": "Link to an employee record for timesheet access",
+      "none": "- None -",
+      "nonePlaceholder": "None (admin/PM/exec)",
+      "cancel": "Cancel",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "validation": "Name and email are required",
+      "updatedToast": "User \"{{name}}\" updated",
+      "updateFailed": "Failed to update user"
+    },
     "title": "User management",
     "subtitle_one": "{{count}} user",
     "subtitle_other": "{{count}} users",
@@ -412,7 +848,21 @@
     "currency": "Currency",
     "unassignedBehavior": "Unassigned behavior",
     "applicationName": "Application name",
-    "companyName": "Company name"
+    "companyName": "Company name",
+    "general": {
+      "weekSettingsTitle": "Week settings",
+      "weekSettingsDescription": "Controls how periods and calendars are displayed",
+      "weekStartLabel": "Week starts on",
+      "monday": "Monday",
+      "sunday": "Sunday",
+      "dayPrecisionLabel": "Day precision",
+      "precisionQuarter": "0.25 (quarter day)",
+      "precisionHalf": "0.5 (half day)",
+      "precisionFull": "1.0 (full day)",
+      "currencyTitle": "Currency",
+      "currencyDescription": "Default currency for all financial calculations",
+      "currencyLabel": "Default currency"
+    }
   },
   "common": {
     "errorLoading": "Error loading",

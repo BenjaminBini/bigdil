@@ -1,4 +1,5 @@
 import { Activity, AlertTriangle, BarChart3, TrendingUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { KpiCard } from '@/components/shared/kpi-card'
 import { KpiGrid } from '@/components/shared/layouts'
 import { formatCurrency } from '@/lib/format'
@@ -9,30 +10,31 @@ interface KpiStripProps {
 }
 
 export function KpiStrip({ kpis }: KpiStripProps) {
+  const { t } = useTranslation('pages')
   return (
     <KpiGrid>
       <KpiCard
-        label="Valeur contractuelle totale"
+        label={t('dashboard.kpi.totalContractValue')}
         value={formatCurrency(kpis.totalContractValue)}
-        description="Sur tous les devis validés"
+        description={t('dashboard.kpi.totalContractDescription')}
         icon={<BarChart3 size={16} />}
       />
       <KpiCard
-        label="Marge prévisionnelle totale"
+        label={t('dashboard.kpi.totalMargin')}
         value={formatCurrency(kpis.totalMarginForecast)}
-        description="D'après les derniers snapshots"
+        description={t('dashboard.kpi.totalMarginDescription')}
         icon={<TrendingUp size={16} />}
       />
       <KpiCard
-        label="Projets en cours"
+        label={t('dashboard.kpi.activeProjects')}
         value={String(kpis.activeProjects)}
-        description="Actuellement en cours"
+        description={t('dashboard.kpi.activeProjectsDescription')}
         icon={<Activity size={16} />}
       />
       <KpiCard
-        label="Approbations en attente"
+        label={t('dashboard.kpi.overdueApprovals')}
         value={String(kpis.overdueApprovals)}
-        description="Feuilles de temps à approuver"
+        description={t('dashboard.kpi.overdueApprovalsDescription')}
         icon={<AlertTriangle size={16} />}
       />
     </KpiGrid>

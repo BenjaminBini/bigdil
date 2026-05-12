@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { StickyColumnCell } from '@/components/shared/sticky-column-cell'
 import { cn } from '@/lib/utils'
 import { FROZEN_COLS, FROZEN_GROUPS, FROZEN_SUBGROUPS } from '@/lib/work-table/frozen'
@@ -16,11 +17,12 @@ function ColumnHeaderRow({ children }: { children: ReactNode }) {
 }
 
 export function ConsolidationGridHeader() {
+  const { t } = useTranslation('pages')
   return (
     <thead>
       <GroupHeaderRow>
         <StickyColumnCell as="th" zIndex={30} shadowColor="var(--color-border)" className="border-b border-border/70 bg-muted text-left font-semibold" rowSpan={3}>
-          Task / Phase
+          {t('workTable.taskPhaseColumn')}
         </StickyColumnCell>
         {FROZEN_GROUPS.map((group, index) => (
           <th
@@ -31,7 +33,7 @@ export function ConsolidationGridHeader() {
               index === 0 ? 'border-r-2 border-r-border/70' : 'border-r border-r-border/70',
             )}
           >
-            {group.label}
+            {t(`workTable.frozenHeader.groups.${group.label}`)}
           </th>
         ))}
       </GroupHeaderRow>
@@ -46,7 +48,7 @@ export function ConsolidationGridHeader() {
               index === 2 || index === 5 ? 'border-r-2 border-r-border/70' : 'border-r border-r-border/70',
             )}
           >
-            {subgroup.label}
+            {t(`workTable.frozenHeader.subgroups.${subgroup.label}`)}
           </th>
         ))}
       </SubgroupHeaderRow>
@@ -63,7 +65,7 @@ export function ConsolidationGridHeader() {
             )}
             style={{ width: col.w, minWidth: col.w }}
           >
-            {col.label}
+            {t(`workTable.frozenHeader.cols.${col.key}`)}
           </th>
         ))}
       </ColumnHeaderRow>

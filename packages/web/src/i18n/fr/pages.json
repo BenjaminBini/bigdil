@@ -46,11 +46,58 @@
     "subtitle_one": "{{count}} projet",
     "subtitle_other": "{{count}} projets",
     "errorLoading": "Erreur lors du chargement des projets",
-    "newProject": "Nouveau projet"
+    "newProject": "Nouveau projet",
+    "empty": "Aucun projet trouvé",
+    "table": {
+      "client": "Client",
+      "project": "Projet",
+      "status": "Statut",
+      "contractValue": "Valeur contractuelle",
+      "activePeriod": "Période active",
+      "name": "Nom",
+      "activeProjects": "Projets en cours",
+      "marginForecast": "Marge prévisionnelle",
+      "lastActivity": "Dernière activité"
+    },
+    "filters": {
+      "allClients": "Tous les clients",
+      "allStatuses": "Tous les statuts",
+      "search": "Rechercher"
+    },
+    "dialog": {
+      "editTitle": "Modifier le projet",
+      "projectName": "Nom du projet",
+      "currency": "Devise",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "cancel": "Annuler",
+      "save": "Enregistrer les modifications",
+      "saving": "Enregistrement…",
+      "nameRequired": "Le nom du projet est requis",
+      "currencyRequired": "La devise est requise",
+      "updatedToast": "Projet mis à jour",
+      "updateFailed": "Échec de la mise à jour du projet"
+    },
+    "startDialog": {
+      "title": "Démarrer le projet & générer les périodes",
+      "description_one": "Génère <strong>{{count}} période hebdomadaire</strong> et passe le projet en <strong>In Progress</strong>.",
+      "description_other": "Génère <strong>{{count}} périodes hebdomadaires</strong> et passe le projet en <strong>In Progress</strong>.",
+      "startCol": "Début",
+      "endCol": "Fin",
+      "cancel": "Annuler",
+      "confirm": "Confirmer & Démarrer",
+      "starting": "Démarrage…"
+    }
   },
   "projectLayout": {
     "errorLoading": "Erreur lors du chargement du projet",
     "client": "Client",
+    "detailsTitle": "Détails du projet",
+    "editProject": "Modifier le projet",
+    "status": "Statut",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "currency": "Devise",
     "tabs": {
       "overview": "Vue d'ensemble",
       "quotes": "Devis",
@@ -67,7 +114,10 @@
       "produced": "Produit à ce jour",
       "fromQuote": "depuis le devis",
       "fromQuotes": "depuis {{count}} devis",
-      "ofContract": "{{pct}}% du contrat"
+      "ofContract": "{{pct}}% du contrat",
+      "fromValidatedQuote": "depuis le devis validé",
+      "fromValidatedQuotes": "depuis {{count}} devis validés",
+      "noValidatedQuote": "aucun devis validé"
     }
   },
   "quotes": {
@@ -86,6 +136,24 @@
       "margin": "Marge",
       "marginPct": "Marge %"
     },
+    "grid": {
+      "taskProfile": "Tâche / Profil",
+      "days": "Jours",
+      "revenue": "Chiffre d'affaires",
+      "cost": "Coût",
+      "margin": "Marge",
+      "sellRate": "TJM vente",
+      "costRate": "TJM coût",
+      "amount": "Montant",
+      "pct": "%"
+    },
+    "stepper": {
+      "draft": "Brouillon",
+      "sent": "Envoyée",
+      "validated": "Validée",
+      "cancelled": "Annulée",
+      "rejected": "Refusée"
+    },
     "totals": {
       "totalDays": "Total jours",
       "revenue": "CA total",
@@ -98,13 +166,23 @@
       "showAllTasksHint": "Affiche toutes les phases et tâches du projet, même celles non concernées par ce devis.",
       "addProfile": "Ajouter un profil"
     },
+    "detail": {
+      "readOnly": "Lecture seule",
+      "effectiveAtLabel": "Date d'effet : ",
+      "sentAtLabel": "Envoyé le : ",
+      "validatedAtLabel": "Validé le : ",
+      "rejectedAtLabel": "Refusé le : ",
+      "cancelledAtLabel": "Annulé le : "
+    },
     "actions": {
       "send": "Envoyer au client",
       "validate": "Marquer comme validé",
+      "unvalidate": "Dévalider",
       "reject": "Marquer comme refusé",
       "cancel": "Annuler",
       "reopen": "Rouvrir",
       "duplicate": "Dupliquer",
+      "delete": "Supprimer",
       "export": "Exporter"
     },
     "cancelDialog": {
@@ -137,6 +215,11 @@
       "description": "Repasser ce devis en brouillon pour modification ?",
       "confirm": "Rouvrir"
     },
+    "unvalidateDialog": {
+      "title": "Dévalider le devis",
+      "description": "Annuler la validation et repasser ce devis en \"envoyé\" ? La date d'effet et la date de validation seront effacées.",
+      "confirm": "Dévalider"
+    },
     "toasts": {
       "sent": "Devis envoyé au client",
       "validated": "Devis validé",
@@ -144,6 +227,8 @@
       "rejected": "Devis marqué comme refusé",
       "cancelled": "Devis annulé",
       "reopened": "Devis rouvert",
+      "unvalidated": "Devis dévalidé",
+      "deleted": "Devis supprimé",
       "actionFailed": "Action impossible"
     },
     "empty": "Aucun devis"
@@ -187,6 +272,7 @@
       "toPlanTooltip": "Jours vendus (devis validés) qui ne sont pas encore répartis dans les semaines."
     },
     "addEmployeeToProfile": "Ajouter un collaborateur sur ce profil",
+    "assign": "Affecter",
     "addPhaseTitle": "Ajouter une phase",
     "phaseNamePlaceholder": "Nom de la phase",
     "phaseCreated": "Phase \"{{name}}\" créée",
@@ -218,6 +304,169 @@
       "cost": "Coût",
       "costFormula": "{{days}} jours",
       "marginFormula": "{{revenue}} − coût"
+    },
+    "states": {
+      "projectNotFound": "Projet introuvable.",
+      "dataUnavailable": "Données de planning indisponibles pour ce projet.",
+      "datesRequiredTitle": "Dates requises",
+      "datesRequiredDescription": "Définissez les dates de début et de fin du projet pour pouvoir planifier.",
+      "setDates": "Définir les dates"
+    },
+    "tooltips": {
+      "viewDailyDetail": "Voir détail jour par jour",
+      "clickToEdit": "Cliquer pour modifier",
+      "addTask": "Ajouter une tâche",
+      "rename": "Renommer",
+      "delete": "Supprimer",
+      "addSubTask": "Ajouter une sous-tâche",
+      "edit": "Modifier"
+    },
+    "placeholders": {
+      "taskName": "Nom de la tâche…"
+    },
+    "cellDetail": {
+      "total": "Total",
+      "saveFailed": "Échec de l'enregistrement",
+      "weekDetail": "Détail semaine",
+      "loading": "Chargement…",
+      "loadFailed": "Échec du chargement",
+      "noBundle": "Aucun bundle de timesheet pour cette semaine",
+      "daysSuffix": "j"
+    },
+    "planningTotal": {
+      "title": "Total",
+      "cost": "Coût",
+      "revenue": "Chiffre d'affaires",
+      "costFormula": "= {{days}}j (cons.+rest.) × TJM moyen",
+      "revenueFormula": "= {{days}}j (vendus) × {{rate}}/j",
+      "marginFormula": "= {{revenue}} (CA) - {{cost}} (coût)"
+    },
+    "consolidationTable": {
+      "title": "Consolidation au {{date}}",
+      "viewFormula": "Voir formule"
+    },
+    "marginInsight": {
+      "title": "Analyse de marge",
+      "totalEtcCost": "Coût ETC total",
+      "contractValue": "Valeur contractuelle",
+      "marginForecast": "Marge prévisionnelle",
+      "daysRemaining": "{{days}}j restants",
+      "rateComparison": "{{actual}}€/j (réel) vs {{assumed}}€/j (estimé)",
+      "rateImpact": "→ {{sign}}{{impact}}€/j impact",
+      "etc": "ETC : {{value}}"
+    },
+    "frozenHeader": {
+      "groups": {
+        "Total": "Total",
+        "Period": "Période"
+      },
+      "subgroups": {
+        "Cost": "Coût",
+        "Revenue": "Revenu",
+        "Margin": "Marge"
+      },
+      "cols": {
+        "tc_spent": "Consommés",
+        "tc_rem": "Restant",
+        "tc_total": "Total",
+        "tc_amount": "Montant",
+        "tr_sold": "Vendus",
+        "tr_rate": "Taux",
+        "tr_amount": "Montant",
+        "tr_margin": "Marge",
+        "pc_spent": "Consommés",
+        "pc_cost": "Coût",
+        "pc_amount": "Montant",
+        "pr_produced": "Prod.",
+        "pr_amount": "Montant",
+        "pr_margin": "Marge"
+      }
+    },
+    "formulaPopover": {
+      "total": "Total",
+      "childrenSum": "Σ {{count}} enfant(s)",
+      "detailBy": "Détail par {{level}}",
+      "levels": {
+        "employee": "employé",
+        "profile": "profil",
+        "task": "tâche",
+        "phase": "phase",
+        "grand-total": "total général"
+      },
+      "titles": {
+        "tc_spent": "Total · Coût · Jours consommés",
+        "tc_rem": "Total · Coût · Reste à faire",
+        "tc_total": "Total · Coût · Jours total",
+        "tc_amount": "Total · Coût · Montant",
+        "tr_sold": "Total · Revenu · Jours vendus",
+        "tr_rate": "Total · Revenu · Taux vente",
+        "tr_amount": "Total · Revenu · Montant",
+        "tr_margin": "Total · Marge",
+        "pc_spent": "Période · Coût · Jours consommés",
+        "pc_cost": "Période · Coût · Taux moyen",
+        "pc_amount": "Période · Coût · Montant",
+        "pr_produced": "Période · Revenu · Jours produits",
+        "pr_amount": "Période · Revenu · Montant",
+        "pr_margin": "Période · Marge"
+      },
+      "symbolic": {
+        "tc_spent": "Σ jours (FROZEN + CONSOLIDATION)",
+        "tc_rem": "Σ jours planifiés (OPEN + FUTURE)",
+        "tc_total": "Consommés + Reste à faire",
+        "tc_amount_employee": "Jours total × Taux coût/j",
+        "tc_amount_aggregate": "Σ (Jours total × Taux coût/j) des enfants",
+        "tr_sold_quotes": "Σ jours sur lignes de devis VALIDATED",
+        "tr_sold_aggregate": "Σ jours vendus des sous-lignes",
+        "tr_rate_quotes": "sellRatePerDay (1ʳᵉ ligne devis VALIDATED)",
+        "tr_rate_aggregate": "N/A à ce niveau (agrégat)",
+        "tr_amount_profile": "Jours vendus × Taux vente/j",
+        "tr_amount_aggregate": "Σ revenu des sous-lignes",
+        "tr_margin": "Revenu total − Coût total",
+        "pc_spent": "Σ cells sur semaines CONSOLIDATION",
+        "pc_cost": "Montant coût période ÷ Jours période",
+        "pc_amount_employee": "Jours période × Taux coût/j",
+        "pc_amount_aggregate": "Σ (Jours période × Taux coût/j) des enfants",
+        "pr_produced_profile": "max(0, RAF précédent − RAF actuel)",
+        "pr_produced_employee": "Σ cells employé sur semaines CONSOLIDATION",
+        "pr_produced_aggregate": "Σ jours produits des sous-lignes",
+        "pr_amount_profile": "Jours produits × Taux vente/j",
+        "pr_amount_aggregate": "Σ (Jours produits × Taux vente/j) des enfants",
+        "pr_margin": "Revenu période − Coût période"
+      },
+      "sources": {
+        "frozen": "Source — saisies & snapshots (FROZEN + CONSOLIDATION)",
+        "planning": "Source — planification (OPEN + FUTURE)",
+        "consolidation": "Source — feuilles de temps & planification (CONSOLIDATION)",
+        "quoteLines": "Sources — lignes de devis"
+      },
+      "tags": {
+        "actual": "déclaré",
+        "planned": "planifié",
+        "mixed": "mixte"
+      },
+      "factors": {
+        "costRate": "Taux coût/j",
+        "sellRate": "Taux vente/j",
+        "marginPct": "% marge",
+        "prevRaf": "RAF précédent",
+        "currentRaf": "RAF actuel"
+      },
+      "hints": {
+        "costRateEmployee": "currentCostRatePerDay (employé)",
+        "costRateProfile": "defaultCostRatePerDay (profil)",
+        "marginPctFormula": "marge / revenu × 100",
+        "effective": "effectif {{date}}",
+        "quoteShort": "devis {{id}}…",
+        "openFutureCells": "cells OPEN + FUTURE",
+        "sellRateFromQuote": "sellRatePerDay du devis",
+        "noPrevSnapshot": "pas de snapshot précédent → fallback sur jours vendus (quotedDays)",
+        "prevSnapshot": "snapshot précédent",
+        "snapshotCode": "snapshot {{code}}"
+      },
+      "descriptions": {
+        "prProduced": "RAF (reste à faire) = jours restants à exécuter. La différence entre deux snapshots = travail consommé pendant la période.",
+        "prAmount": "Jours produits = max(0, RAF précédent − RAF actuel)."
+      }
     }
   },
   "snapshots": {
@@ -241,6 +490,55 @@
       "scope": "Périmètre",
       "workTable": "Planning",
       "actuals": "Réalisé"
+    },
+    "scope": {
+      "intro": "Lignes de périmètre à la date du snapshot — tous les devis validés effectifs à cette date.",
+      "task": "Tâche",
+      "profile": "Profil",
+      "baselineDays": "Jours baseline",
+      "sellRatePerDay": "TJM vente",
+      "costRateAssumption": "TJM coût (hypothèse)",
+      "revenue": "Chiffre d'affaires",
+      "budgetCost": "Coût budgété",
+      "totalDays": "Total jours",
+      "totalRevenue": "CA total",
+      "totalBudgetCost": "Coût budgété total",
+      "totalMargin": "Marge totale"
+    },
+    "metrics": {
+      "contractValue": "Valeur contractuelle",
+      "actualCostToDate": "Coût réel à date",
+      "etcCost": "Coût ETC",
+      "eacCost": "Coût EAC",
+      "marginForecast": "Marge prévisionnelle",
+      "executedDays": "Jours exécutés",
+      "thisPeriod": "Sur cette période",
+      "producedValuePeriod": "Valeur produite (période)",
+      "producedToDate": "Produit à date"
+    },
+    "workTableTab": {
+      "title": "Planning à la date du snapshot — LECTURE SEULE",
+      "description": "Vue gelée. Toutes les périodes jusqu'à {{periodCode}}.",
+      "task": "Tâche",
+      "profile": "Profil",
+      "employee": "Collaborateur",
+      "totalDays": "Total jours",
+      "type": "Type"
+    },
+    "actuals": {
+      "noApproved": "Aucune feuille de temps approuvée",
+      "cost": "Coût",
+      "sell": "Vente",
+      "periodTitle": "{{periodCode}} — Feuilles de temps approuvées",
+      "cumulativeTitle": "Cumulatif — jusqu'à {{periodCode}}",
+      "employee": "Collaborateur",
+      "task": "Tâche",
+      "profile": "Profil",
+      "days": "Jours",
+      "costRatePerDay": "TJM coût",
+      "costAmount": "Montant coût",
+      "sellRatePerDay": "TJM vente",
+      "sellAmount": "Montant vente"
     }
   },
   "periodClose": {
@@ -270,6 +568,15 @@
       "perDayPct": "{{value}} ({{pct}}%)"
     }
   },
+  "projectTimesheetsPage": {
+    "table": {
+      "period": "Période",
+      "status": "Statut",
+      "employees": "Collaborateurs",
+      "totalDays": "Total jours",
+      "empty": "Aucune feuille de temps ne concerne ce projet pour l'instant."
+    }
+  },
   "projectTimesheets": {
     "title": "Feuilles de temps",
     "subtitle": "Toutes les entrées pour {{project}}",
@@ -287,16 +594,90 @@
     "subtitle": "Gérez votre portefeuille clients",
     "newClient": "Nouveau client",
     "search": "Rechercher un client...",
-    "notFound": "Client introuvable"
+    "notFound": "Client introuvable",
+    "empty": "Aucun client trouvé",
+    "emptyProjects": "Aucun projet pour ce client",
+    "emptyProjectsDescription": "Créez un projet depuis la liste des projets pour le rattacher à ce client.",
+    "table": {
+      "name": "Nom",
+      "activeProjects": "Projets en cours",
+      "contractValue": "Valeur contractuelle",
+      "marginForecast": "Marge prévisionnelle",
+      "lastActivity": "Dernière activité",
+      "projectsCount_one": "{{count}} projet",
+      "projectsCount_other": "{{count}} projets"
+    },
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "projects": "Projets"
+    },
+    "backToAll": "Tous les clients",
+    "dialog": {
+      "newTitle": "Nouveau client",
+      "editTitle": "Modifier le client",
+      "companyName": "Nom de l'entreprise",
+      "contactName": "Nom du contact",
+      "contactEmail": "Email du contact",
+      "address": "Adresse",
+      "addressLine2": "Complément d'adresse (optionnel)",
+      "postalCode": "Code postal",
+      "city": "Ville",
+      "country": "Pays (ISO)",
+      "name": "Nom",
+      "save": "Enregistrer",
+      "create": "Créer le client",
+      "creating": "Création…",
+      "cancel": "Annuler",
+      "saving": "Enregistrement…",
+      "nameRequired": "Le nom est requis",
+      "contactNameRequired": "Le nom du contact est requis",
+      "contactEmailRequired": "L'email du contact est requis",
+      "addressRequired": "L'adresse est requise",
+      "postalRequired": "Le code postal est requis",
+      "cityRequired": "La ville est requise",
+      "countryRequired": "Le pays est requis (code ISO 2 lettres)",
+      "createdToast": "Client \"{{name}}\" créé",
+      "createFailed": "Échec de la création du client",
+      "updatedToast": "Client \"{{name}}\" mis à jour",
+      "updateFailed": "Échec de la mise à jour du client"
+    },
+    "editAction": "Modifier",
+    "projectsCount_one": "{{count}} projet",
+    "projectsCount_other": "{{count}} projets"
   },
   "profiles": {
     "title": "Profils",
     "subtitle": "Profils de facturation avec taux journaliers par défaut pour la création des devis.",
     "newProfile": "Nouveau profil",
     "footer": "Ces taux sont des valeurs par défaut pour faciliter la création de devis. Ils ne modifient pas les devis validés ni les taux appliqués aux projets.",
+    "empty": "Aucun profil",
+    "emptyDescription": "Créez un profil de facturation pour commencer à rédiger des devis avec des taux journaliers par défaut.",
+    "createFirst": "Créer le premier profil",
+    "saveLabel": "Enregistrer",
+    "createLabel": "Créer le profil",
+    "deleteTitle": "Supprimer \"{{name}}\" ?",
+    "deleteDescription": "Le profil ne peut être supprimé que s'il n'est utilisé nulle part (devis, plannings, snapshots).",
+    "deleteConfirm": "Supprimer",
+    "deleteCancel": "Annuler",
+    "deleteSuccess": "Profil \"{{name}}\" supprimé",
+    "deleteFailed": "Échec de la suppression du profil.",
+    "deleteConflict": "Ce profil est utilisé ailleurs et ne peut pas être supprimé.",
+    "errorLoading": "Erreur lors du chargement du profil",
+    "validation": {
+      "nameRequired": "Le nom est requis",
+      "sellRateInvalid": "Taux de vente invalide",
+      "costRateInvalid": "Taux de coût invalide"
+    },
     "dialog": {
       "newTitle": "Nouveau profil",
-      "editTitle": "Modifier le profil"
+      "editTitle": "Modifier le profil",
+      "name": "Nom du profil",
+      "sellRate": "Taux de vente / jour (EUR)",
+      "costRate": "Taux de coût / jour (EUR)",
+      "cancel": "Annuler",
+      "saving": "Enregistrement…",
+      "marginLabel": "Marge calculée : ",
+      "perDay": "/jour"
     },
     "toasts": {
       "createSuccess": "Profil \"{{name}}\" créé",
@@ -309,6 +690,41 @@
     "title": "Collaborateurs",
     "subtitle": "Gérez vos collaborateurs et leur historique de taux de coût.",
     "newEmployee": "Nouveau collaborateur",
+    "empty": "Aucun collaborateur",
+    "emptyDescription": "Ajoutez vos collaborateurs pour pouvoir les affecter aux projets et suivre leurs feuilles de temps.",
+    "createFirst": "Créer le premier collaborateur",
+    "rateHistory": {
+      "validFrom": "Valide à partir du",
+      "validTo": "Valide jusqu'au",
+      "costRatePerDay": "Taux de coût / jour",
+      "present": "Présent",
+      "addRate": "Ajouter un taux"
+    },
+    "dialog": {
+      "newTitle": "Nouveau collaborateur",
+      "fullName": "Nom complet",
+      "costRatePerDay": "Taux de coût / jour (EUR)",
+      "costRateCaption": "Taux de coût initial. Ajoutez l'historique des taux depuis la fiche du collaborateur.",
+      "cancel": "Annuler",
+      "create": "Créer le collaborateur",
+      "creating": "Création…",
+      "nameRequired": "Le nom est requis",
+      "rateInvalid": "Taux de coût valide requis",
+      "createFailed": "Échec de la création du collaborateur",
+      "createdToast": "Collaborateur \"{{name}}\" créé"
+    },
+    "rateDialog": {
+      "title": "Ajouter une période de taux — {{name}}",
+      "effectiveFrom": "Date d'effet",
+      "costRatePerDay": "Taux de coût / jour",
+      "cancel": "Annuler",
+      "save": "Ajouter le taux",
+      "saving": "Enregistrement…",
+      "fromRequired": "La date d'effet est requise",
+      "rateRequired": "Le taux doit être un nombre positif",
+      "saveFailed": "Échec de l'ajout du taux",
+      "addedToast": "Nouveau taux ajouté pour {{name}}"
+    },
     "exportUnavailable": "Export non disponible",
     "errorLoading": "Erreur lors du chargement du collaborateur",
     "employeeId": "ID collaborateur : {{id}}",
@@ -318,6 +734,10 @@
       "costRate": "Taux de coût/jour",
       "assignedProjects": "Projets assignés"
     }
+  },
+  "timesheetsPage": {
+    "empty": "Aucune feuille de temps",
+    "emptyDescription": "Aucune feuille de temps n'a été générée pour vous. Demandez à votre manager d'ouvrir une période ou de vous affecter à un projet."
   },
   "timesheets": {
     "title": "Mes feuilles de temps",
@@ -395,6 +815,22 @@
     }
   },
   "users": {
+    "dialog": {
+      "editTitle": "Modifier l'utilisateur",
+      "fullName": "Nom complet",
+      "email": "Email",
+      "role": "Rôle",
+      "linkedEmployee": "Collaborateur lié",
+      "linkedCaption": "Lier à un collaborateur pour l'accès aux feuilles de temps",
+      "none": "- Aucun -",
+      "nonePlaceholder": "Aucun (admin/PM/direction)",
+      "cancel": "Annuler",
+      "save": "Enregistrer les modifications",
+      "saving": "Enregistrement…",
+      "validation": "Nom et email requis",
+      "updatedToast": "Utilisateur \"{{name}}\" mis à jour",
+      "updateFailed": "Échec de la mise à jour de l'utilisateur"
+    },
     "title": "Gestion des utilisateurs",
     "subtitle_one": "{{count}} utilisateur",
     "subtitle_other": "{{count}} utilisateurs",
@@ -412,7 +848,21 @@
     "currency": "Devise",
     "unassignedBehavior": "Comportement non affecté",
     "applicationName": "Nom de l'application",
-    "companyName": "Nom de la société"
+    "companyName": "Nom de la société",
+    "general": {
+      "weekSettingsTitle": "Paramètres de semaine",
+      "weekSettingsDescription": "Contrôle l'affichage des périodes et calendriers",
+      "weekStartLabel": "La semaine commence le",
+      "monday": "Lundi",
+      "sunday": "Dimanche",
+      "dayPrecisionLabel": "Précision jour",
+      "precisionQuarter": "0.25 (quart de journée)",
+      "precisionHalf": "0.5 (demi-journée)",
+      "precisionFull": "1.0 (journée entière)",
+      "currencyTitle": "Devise",
+      "currencyDescription": "Devise par défaut pour tous les calculs financiers",
+      "currencyLabel": "Devise par défaut"
+    }
   },
   "common": {
     "errorLoading": "Erreur lors du chargement",

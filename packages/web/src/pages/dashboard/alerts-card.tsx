@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/shared/status-badge'
@@ -27,21 +28,22 @@ interface AlertsCardProps {
 }
 
 export function AlertsCard({ alerts }: AlertsCardProps) {
+  const { t } = useTranslation('pages')
   const hasNoAlerts = alerts.periodsNeedingClosure.length === 0 && alerts.overdueApprovals === 0
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Alertes</CardTitle>
+        <CardTitle>{t('dashboard.alerts.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         {alerts.periodsNeedingClosure.length > 0 && (
           <div>
-            <SectionHeading><TextStrong>Périodes en consolidation (prêtes à clôturer)</TextStrong></SectionHeading>
+            <SectionHeading><TextStrong>{t('dashboard.alerts.periodsReady')}</TextStrong></SectionHeading>
             {alerts.periodsNeedingClosure.map((period) => (
               <CardLink key={period.periodId} to={`/projects/${period.projectId}/snapshots`}>
                 <span>
-                  {period.projectName} - Période {period.periodNumber}
+                  {period.projectName} - {t('dashboard.alerts.periodLabel')} {period.periodNumber}
                 </span>
                 <StatusBadge status="CONSOLIDATION" />
               </CardLink>
@@ -51,17 +53,17 @@ export function AlertsCard({ alerts }: AlertsCardProps) {
 
         {alerts.overdueApprovals > 0 && (
           <div>
-            <SectionHeading><TextStrong>Approbations en attente</TextStrong></SectionHeading>
+            <SectionHeading><TextStrong>{t('dashboard.alerts.pendingApprovals')}</TextStrong></SectionHeading>
             <CardLink to="/approvals">
-              <span>{alerts.overdueApprovals} feuille{alerts.overdueApprovals > 1 ? 's' : ''} de temps en attente d'approbation</span>
+              <span>{t('dashboard.alerts.pendingApprovalsDescription', { count: alerts.overdueApprovals })}</span>
               <Badge variant="outline">
-                Réviser
+                {t('dashboard.alerts.review')}
               </Badge>
             </CardLink>
           </div>
         )}
 
-        {hasNoAlerts && <MutedText>Aucune alerte — tout est en ordre.</MutedText>}
+        {hasNoAlerts && <MutedText>{t('dashboard.alerts.noAlerts')}</MutedText>}
       </CardContent>
     </Card>
   )

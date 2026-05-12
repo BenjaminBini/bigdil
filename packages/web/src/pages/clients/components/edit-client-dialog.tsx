@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useUpdateClient } from '@/api/hooks'
 import type { Client } from '@/api/types'
 import { Button } from '@/components/ui/button'
@@ -45,6 +46,7 @@ function formFromClient(client: Client): FormState {
 }
 
 export function EditClientDialog({ client, open, onClose }: EditClientDialogProps) {
+  const { t } = useTranslation('pages')
   const [form, setForm] = useState<FormState>(() => formFromClient(client))
   const updateClient = useUpdateClient()
 
@@ -57,13 +59,13 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
   }
 
   function handleSave() {
-    if (!form.name.trim()) { toast.error('Le nom est requis'); return }
-    if (!form.contactName.trim()) { toast.error('Le nom du contact est requis'); return }
-    if (!form.contactEmail.trim()) { toast.error('L\'email du contact est requis'); return }
-    if (!form.addressLine1.trim()) { toast.error('L\'adresse est requise'); return }
-    if (!form.postalCode.trim()) { toast.error('Le code postal est requis'); return }
-    if (!form.city.trim()) { toast.error('La ville est requise'); return }
-    if (!form.country.trim()) { toast.error('Le pays est requis (code ISO 2 lettres)'); return }
+    if (!form.name.trim()) { toast.error(t('clients.dialog.nameRequired')); return }
+    if (!form.contactName.trim()) { toast.error(t('clients.dialog.contactNameRequired')); return }
+    if (!form.contactEmail.trim()) { toast.error(t('clients.dialog.contactEmailRequired')); return }
+    if (!form.addressLine1.trim()) { toast.error(t('clients.dialog.addressRequired')); return }
+    if (!form.postalCode.trim()) { toast.error(t('clients.dialog.postalRequired')); return }
+    if (!form.city.trim()) { toast.error(t('clients.dialog.cityRequired')); return }
+    if (!form.country.trim()) { toast.error(t('clients.dialog.countryRequired')); return }
 
     updateClient.mutate(
       {
@@ -79,10 +81,10 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
       },
       {
         onSuccess: () => {
-          toast.success('Client mis à jour')
+          toast.success(t('clients.dialog.updatedToast', { name: form.name.trim() }))
           onClose()
         },
-        onError: () => toast.error('Échec de la mise à jour du client'),
+        onError: () => toast.error(t('clients.dialog.updateFailed')),
       },
     )
   }
@@ -92,11 +94,11 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
       <DialogContent size="sm">
         <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); handleSave() }}>
           <DialogHeader>
-            <DialogTitle>Modifier le client</DialogTitle>
+            <DialogTitle>{t('clients.dialog.editTitle')}</DialogTitle>
           </DialogHeader>
 
           <VStack gap="xl">
-            <FormField label="Nom de l'entreprise" htmlFor="ec-name">
+            <FormField label={t('clients.dialog.companyName')} htmlFor="ec-name">
               <Input
                 id="ec-name"
                 value={form.name}
@@ -104,7 +106,7 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
               />
             </FormField>
 
-            <FormField label="Nom du contact" htmlFor="ec-contact-name">
+            <FormField label={t('clients.dialog.contactName')} htmlFor="ec-contact-name">
               <Input
                 id="ec-contact-name"
                 value={form.contactName}
@@ -112,7 +114,7 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
               />
             </FormField>
 
-            <FormField label="Email du contact" htmlFor="ec-contact-email">
+            <FormField label={t('clients.dialog.contactEmail')} htmlFor="ec-contact-email">
               <Input
                 id="ec-contact-email"
                 type="email"
@@ -121,7 +123,7 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
               />
             </FormField>
 
-            <FormField label="Adresse" htmlFor="ec-address-line1">
+            <FormField label={t('clients.dialog.address')} htmlFor="ec-address-line1">
               <Input
                 id="ec-address-line1"
                 value={form.addressLine1}
@@ -129,7 +131,7 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
               />
             </FormField>
 
-            <FormField label="Complément d'adresse (optionnel)" htmlFor="ec-address-line2">
+            <FormField label={t('clients.dialog.addressLine2')} htmlFor="ec-address-line2">
               <Input
                 id="ec-address-line2"
                 value={form.addressLine2}
@@ -138,7 +140,7 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
             </FormField>
 
             <div className="grid grid-cols-3 gap-3">
-              <FormField label="Code postal" htmlFor="ec-postal">
+              <FormField label={t('clients.dialog.postalCode')} htmlFor="ec-postal">
                 <Input
                   id="ec-postal"
                   value={form.postalCode}
@@ -146,7 +148,7 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
                 />
               </FormField>
 
-              <FormField label="Ville" htmlFor="ec-city">
+              <FormField label={t('clients.dialog.city')} htmlFor="ec-city">
                 <Input
                   id="ec-city"
                   value={form.city}
@@ -154,7 +156,7 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
                 />
               </FormField>
 
-              <FormField label="Pays (ISO)" htmlFor="ec-country">
+              <FormField label={t('clients.dialog.country')} htmlFor="ec-country">
                 <Input
                   id="ec-country"
                   maxLength={2}
@@ -166,9 +168,9 @@ export function EditClientDialog({ client, open, onClose }: EditClientDialogProp
           </VStack>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
+            <Button type="button" variant="outline" onClick={onClose}>{t('clients.dialog.cancel')}</Button>
             <Button type="submit" disabled={updateClient.isPending}>
-              {updateClient.isPending ? 'Enregistrement…' : 'Enregistrer'}
+              {updateClient.isPending ? t('clients.dialog.saving') : t('clients.dialog.save')}
             </Button>
           </DialogFooter>
         </form>

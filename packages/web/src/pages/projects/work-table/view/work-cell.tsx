@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { PeriodStatus } from '@/api/types'
 import { formatDays } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -41,6 +42,7 @@ export function WorkCell({
   periodKey,
   onSave,
 }: WorkCellProps) {
+  const { t } = useTranslation('pages')
   const [editing, setEditing] = useState(false)
   const [inputVal, setInputVal] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -138,7 +140,7 @@ export function WorkCell({
     const trigger = (
       <td
         className={cellClasses}
-        title="Voir détail jour par jour"
+        title={t('workTable.tooltips.viewDailyDetail')}
       >
         {formatDays(days)}
       </td>
@@ -161,7 +163,7 @@ export function WorkCell({
     <td
       className={cellClasses}
       onClick={handleClick}
-      title={isEditable ? 'Click to edit' : undefined}
+      title={isEditable ? t('workTable.tooltips.clickToEdit') : undefined}
     >
       {content}
     </td>

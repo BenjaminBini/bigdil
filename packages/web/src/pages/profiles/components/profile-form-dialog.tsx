@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -65,6 +66,7 @@ export function ProfileFormDialog({
   saveLabel,
   isPending,
 }: ProfileFormDialogProps) {
+  const { t } = useTranslation('pages')
   const hasPreview = Boolean(form.sellRate) && Boolean(form.costRate)
 
   return (
@@ -76,32 +78,29 @@ export function ProfileFormDialog({
         </DialogHeader>
 
         <DialogBody>
-          <FormField label="Profile Name" htmlFor="profile-name">
+          <FormField label={t('profiles.dialog.name')} htmlFor="profile-name">
             <Input
               id="profile-name"
-              placeholder="e.g. Senior Consultant"
               value={form.name}
               onChange={(event) => onChange({ ...form, name: event.target.value })}
             />
           </FormField>
 
-          <FormField label="Default Sell Rate / Day (EUR)" htmlFor="sell-rate">
+          <FormField label={t('profiles.dialog.sellRate')} htmlFor="sell-rate">
             <Input
               id="sell-rate"
               type="number"
               min={0}
-              placeholder="e.g. 1200"
               value={form.sellRate}
               onChange={(event) => onChange({ ...form, sellRate: event.target.value })}
             />
           </FormField>
 
-          <FormField label="Default Cost Rate / Day (EUR)" htmlFor="cost-rate">
+          <FormField label={t('profiles.dialog.costRate')} htmlFor="cost-rate">
             <Input
               id="cost-rate"
               type="number"
               min={0}
-              placeholder="e.g. 550"
               value={form.costRate}
               onChange={(event) => onChange({ ...form, costRate: event.target.value })}
             />
@@ -109,11 +108,11 @@ export function ProfileFormDialog({
 
           {hasPreview && (
             <MarginPreview>
-              <MarginLabel>Computed margin: </MarginLabel>
+              <MarginLabel>{t('profiles.dialog.marginLabel')}</MarginLabel>
               <MarginAmount>
                 {formatCurrency(Number(form.sellRate) - Number(form.costRate))}
               </MarginAmount>
-              <MarginUnit>/day</MarginUnit>
+              <MarginUnit>{t('profiles.dialog.perDay')}</MarginUnit>
               <MarginPctDisplay>
                 ({computeMarginPct(Number(form.sellRate), Number(form.costRate)).toFixed(1)}%)
               </MarginPctDisplay>
@@ -122,9 +121,9 @@ export function ProfileFormDialog({
         </DialogBody>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={onClose}>{t('profiles.dialog.cancel')}</Button>
           <Button type="submit" disabled={!form.name.trim() || isPending}>
-            {isPending ? 'Saving…' : saveLabel}
+            {isPending ? t('profiles.dialog.saving') : saveLabel}
           </Button>
         </DialogFooter>
         </form>

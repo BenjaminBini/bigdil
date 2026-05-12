@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { Employee } from '@/api/types'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableHeader, TableRow } from '@/components/ui/table'
@@ -11,14 +12,15 @@ interface EmployeeRateHistoryTableProps {
 }
 
 export function EmployeeRateHistoryTable({ employee }: EmployeeRateHistoryTableProps) {
+  const { t } = useTranslation('pages')
   return (
     <Card variant="flush">
       <Table variant="compact">
         <TableHeader>
           <TableRow variant="header">
-            <HeadCell label="Valid From" variant="compact" />
-            <HeadCell label="Valid To" variant="compact" />
-            <HeadCell label="Cost Rate / Day" variant="compact" align="right" />
+            <HeadCell label={t('employees.rateHistory.validFrom')} variant="compact" />
+            <HeadCell label={t('employees.rateHistory.validTo')} variant="compact" />
+            <HeadCell label={t('employees.rateHistory.costRatePerDay')} variant="compact" align="right" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -26,7 +28,7 @@ export function EmployeeRateHistoryTable({ employee }: EmployeeRateHistoryTableP
             <TableRow key={index}>
               <TdSecondary>{formatDate(entry.validFrom)}</TdSecondary>
               <TdDetail>
-                {entry.validTo ? formatDate(entry.validTo) : <ColorValue value="Present" sentiment="positive" />}
+                {entry.validTo ? formatDate(entry.validTo) : <ColorValue value={t('employees.rateHistory.present')} sentiment="positive" />}
               </TdDetail>
               <TdNumericPrimary>{formatCurrency(entry.costRatePerDay)}</TdNumericPrimary>
             </TableRow>

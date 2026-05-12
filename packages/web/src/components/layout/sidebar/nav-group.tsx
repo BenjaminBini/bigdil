@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { NavGroup as SidebarNavGroupType } from './navigation'
 import { SidebarNavItem } from './nav-item'
 
@@ -7,11 +8,12 @@ interface SidebarNavGroupProps {
 }
 
 export function SidebarNavGroup({ group, collapsed }: SidebarNavGroupProps) {
+  const { t } = useTranslation('nav')
   return (
     <div className="mb-4">
       {!collapsed && (
         <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
-          {group.title}
+          {t(`groups.${group.titleKey}`)}
         </p>
       )}
       {collapsed && <div className="mx-auto mb-1 h-px w-6 bg-sidebar-foreground/10" />}

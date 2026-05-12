@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 import { Lock, MessageSquare } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CompactInput } from '@/components/shared/compact-input'
 import { StatusBadge } from '@/components/shared/status-badge'
@@ -55,6 +56,7 @@ export function CellDetailPopover({
   totalDays,
   trigger,
 }: CellDetailPopoverProps) {
+  const { t } = useTranslation('pages')
   const [open, setOpen] = useState(false)
   const detail = useCellDetail({ taskId, profileId, employeeId, periodKey }, open)
   const upsert = useUpsertCellEntry(projectId)
@@ -73,16 +75,16 @@ export function CellDetailPopover({
       <PopoverContent className="w-72 p-0" align="center">
         <div className="flex items-center justify-between border-b px-3 py-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-foreground">Détail semaine</span>
+            <span className="text-xs font-semibold text-foreground">{t('workTable.cellDetail.weekDetail')}</span>
             {detail.data?.bundleStatus && <StatusBadge status={detail.data.bundleStatus} />}
           </div>
           {!isEditable && <Lock size={12} className="text-muted-foreground" />}
         </div>
 
         {detail.isLoading ? (
-          <div className="px-3 py-4 text-xs text-muted-foreground">Chargement…</div>
+          <div className="px-3 py-4 text-xs text-muted-foreground">{t('workTable.cellDetail.loading')}</div>
         ) : detail.isError ? (
-          <div className="px-3 py-4 text-xs text-destructive">Échec du chargement</div>
+          <div className="px-3 py-4 text-xs text-destructive">{t('workTable.cellDetail.loadFailed')}</div>
         ) : (
           <div className="flex flex-col">
             {weekdays.map((day) => {
@@ -98,7 +100,7 @@ export function CellDetailPopover({
                   saving={upsert.isPending}
                   onSave={(hours) => {
                     if (!detail.data?.timesheetId) {
-                      toast.error('Aucun bundle de timesheet pour cette semaine')
+                      toast.error(t('workTable.cellDetail.noBundle'))
                       return
                     }
                     upsert.mutate(
@@ -110,7 +112,7 @@ export function CellDetailPopover({
                       },
                       {
                         onError: (err) =>
-                          toast.error(err instanceof Error ? err.message : 'Échec de l\'enregistrement'),
+                          toast.error(err instanceof Error ? err.message : t('workTable.cellDetail.saveFailed')),
                       },
                     )
                   }}
@@ -118,8 +120,8 @@ export function CellDetailPopover({
               )
             })}
             <div className="flex items-center justify-between border-t bg-muted/40 px-3 py-1.5 text-[11px] font-semibold text-foreground">
-              <span>Total</span>
-              <span className="tabular-nums">{totalDays}j</span>
+              <span>{t('workTable.cellDetail.total')}</span>
+              <span className="tabular-nums">{totalDays}{t('workTable.cellDetail.daysSuffix')}</span>
             </div>
           </div>
         )}

@@ -14,13 +14,15 @@ import {
 import type { UserRole } from '@/api/types'
 
 export interface NavItem {
-  label: string
+  /** i18n key under nav:items.* */
+  labelKey: string
   to: string
   icon: ElementType
 }
 
 export interface NavGroup {
-  title: string
+  /** i18n key under nav:groups.* */
+  titleKey: string
   items: NavItem[]
 }
 
@@ -28,41 +30,40 @@ export function buildNavGroups(role: UserRole): NavGroup[] {
 
   const groups: NavGroup[] = [
     {
-      title: 'Principal',
+      titleKey: 'main',
       items: [
-        { label: 'Tableau de bord', to: '/dashboard', icon: LayoutDashboard },
-        { label: 'Projets', to: '/projects', icon: FolderKanban },
-        { label: 'Clients', to: '/clients', icon: Building2 },
+        { labelKey: 'dashboard', to: '/dashboard', icon: LayoutDashboard },
+        { labelKey: 'projects', to: '/projects', icon: FolderKanban },
+        { labelKey: 'clients', to: '/clients', icon: Building2 },
       ],
     },
     {
-      title: 'Référentiel',
+      titleKey: 'reference',
       items: [
-        { label: 'Profils', to: '/profiles', icon: Briefcase },
-        { label: 'Collaborateurs', to: '/employees', icon: Users },
+        { labelKey: 'profiles', to: '/profiles', icon: Briefcase },
+        { labelKey: 'employees', to: '/employees', icon: Users },
       ],
     },
   ]
 
-  const myWorkItems: NavItem[] = [{ label: 'Feuilles de temps', to: '/timesheets', icon: Clock }]
+  const myWorkItems: NavItem[] = [{ labelKey: 'timesheets', to: '/timesheets', icon: Clock }]
   if (role === 'PM' || role === 'ADMIN') {
-    myWorkItems.push({ label: 'Approbations', to: '/approvals', icon: CheckSquare })
+    myWorkItems.push({ labelKey: 'approvals', to: '/approvals', icon: CheckSquare })
   }
   if (role === 'PM' || role === 'FINANCE' || role === 'EXEC' || role === 'ADMIN') {
-    myWorkItems.push({ label: 'Rapports', to: '/reports', icon: BarChart3 })
+    myWorkItems.push({ labelKey: 'reports', to: '/reports', icon: BarChart3 })
   }
-  groups.push({ title: 'Mon travail', items: myWorkItems })
+  groups.push({ titleKey: 'myWork', items: myWorkItems })
 
   if (role === 'ADMIN' || role === 'PM') {
     groups.push({
-      title: 'Administration',
+      titleKey: 'administration',
       items: [
-        { label: 'Utilisateurs', to: '/admin/users', icon: UserCog },
-        { label: 'Paramètres', to: '/admin/settings', icon: Settings },
+        { labelKey: 'users', to: '/admin/users', icon: UserCog },
+        { labelKey: 'settings', to: '/admin/settings', icon: Settings },
       ],
     })
   }
 
   return groups
 }
-

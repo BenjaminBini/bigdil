@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MetricStrip } from '@/components/shared/metric-strip'
 import { ColorValue } from '@/components/shared/color-value'
 import { BottomBar, FlexBetween } from '@/components/shared/layouts'
@@ -11,6 +12,7 @@ interface EmployeeCardProps {
 }
 
 function EmployeeCard({ emp }: EmployeeCardProps) {
+  const { t } = useTranslation('pages')
   const hasImpact = emp.rateImpact !== 0
   const isNegative = emp.rateImpact > 0
   return (
@@ -30,25 +32,27 @@ function EmployeeCard({ emp }: EmployeeCardProps) {
           <p className="text-xs text-muted-foreground">{emp.profileName}</p>
         </div>
         <span className="whitespace-nowrap text-xs font-mono text-foreground/70">
-          {formatDays(emp.remainingDays)}d remaining
+          {t('workTable.marginInsight.daysRemaining', { days: formatDays(emp.remainingDays) })}
         </span>
       </FlexBetween>
       <div className="text-xs text-foreground/70">
         <ColorValue
-          value={`${emp.actualCostRate}€/d (actual) vs ${emp.assumedCostRate}€/d (assumed)`}
+          value={t('workTable.marginInsight.rateComparison', { actual: emp.actualCostRate, assumed: emp.assumedCostRate })}
           sentiment={isNegative ? 'negative' : hasImpact ? 'positive' : 'neutral'}
         />
         {hasImpact && (
           <>
             {' '}
             <ColorValue
-              value={`→ ${isNegative ? '+' : ''}${emp.rateImpact}€/d impact`}
+              value={t('workTable.marginInsight.rateImpact', { sign: isNegative ? '+' : '', impact: emp.rateImpact })}
               sentiment={isNegative ? 'negative' : 'positive'}
             />
           </>
         )}
       </div>
-      <div className="font-mono text-xs text-muted-foreground">ETC: {formatCurrency(emp.etcCost)}</div>
+      <div className="font-mono text-xs text-muted-foreground">
+        {t('workTable.marginInsight.etc', { value: formatCurrency(emp.etcCost) })}
+      </div>
     </div>
   )
 }
@@ -68,9 +72,12 @@ interface MarginInsightProps {
 }
 
 export function MarginInsightPanel({ insight }: MarginInsightProps) {
+  const { t } = useTranslation('pages')
   return (
     <BottomBar size="lg">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Margin Insight</p>
+      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {t('workTable.marginInsight.title')}
+      </p>
       <EmployeeCardGrid>
         {insight.employees.map((emp) => (
           <EmployeeCard key={`${emp.employeeId}-${emp.profileId}`} emp={emp} />
@@ -79,10 +86,10 @@ export function MarginInsightPanel({ insight }: MarginInsightProps) {
       <div className="border-t pt-3">
         <MetricStrip
           items={[
-            { label: 'Total ETC Cost', value: <ColorValue value={insight.totalEtcCost} format="currency" sentiment="neutral" /> },
-            { label: 'Contract Value', value: <ColorValue value={insight.totalContractValue} format="currency" sentiment="neutral" /> },
+            { label: t('workTable.marginInsight.totalEtcCost'), value: <ColorValue value={insight.totalEtcCost} format="currency" sentiment="neutral" /> },
+            { label: t('workTable.marginInsight.contractValue'), value: <ColorValue value={insight.totalContractValue} format="currency" sentiment="neutral" /> },
             {
-              label: 'Margin Forecast',
+              label: t('workTable.marginInsight.marginForecast'),
               value: (
                 <>
                   <ColorValue value={insight.marginForecast} format="currency" />

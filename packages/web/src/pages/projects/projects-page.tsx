@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useProjects } from '@/api/hooks'
 import type { ProjectListItem } from '@/api/types'
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,7 @@ const ALL_CLIENTS = 'all-clients'
 const ALL_STATUSES = 'all-statuses'
 
 export default function ProjectsPage() {
+  const { t } = useTranslation('pages')
   const [search, setSearch] = useState('')
   const [clientFilter, setClientFilter] = useState(ALL_CLIENTS)
   const [statusFilter, setStatusFilter] = useState(ALL_STATUSES)
@@ -20,7 +22,7 @@ export default function ProjectsPage() {
   const { data: projects, isLoading, error } = useProjects()
 
   if (isLoading) return <LoadingState />
-  if (error || !projects) return <ErrorState message="Erreur lors du chargement des projets" />
+  if (error || !projects) return <ErrorState message={t('projects.errorLoading')} />
 
   const uniqueClients = [...new Set(projects.map((project) => project.clientName).filter(Boolean) as string[])]
   // Lifecycle filter: derive a coarse label per project so the user can scope
@@ -49,12 +51,12 @@ export default function ProjectsPage() {
     <>
       <PageHeader
         variant="section"
-        title="Projets"
-        subtitle={`${projects.length} projet${projects.length !== 1 ? 's' : ''}`}
+        title={t('projects.title')}
+        subtitle={t('projects.subtitle', { count: projects.length })}
         actions={
           <Button onClick={() => setShowNewProject(true)}>
             <Plus />
-            Nouveau projet
+            {t('projects.newProject')}
           </Button>
         }
       />

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import {
   projectLifecycleColors,
@@ -19,31 +20,48 @@ type KnownStatus =
   | UserRole
   | TaskStatus
 
-const STATUS_LABEL: Record<string, string> = {
-  // ProjectLifecycle
-  UPCOMING: 'À venir',
+// Status string → statuses.json namespace key. Lookup order matters: more specific
+// namespaces win over misc fallback. Some statuses (DRAFT, REJECTED) collide
+// across namespaces — the first match here defines the label.
+const STATUS_NAMESPACE: Record<string, string> = {
   // PeriodStatus
-  FUTURE: 'Future',
-  OPEN: 'Ouverte',
-  CONSOLIDATION: 'Consolidation',
-  FROZEN: 'Clôturée',
+  FUTURE: 'period.FUTURE',
+  OPEN: 'period.OPEN',
+  CONSOLIDATION: 'period.CONSOLIDATION',
+  FROZEN: 'period.FROZEN',
   // QuoteStatus
-  SENT: 'Envoyé',
-  VALIDATED: 'Validé',
-  REJECTED: 'Rejeté',
+  SENT: 'quote.SENT',
+  VALIDATED: 'quote.VALIDATED',
+  CANCELLED: 'quote.CANCELLED',
   // TimesheetStatus
-  SUBMITTED: 'Soumise',
-  APPROVED: 'Approuvée',
+  SUBMITTED: 'timesheet.SUBMITTED',
+  APPROVED: 'timesheet.APPROVED',
+  // Shared between quote + timesheet — quote wins
+  DRAFT: 'quote.DRAFT',
+  REJECTED: 'quote.REJECTED',
   // TaskStatus (lowercase)
-  planned: 'Prévu',
-  active: 'Actif',
-  done: 'Terminé',
-  // Misc
-  ACTIVE: 'En cours',
-  INACTIVE: 'Inactif',
-  ACTUAL: 'Réel',
-  PLANNED: 'Prévu',
-  CLOSED: 'Clos',
+  planned: 'task.planned',
+  active: 'task.active',
+  done: 'task.done',
+  // Project lifecycle (uses misc bucket)
+  ACTIVE: 'misc.ACTIVE',
+  INACTIVE: 'misc.INACTIVE',
+  ACTUAL: 'misc.ACTUAL',
+  PLANNED: 'misc.PLANNED',
+  CLOSED: 'misc.CLOSED',
+  UPCOMING: 'misc.UPCOMING',
+  // Project lifecycle stages
+  WAITING_APPROVAL: 'project.WAITING_APPROVAL',
+  TO_PLAN: 'project.TO_PLAN',
+  PLANNING: 'project.PLANNING',
+  IN_PROGRESS: 'project.IN_PROGRESS',
+  COMPLETED: 'project.COMPLETED',
+  // Roles
+  ADMIN: 'role.ADMIN',
+  PM: 'role.PM',
+  CONSULTANT: 'role.CONSULTANT',
+  FINANCE: 'role.FINANCE',
+  EXEC: 'role.EXEC',
 }
 
 /**
@@ -76,8 +94,11 @@ export interface StatusBadgeProps {
  * string using the colour maps from constants.
  */
 export function StatusBadge({ status, label }: StatusBadgeProps) {
+  const { t } = useTranslation('statuses')
   const colors = resolveColors(status)
-  const displayLabel = label ?? STATUS_LABEL[status] ?? status
+  const nsKey = STATUS_NAMESPACE[status]
+  const translated = nsKey ? t(nsKey, { defaultValue: status }) : status
+  const displayLabel = label ?? translated
 
   return (
     <span

@@ -1,4 +1,5 @@
 import { Outlet, useParams } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { useProject } from '@/api/hooks'
 import { formatCurrency } from '@/lib/format'
 import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
@@ -8,10 +9,11 @@ import { ProjectHeader } from './components/project-header'
 
 export default function ProjectLayout() {
   const { id: projectId } = useParams<{ id: string }>()
+  const { t } = useTranslation('pages')
   const { data, isLoading, error } = useProject(projectId ?? '')
 
   if (isLoading) return <LoadingState />
-  if (error || !data) return <ErrorState message="Error loading project" />
+  if (error || !data) return <ErrorState message={t('projectLayout.errorLoading')} />
 
   // KPI block only reflects VALIDATED quotes. Drafts and rejected quotes are
   // hypothetical — including them in the estimated cost on the project header
@@ -27,23 +29,25 @@ export default function ProjectLayout() {
       : null
 
   const kpis: ProjectKpiCardProps[] = [
-    { label: 'Contract Value', value: formatCurrency(data.contractValue) },
+    { label: t('projectLayout.kpi.contractValue'), value: formatCurrency(data.contractValue) },
     {
-      label: 'Estimated Cost',
+      label: t('projectLayout.kpi.estimatedCost'),
       value: estimatedCost != null ? formatCurrency(estimatedCost) : '—',
       sub: validatedQuotes.length > 0
-        ? validatedQuotes.length > 1 ? `from ${validatedQuotes.length} validated quotes` : 'from validated quote'
-        : 'no validated quote',
+        ? validatedQuotes.length > 1
+          ? t('projectLayout.kpi.fromValidatedQuotes', { count: validatedQuotes.length })
+          : t('projectLayout.kpi.fromValidatedQuote')
+        : t('projectLayout.kpi.noValidatedQuote'),
     },
     {
-      label: 'Estimated Margin',
+      label: t('projectLayout.kpi.estimatedMargin'),
       value: estimatedMarginEur != null ? formatCurrency(estimatedMarginEur) : '—',
-      sub: estimatedMarginPct != null ? `${estimatedMarginPct.toFixed(1)}% of contract` : undefined,
+      sub: estimatedMarginPct != null ? t('projectLayout.kpi.ofContract', { pct: estimatedMarginPct.toFixed(1) }) : undefined,
       highlight: estimatedMarginEur != null && estimatedMarginEur > 0,
     },
-    { label: 'Actual Cost to Date', value: '—', dim: true },
-    { label: 'EAC Cost', value: '—', dim: true },
-    { label: 'Produced to Date', value: '—', dim: true },
+    { label: t('projectLayout.kpi.actualCost'), value: '—', dim: true },
+    { label: t('projectLayout.kpi.eacCost'), value: '—', dim: true },
+    { label: t('projectLayout.kpi.produced'), value: '—', dim: true },
   ]
 
   return (

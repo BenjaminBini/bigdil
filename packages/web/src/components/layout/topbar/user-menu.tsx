@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { LogOut, User, UserCog } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCurrentUser, useStopImpersonating } from '@/api/hooks'
@@ -12,14 +13,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-const ROLE_LABEL: Record<string, string> = {
-  ADMIN: 'Admin',
-  PM: 'Chef de projet',
-  CONSULTANT: 'Consultant',
-  FINANCE: 'Finance',
-  EXEC: 'Direction',
-}
-
 function initialsFor(name: string): string {
   return name
     .split(' ')
@@ -30,6 +23,7 @@ function initialsFor(name: string): string {
 }
 
 export function UserMenu() {
+  const { t } = useTranslation(['common', 'statuses'])
   const navigate = useNavigate()
   const { data: session } = useCurrentUser()
   const stopImpersonating = useStopImpersonating()
@@ -47,8 +41,8 @@ export function UserMenu() {
 
   function handleStopImpersonating() {
     stopImpersonating.mutate(undefined, {
-      onSuccess: () => toast.success('Stopped impersonating'),
-      onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed'),
+      onSuccess: () => toast.success(t('common:user.stoppedImpersonating')),
+      onError: (err) => toast.error(err instanceof Error ? err.message : t('common:user.failed')),
     })
   }
 
@@ -70,14 +64,14 @@ export function UserMenu() {
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-semibold">{user.name}</span>
             <span className="text-xs font-normal text-muted-foreground">
-              {ROLE_LABEL[user.role] ?? user.role}
+              {t(`statuses:role.${user.role}`, { defaultValue: user.role })}
             </span>
             <span className="text-xs font-normal text-muted-foreground truncate">
               {user.email}
             </span>
             {isImpersonating && (
               <span className="mt-1 text-xs font-medium text-amber-500">
-                Impersonating — real user: {session.realUser.name}
+                {t('common:user.impersonatingAs', { name: session.realUser.name })}
               </span>
             )}
           </div>
@@ -85,12 +79,12 @@ export function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2" onSelect={() => navigate('/profile')}>
           <User className="size-4" />
-          Mon profil
+          {t('common:user.myProfile')}
         </DropdownMenuItem>
         {isImpersonating && (
           <DropdownMenuItem className="gap-2" onSelect={handleStopImpersonating}>
             <UserCog className="size-4" />
-            Stop impersonating
+            {t('common:user.stopImpersonating')}
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
@@ -102,7 +96,7 @@ export function UserMenu() {
           }}
         >
           <LogOut className="size-4" />
-          Se déconnecter
+          {t('common:user.signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

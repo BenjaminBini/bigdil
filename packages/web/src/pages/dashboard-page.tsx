@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useDashboard, useProjects } from "@/api/hooks";
 import { PageHeader } from "@/components/shared/page-header";
 import {
@@ -12,15 +13,16 @@ import { RecentActivityCard } from "./dashboard/recent-activity-card";
 import { GridCols2 } from "@/components/shared/layouts";
 
 export default function DashboardPage() {
+  const { t } = useTranslation("pages");
   const { data, isLoading, error } = useDashboard();
   const { data: projects } = useProjects();
 
   if (isLoading) return <LoadingState />;
-  if (error || !data) return <ErrorState message="Erreur lors du chargement du tableau de bord" />;
+  if (error || !data) return <ErrorState message={t("dashboard.errorLoading")} />;
 
   return (
     <>
-      <PageHeader title="Tableau de bord" subtitle="Vue d'ensemble multi-projets" />
+      <PageHeader title={t("dashboard.title")} subtitle={t("dashboard.subtitle")} />
       <PageContainer size="full">
         <KpiStrip kpis={data.kpis} />
 

@@ -49,21 +49,30 @@ export function getPeriodDates(code: string): { startDate: string; endDate: stri
   return { startDate: dateToIsoString(start), endDate: dateToIsoString(end) }
 }
 
-const MONTH_NAMES_FR = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
-]
+import i18n from './i18n'
+
+function intlLocale(): string {
+  const lang = i18n.resolvedLanguage ?? i18n.language ?? 'fr'
+  return lang.startsWith('en') ? 'en-GB' : 'fr-FR'
+}
+
+function monthName(monthIndex0: number, year: number, opts?: { lowercase?: boolean }): string {
+  const d = new Date(Date.UTC(year, monthIndex0, 1))
+  const name = new Intl.DateTimeFormat(intlLocale(), { month: 'long' }).format(d)
+  const cased = name.charAt(0).toUpperCase() + name.slice(1)
+  return opts?.lowercase ? cased.toLowerCase() : cased
+}
 
 export function getPeriodLabel(code: string): string {
   const { year, type, index } = parsePeriodCode(code)
-  if (type === 'M') return `${MONTH_NAMES_FR[index - 1]} ${year}`
-  return `Semaine ${index}, ${year}`
+  if (type === 'M') return `${monthName(index - 1, year)} ${year}`
+  return i18n.t('common:period.week', { num: index, year }) as string
 }
 
 // Friendlier slice label for a Timesheet's periodKey.
-//   - weekly slice same month  → "S18 — du 27 au 30 avril 2026"
+//   - weekly slice same month  → "S18 — du 27 au 30 avril 2026" / "W18 — 27 to 30 April 2026"
 //   - weekly slice cross month → "S18 — du 27 avril au 3 mai 2026"
-//   - monthly slice            → "Mai 2026"
+//   - monthly slice            → "Mai 2026" / "May 2026"
 export function formatPeriodSliceLabel(periodKey: string): string {
   const { weekCode, monthCode } = parsePeriodSliceKey(periodKey)
   if (!weekCode) return getPeriodLabel(monthCode)
@@ -78,15 +87,15 @@ export function formatPeriodSliceLabel(periodKey: string): string {
   const endDate = new Date(`${end}T00:00:00Z`)
   const startDay = startDate.getUTCDate()
   const endDay = endDate.getUTCDate()
-  const startMonth = MONTH_NAMES_FR[startDate.getUTCMonth()].toLowerCase()
-  const endMonth = MONTH_NAMES_FR[endDate.getUTCMonth()].toLowerCase()
+  const startMonth = monthName(startDate.getUTCMonth(), startDate.getUTCFullYear(), { lowercase: true })
+  const endMonth = monthName(endDate.getUTCMonth(), endDate.getUTCFullYear(), { lowercase: true })
   const year = endDate.getUTCFullYear()
   const weekNum = parsePeriodCode(weekCode).index
 
   if (startMonth === endMonth) {
-    return `S${weekNum} — du ${startDay} au ${endDay} ${startMonth} ${year}`
+    return i18n.t('common:period.sliceSame', { num: weekNum, startDay, endDay, month: startMonth, year }) as string
   }
-  return `S${weekNum} — du ${startDay} ${startMonth} au ${endDay} ${endMonth} ${year}`
+  return i18n.t('common:period.sliceCross', { num: weekNum, startDay, startMonth, endDay, endMonth, year }) as string
 }
 
 export function comparePeriodCodes(a: string, b: string): number {

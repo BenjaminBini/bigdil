@@ -1,4 +1,5 @@
 import { Building2, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { FlexRow } from "@/components/shared/layouts";
 import { VStack } from "@/components/shared/VStack";
@@ -11,11 +12,6 @@ import {
   TabNav,
   TabLink,
 } from "@/components/shared/detail-layout";
-
-const tabs = [
-  { label: "Overview", path: "overview" },
-  { label: "Projects", path: "projects" },
-];
 
 interface ClientHeaderProps {
   clientId: string;
@@ -30,6 +26,11 @@ export function ClientHeader({
   projectCount,
   onEdit,
 }: ClientHeaderProps) {
+  const { t } = useTranslation("pages");
+  const tabs = [
+    { label: t("clients.tabs.overview"), path: "overview" },
+    { label: t("clients.tabs.projects"), path: "projects" },
+  ];
   return (
     <DetailHeaderShell>
       <TitleActionsRow>
@@ -38,13 +39,13 @@ export function ClientHeader({
           <VStack gap="xs">
             <PageTitle>{name}</PageTitle>
             <MutedText spacing="tight">
-              {projectCount} project{projectCount !== 1 ? "s" : ""}
+              {t("clients.projectsCount", { count: projectCount })}
             </MutedText>
           </VStack>
         </FlexRow>
         <Button variant="outline" size="sm" onClick={onEdit}>
           <Pencil />
-          Edit
+          {t("clients.editAction")}
         </Button>
       </TitleActionsRow>
 

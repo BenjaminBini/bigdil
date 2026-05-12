@@ -36,7 +36,8 @@
     "INACTIVE": "Inactif",
     "ACTUAL": "Réalisé",
     "PLANNED": "Planifié",
-    "CLOSED": "Clôturé"
+    "CLOSED": "Clôturé",
+    "UPCOMING": "À venir"
   },
   "role": {
     "ADMIN": "Administrateur",

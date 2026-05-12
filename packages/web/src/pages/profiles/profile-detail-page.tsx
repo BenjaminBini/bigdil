@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router'
 import { ArrowLeft } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/shared/page-header'
 import { KpiCard } from '@/components/shared/kpi-card'
@@ -12,11 +13,12 @@ import { ProfileAssignmentsCard } from './profile-detail/assignments-card'
 import { QuoteUsageCard } from './profile-detail/quote-usage-card'
 
 export default function ProfileDetailPage() {
+  const { t } = useTranslation('pages')
   const { id } = useParams()
   const { data, isLoading, error } = useProfile(id!)
 
   if (isLoading) return <LoadingState />
-  if (error || !data) return <ErrorState message="Error loading profile" />
+  if (error || !data) return <ErrorState message={t('profileDetail.errorLoading')} />
 
   const defaultMargin = data.defaultSellRatePerDay - data.defaultCostRatePerDay
   const defaultMarginPct = data.defaultSellRatePerDay > 0 ? ((defaultMargin / data.defaultSellRatePerDay) * 100).toFixed(1) : '0'
@@ -29,13 +31,13 @@ export default function ProfileDetailPage() {
             <ArrowLeft size={16} />
           </Button>
         </Link>
-        <PageHeader title={data.name} subtitle={`Profile ID: ${data.id}`} />
+        <PageHeader title={data.name} subtitle={t('profileDetail.profileId', { id: data.id })} />
       </FlexRow>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <KpiCard label="Default Sell Rate" value={`${formatCurrency(data.defaultSellRatePerDay)}/day`} />
-        <KpiCard label="Default Cost Rate" value={`${formatCurrency(data.defaultCostRatePerDay)}/day`} />
-        <KpiCard label="Default Margin" value={`${formatCurrency(defaultMargin)}/day (${defaultMarginPct}%)`} />
+        <KpiCard label={t('profileDetail.kpi.defaultSellRate')} value={t('profileDetail.kpi.perDay', { value: formatCurrency(data.defaultSellRatePerDay) })} />
+        <KpiCard label={t('profileDetail.kpi.defaultCostRate')} value={t('profileDetail.kpi.perDay', { value: formatCurrency(data.defaultCostRatePerDay) })} />
+        <KpiCard label={t('profileDetail.kpi.defaultMargin')} value={t('profileDetail.kpi.perDayPct', { value: formatCurrency(defaultMargin), pct: defaultMarginPct })} />
       </div>
 
       <QuoteUsageCard usage={data.usage} />
