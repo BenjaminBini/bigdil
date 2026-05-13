@@ -43,8 +43,8 @@ interface AssignerRowProps {
 function AssignerRow({ periodCount, employees, excludeIds, onAssign }: AssignerRowProps) {
   const { t } = useTranslation('pages')
   return (
-    <tr className="bg-card">
-      <StickyColumnCell noShadow className="bg-card">
+    <tr className="h-5 bg-card leading-none">
+      <StickyColumnCell noShadow className="!py-0 bg-card">
         <AssignEmployeePopover
           employees={employees}
           excludeIds={excludeIds}
@@ -52,18 +52,18 @@ function AssignerRow({ periodCount, employees, excludeIds, onAssign }: AssignerR
           trigger={
             <button
               type="button"
-              className="flex items-center gap-1.5 pl-[54px] text-xs text-muted-foreground transition-colors hover:text-primary"
+              className="flex items-center gap-1 pl-[54px] text-[11px] leading-none text-muted-foreground transition-colors hover:text-primary"
             >
-              <Plus size={12} strokeWidth={2.5} />
+              <Plus size={10} strokeWidth={2.5} />
               <span>{t('workTable.assign')}</span>
             </button>
           }
         />
       </StickyColumnCell>
       {Array.from({ length: SUMMARY_COL_COUNT }).map((_, i) => (
-        <td key={i} className="bg-card" style={stickySummaryStyle(i)} />
+        <td key={i} className="!py-0 bg-card" style={stickySummaryStyle(i)} />
       ))}
-      <td colSpan={periodCount} className="bg-card" />
+      <td colSpan={periodCount} className="!py-0 bg-card" />
     </tr>
   )
 }
