@@ -572,6 +572,12 @@
     "noMetrics": "No metrics available",
     "notFound": "Snapshot not found",
     "snapshotRecorded": "Snapshot recorded on {{date}}",
+    "missingAllocations": {
+      "title": "Missing initial allocation",
+      "description": "Before creating snapshot {{monthCode}}, split each of the following quote's days across employees. Σ per line must equal sold days.",
+      "lineDetail": "{{allocated}} / {{quoted}} d allocated",
+      "close": "Close"
+    },
     "tabs": {
       "metrics": "Metrics",
       "scope": "Scope",

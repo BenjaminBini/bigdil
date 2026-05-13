@@ -9,6 +9,7 @@ import {
   comparePeriodCodes,
   comparePeriodSliceKeys,
   deriveTimesheetWindowStatus,
+  monthCodeForDate,
   parsePeriodSliceKey,
 } from '../lib/period-utils.js'
 import { requireGlobalTimesheetWindow } from '../lib/timesheet-window.js'
@@ -331,13 +332,23 @@ projectsRouter.get('/:id/work-table', async (c) => {
       }),
   ]
 
-  // RAF (remaining days) per (task, profile) from the most-recent snapshot
-  // strictly before the current CONSOLIDATION month. Drives the consolidation
-  // table revenue formula: revenue_period = (RAF_prev - RAF_now) * sellRate.
-  // For the first consolidation (no prior snapshot) the frontend falls back
-  // to quotedDays as RAF_prev.
+  // RAF (remaining days) per (task, profile, employee) at the start of the
+  // current CONSOLIDATION month. Built from:
+  //   1. Most-recent snapshot strictly before the consolidation month: sum
+  //      plannedDays over non-FROZEN periodStatus rows (per emp).
+  //   2. Initial allocations of every VALIDATED quote effective by the
+  //      consolidation month and validated since that prior snapshot (or
+  //      every such quote if no prior snapshot).
+  // Drives the consolidation table revenue formula at every level:
+  //   period_revenue = (RAF_prev − RAF_now) × sellRate.
+  // For the first consolidation with no prior snapshot, sources reduce to (2).
   const consolidationMonthCode = periods.find(p => p.status === 'CONSOLIDATION')?.monthCode ?? null
-  let previousSnapshotRaf: Array<{ taskId: string; profileId: string; days: number }> = []
+  let previousSnapshotRaf: Array<{
+    taskId: string
+    profileId: string
+    employeeId: string | null
+    days: number
+  }> = []
   let previousSnapshotMonthCode: string | null = null
   let previousSnapshotAt: string | null = null
   if (consolidationMonthCode) {
@@ -349,23 +360,52 @@ projectsRouter.get('/:id/work-table', async (c) => {
       .filter(s => comparePeriodCodes(s.monthCode, consolidationMonthCode) < 0)
       .sort((a, b) => comparePeriodCodes(b.monthCode, a.monthCode))[0] ?? null
 
+    type RafKey = string
+    const rafKey = (taskId: string, profileId: string, employeeId: string | null) =>
+      `${taskId}::${profileId}::${employeeId ?? '__null__'}` satisfies RafKey
+    const acc = new Map<RafKey, { taskId: string; profileId: string; employeeId: string | null; days: number }>()
+    const bump = (taskId: string, profileId: string, employeeId: string | null, days: number) => {
+      const k = rafKey(taskId, profileId, employeeId)
+      const existing = acc.get(k)
+      if (existing) existing.days += days
+      else acc.set(k, { taskId, profileId, employeeId, days })
+    }
+
     if (prevSnapshot) {
       previousSnapshotMonthCode = prevSnapshot.monthCode
       previousSnapshotAt = toIsoDate(prevSnapshot.snapshotAt)
       const prevWorkRows = await prisma.snapshotWorkRow.findMany({
         where: { snapshotId: prevSnapshot.id, periodStatus: { not: 'FROZEN' } },
-        select: { taskId: true, profileId: true, plannedDays: true },
+        select: { taskId: true, profileId: true, employeeId: true, plannedDays: true },
       })
-      const acc = new Map<string, number>()
       for (const w of prevWorkRows) {
-        const key = `${w.taskId}::${w.profileId}`
-        acc.set(key, (acc.get(key) ?? 0) + w.plannedDays)
+        bump(w.taskId, w.profileId, w.employeeId, w.plannedDays)
       }
-      previousSnapshotRaf = [...acc.entries()].map(([k, days]) => {
-        const [taskId, profileId] = k.split('::')
-        return { taskId, profileId, days }
-      })
     }
+
+    // Stack initial allocations of quotes validated since prevSnapshot (or all
+    // validated quotes effective by consolidation month if no prior snapshot).
+    const newQuotes = await prisma.quote.findMany({
+      where: {
+        projectId,
+        status: 'VALIDATED',
+        effectiveAt: { not: null },
+        ...(prevSnapshot ? { validatedAt: { gt: prevSnapshot.snapshotAt } } : {}),
+      },
+      include: { lines: { include: { initialAllocations: true } } },
+    })
+    for (const q of newQuotes) {
+      if (!q.effectiveAt) continue
+      const effMonth = monthCodeForDate(toIsoDate(q.effectiveAt))
+      if (comparePeriodCodes(effMonth, consolidationMonthCode) > 0) continue
+      for (const line of q.lines) {
+        for (const a of line.initialAllocations) {
+          bump(line.taskId, line.profileId, a.employeeId, a.days)
+        }
+      }
+    }
+
+    previousSnapshotRaf = [...acc.values()]
   }
 
   return c.json({
@@ -483,6 +523,79 @@ projectsRouter.post('/:id/snapshots', async (c) => {
   }
 
   const actor = await requireCurrentUser()
+
+  // Initial-allocation gate. Every VALIDATED quote effective by the snapshot
+  // month, validated since the previous snapshot, must carry a balanced
+  // initial allocation on every line. The balanced allocations become the
+  // per-(task, profile, employee) RAF baseline for downstream period-revenue
+  // computations. Block creation with 422 + details if anything is missing.
+  const priorSnapshots = await prisma.snapshot.findMany({
+    where: { projectId },
+    select: { id: true, monthCode: true, snapshotAt: true },
+  })
+  const prevSnapshot =
+    priorSnapshots
+      .filter((s) => comparePeriodCodes(s.monthCode, monthCode) < 0)
+      .sort((a, b) => comparePeriodCodes(b.monthCode, a.monthCode))[0] ?? null
+
+  const candidateQuotes = await prisma.quote.findMany({
+    where: {
+      projectId,
+      status: 'VALIDATED',
+      effectiveAt: { not: null },
+      ...(prevSnapshot ? { validatedAt: { gt: prevSnapshot.snapshotAt } } : {}),
+    },
+    include: {
+      lines: { include: { initialAllocations: true } },
+    },
+  })
+
+  // effective by end of snapshot month: monthCodeForDate(effectiveAt) <= monthCode.
+  const quotesNeedingAllocation = candidateQuotes.filter((q) => {
+    if (!q.effectiveAt) return false
+    const effMonth = monthCodeForDate(toIsoDate(q.effectiveAt))
+    return comparePeriodCodes(effMonth, monthCode) <= 0
+  })
+
+  const missingLines: Array<{
+    quoteId: string
+    quoteTitle: string
+    lineId: string
+    taskId: string
+    profileId: string
+    quotedDays: number
+    allocatedDays: number
+  }> = []
+  for (const q of quotesNeedingAllocation) {
+    for (const line of q.lines) {
+      const allocated = line.initialAllocations.reduce((s, a) => s + a.days, 0)
+      const balanced =
+        line.initialAllocations.length > 0 && Math.abs(allocated - line.days) <= 0.01
+      if (!balanced) {
+        missingLines.push({
+          quoteId: q.id,
+          quoteTitle: q.title,
+          lineId: line.id,
+          taskId: line.taskId,
+          profileId: line.profileId,
+          quotedDays: line.days,
+          allocatedDays: allocated,
+        })
+      }
+    }
+  }
+  if (missingLines.length > 0) {
+    return c.json(
+      {
+        error: 'missing_initial_allocations',
+        message:
+          'Snapshot blocked: every quote validated since the previous snapshot must have a balanced initial allocation on every line.',
+        missing: missingLines,
+      },
+      422,
+    )
+  }
+
   const inputs = await loadSnapshotInputs(projectId, monthCode)
   const metrics = computeSnapshotMetrics(inputs)
   const scopeLines = buildScopeLines(inputs)
@@ -537,6 +650,19 @@ projectsRouter.post('/:id/snapshots', async (c) => {
       include: { metrics: true, scopeLines: true, workRows: true },
     })
   })
+  // Lock consumed initial allocations to this snapshot. Skips rows already
+  // locked by an earlier snapshot — those remain associated with their original
+  // snapshot for audit clarity.
+  const consumedAllocationIds = quotesNeedingAllocation.flatMap((q) =>
+    q.lines.flatMap((l) => l.initialAllocations.map((a) => a.id)),
+  )
+  if (consumedAllocationIds.length > 0) {
+    await prisma.quoteInitialAllocation.updateMany({
+      where: { id: { in: consumedAllocationIds }, firstUsedInSnapshotId: null },
+      data: { firstUsedInSnapshotId: snapshot.id },
+    })
+  }
+
   await auditLog({ entity: 'Snapshot', entityId: snapshot.id, action: 'CREATE', after: { projectId, monthCode } })
 
   return c.json({

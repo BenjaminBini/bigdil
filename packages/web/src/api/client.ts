@@ -2,9 +2,11 @@ const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 export class ApiError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  body: unknown
+  constructor(status: number, message: string, body?: unknown) {
     super(message)
     this.status = status
+    this.body = body
   }
 }
 
@@ -23,7 +25,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }))
-    throw new ApiError(res.status, body.error ?? 'Request failed')
+    throw new ApiError(res.status, body.error ?? 'Request failed', body)
   }
 
   return res.json() as Promise<T>

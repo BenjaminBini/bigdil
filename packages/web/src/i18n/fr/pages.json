@@ -572,6 +572,12 @@
     "noMetrics": "Aucune métrique disponible",
     "notFound": "Snapshot introuvable",
     "snapshotRecorded": "Snapshot enregistré le {{date}}",
+    "missingAllocations": {
+      "title": "Répartition initiale manquante",
+      "description": "Avant de créer le snapshot {{monthCode}}, répartissez initialement la charge des devis suivants entre les employés. Σ par ligne doit égaler les jours vendus.",
+      "lineDetail": "{{allocated}} / {{quoted}} j alloués",
+      "close": "Fermer"
+    },
     "tabs": {
       "metrics": "Métriques",
       "scope": "Périmètre",

@@ -1,8 +1,18 @@
-import { useParams, useNavigate } from 'react-router'
+import { useState } from 'react'
+import { useParams, useNavigate, Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Camera, Eye } from 'lucide-react'
 import { useProject, useSnapshots, useCreateSnapshot } from '@/api/hooks'
+import { ApiError } from '@/api/client'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
 import { FlexBetween } from '@/components/shared/layouts'
 import { VStack } from '@/components/shared/VStack'
@@ -162,9 +172,84 @@ function SnapshotsList({ snapshots, projectId }: SnapshotsListProps) {
   )
 }
 
+interface MissingAllocation {
+  quoteId: string
+  quoteTitle: string
+  lineId: string
+  taskId: string
+  profileId: string
+  quotedDays: number
+  allocatedDays: number
+}
+
+interface MissingAllocationsModalState {
+  monthCode: string
+  missing: MissingAllocation[]
+}
+
+function MissingAllocationsDialog({
+  projectId,
+  state,
+  onClose,
+}: {
+  projectId: string
+  state: MissingAllocationsModalState | null
+  onClose: () => void
+}) {
+  const { t } = useTranslation('pages')
+  if (!state) return null
+  const byQuote = new Map<string, { title: string; lines: MissingAllocation[] }>()
+  for (const m of state.missing) {
+    const entry = byQuote.get(m.quoteId) ?? { title: m.quoteTitle, lines: [] }
+    entry.lines.push(m)
+    byQuote.set(m.quoteId, entry)
+  }
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t('snapshots.missingAllocations.title')}</DialogTitle>
+          <DialogDescription>
+            {t('snapshots.missingAllocations.description', { monthCode: state.monthCode })}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-3">
+          {[...byQuote.entries()].map(([quoteId, { title, lines }]) => (
+            <div key={quoteId} className="rounded-md border p-3">
+              <Link
+                to={`/projects/${projectId}/quotes/${quoteId}`}
+                onClick={onClose}
+                className="text-sm font-semibold text-primary hover:underline"
+              >
+                {title}
+              </Link>
+              <ul className="mt-1 list-disc pl-5 text-xs text-muted-foreground">
+                {lines.map((l) => (
+                  <li key={l.lineId}>
+                    {t('snapshots.missingAllocations.lineDetail', {
+                      allocated: l.allocatedDays.toFixed(2),
+                      quoted: l.quotedDays.toFixed(2),
+                    })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            {t('snapshots.missingAllocations.close')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export default function SnapshotsPage() {
   const { id: projectId } = useParams()
   const { t } = useTranslation('pages')
+  const [missingState, setMissingState] = useState<MissingAllocationsModalState | null>(null)
 
   const { data: project, isLoading: projectLoading, error: projectError } = useProject(projectId!)
   const { data: snapshots, isLoading: snapshotsLoading, error: snapshotsError } = useSnapshots(projectId!)
@@ -181,7 +266,16 @@ export default function SnapshotsPage() {
   function handleCreateSnapshot(monthCode: string) {
     createSnapshot.mutate(monthCode, {
       onSuccess: () => toast.success(`Snapshot created for ${monthCode}`),
-      onError: (err: Error) => toast.error(err.message),
+      onError: (err: Error) => {
+        if (err instanceof ApiError && err.status === 422) {
+          const body = err.body as { missing?: MissingAllocation[] } | null
+          if (body?.missing && body.missing.length > 0) {
+            setMissingState({ monthCode, missing: body.missing })
+            return
+          }
+        }
+        toast.error(err.message)
+      },
     })
   }
 
@@ -208,6 +302,12 @@ export default function SnapshotsPage() {
       </VStack>
 
       <SnapshotSummaryStrip snapshots={snapshots} />
+
+      <MissingAllocationsDialog
+        projectId={projectId ?? ''}
+        state={missingState}
+        onClose={() => setMissingState(null)}
+      />
     </PageContainer>
   )
 }
