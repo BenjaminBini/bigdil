@@ -30,6 +30,7 @@ import { ValidateDialog } from './quote-detail/validate-dialog'
 import { CancelQuoteDialog } from './quote-detail/cancel-quote-dialog'
 import { DeleteQuoteDialog } from './quote-detail/delete-quote-dialog'
 import { QuoteActionDialog, type QuoteAction } from './quote-detail/quote-action-dialog'
+import { QuoteInitialAllocation } from './quote-detail/quote-initial-allocation'
 
 function buildValidatedRateKeys(referenceQuote: Quote): Set<string> {
   const keys = new Set<string>()
@@ -399,6 +400,16 @@ export default function QuoteDetailPage() {
       </Card>
 
       {totalRow && !isDraft && <QuoteTotalsCard totalRow={totalRow} />}
+
+      {isValidated && (
+        <QuoteInitialAllocation
+          projectId={projectId!}
+          quoteId={quoteId!}
+          taskNameOf={getTaskName}
+          profileNameOf={getProfileName}
+          employees={refData.employees}
+        />
+      )}
       {isDraft && <QuoteTotalsCard totalRow={{
         id: 'totals', kind: 'grand-total', phaseId: '', label: 'Total général', depth: 0,
         days: quote.lines.reduce((s, l) => s + l.days, 0),

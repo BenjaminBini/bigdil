@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '../client'
 import type {
   ProjectListItem, ProjectDetail, WorkTableData, Snapshot, Quote, QuoteLine,
+  QuoteAllocationsResponse,
   Timesheet, ReferenceData, DashboardData,
   EmployeeDetail, ProfileDetail, Profile, Phase, Task, Client, Employee,
   FinancialReportRow, UtilizationReportRow, GlobalTimesheetWindow,
@@ -28,6 +29,8 @@ export const queryKeys = {
   utilizationReport: ['reports', 'utilization'] as const,
   users: ['users'] as const,
   currentUser: ['auth', 'me'] as const,
+  quoteAllocations: (projectId: string, quoteId: string) =>
+    ['projects', projectId, 'quotes', quoteId, 'allocations'] as const,
 }
 
 // ── Hooks ──────────────────────────────────────
@@ -355,6 +358,29 @@ export function useUnvalidateQuote(projectId: string) {
     mutationFn: (quoteId: string) =>
       apiFetch<Quote>(`/api/projects/${projectId}/quotes/${quoteId}/unvalidate`, { method: 'POST' }),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.project(projectId) }) },
+  })
+}
+
+export function useQuoteAllocations(projectId: string, quoteId: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.quoteAllocations(projectId, quoteId),
+    queryFn: () =>
+      apiFetch<QuoteAllocationsResponse>(`/api/projects/${projectId}/quotes/${quoteId}/allocations`),
+    enabled,
+  })
+}
+
+export function useSaveQuoteLineAllocations(projectId: string, quoteId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ lineId, allocations }: { lineId: string; allocations: Array<{ employeeId: string; days: number }> }) =>
+      apiFetch(`/api/projects/${projectId}/quotes/${quoteId}/lines/${lineId}/allocations`, {
+        method: 'PUT',
+        body: JSON.stringify({ allocations }),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.quoteAllocations(projectId, quoteId) })
+    },
   })
 }
 

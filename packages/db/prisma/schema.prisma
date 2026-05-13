@@ -40,35 +40,36 @@ model Client {
 }
 
 model User {
-  id             String     @id @default(cuid())
-  email          String     @unique @db.VarChar(255)
-  role           UserRole
-  name           String     @db.VarChar(255)
-  employeeId     String?    @unique @map("employee_id")
-  employee       Employee?  @relation(fields: [employeeId], references: [id])
-  snapshotsClosed Snapshot[] @relation("ClosedByUser")
-  monthFreezes   MonthFreeze[]
+  id                  String        @id @default(cuid())
+  email               String        @unique @db.VarChar(255)
+  role                UserRole
+  name                String        @db.VarChar(255)
+  employeeId          String?       @unique @map("employee_id")
+  employee            Employee?     @relation(fields: [employeeId], references: [id])
+  snapshotsClosed     Snapshot[]    @relation("ClosedByUser")
+  monthFreezes        MonthFreeze[]
   timesheetsSubmitted Timesheet[]   @relation("TimesheetSubmittedBy")
   timesheetsApproved  Timesheet[]   @relation("TimesheetApprovedBy")
   timesheetsRejected  Timesheet[]   @relation("TimesheetRejectedBy")
-  auditLogs      AuditLog[]
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  auditLogs           AuditLog[]
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
 
   @@map("users")
 }
 
 model Employee {
-  id                    String             @id @default(cuid())
-  name                  String             @db.VarChar(255)
-  active                Boolean            @default(true)
-  currentCostRatePerDay Float              @map("current_cost_rate_per_day")
+  id                    String                   @id @default(cuid())
+  name                  String                   @db.VarChar(255)
+  active                Boolean                  @default(true)
+  currentCostRatePerDay Float                    @map("current_cost_rate_per_day")
   user                  User?
   costRates             EmployeeCostRate[]
   assignments           AssignmentSlot[]
   timesheets            Timesheet[]
-  createdAt             DateTime           @default(now()) @map("created_at")
-  updatedAt             DateTime           @updatedAt @map("updated_at")
+  quoteAllocations      QuoteInitialAllocation[]
+  createdAt             DateTime                 @default(now()) @map("created_at")
+  updatedAt             DateTime                 @updatedAt @map("updated_at")
 
   @@map("employees")
 }
@@ -179,20 +180,47 @@ model Quote {
 }
 
 model QuoteLine {
-  id                       String  @id @default(cuid())
-  quoteId                  String  @map("quote_id")
-  taskId                   String  @map("task_id")
-  profileId                String  @map("profile_id")
+  id                       String                   @id @default(cuid())
+  quoteId                  String                   @map("quote_id")
+  taskId                   String                   @map("task_id")
+  profileId                String                   @map("profile_id")
   days                     Float
-  sellRatePerDay           Float   @map("sell_rate_per_day")
-  costRateAssumptionPerDay Float   @map("cost_rate_assumption_per_day")
-  revenueAmount            Float   @map("revenue_amount")
-  budgetCostAmount         Float   @map("budget_cost_amount")
-  profile                  Profile @relation(fields: [profileId], references: [id])
-  quote                    Quote   @relation(fields: [quoteId], references: [id])
-  task                     Task    @relation(fields: [taskId], references: [id])
+  sellRatePerDay           Float                    @map("sell_rate_per_day")
+  costRateAssumptionPerDay Float                    @map("cost_rate_assumption_per_day")
+  revenueAmount            Float                    @map("revenue_amount")
+  budgetCostAmount         Float                    @map("budget_cost_amount")
+  profile                  Profile                  @relation(fields: [profileId], references: [id])
+  quote                    Quote                    @relation(fields: [quoteId], references: [id])
+  task                     Task                     @relation(fields: [taskId], references: [id])
+  initialAllocations       QuoteInitialAllocation[]
 
   @@map("quote_lines")
+}
+
+// Per-employee day allocation of a validated quote line. Created via the
+// "répartition initiale" editor after a quote is VALIDATED. Sum of allocations
+// for a given line must equal QuoteLine.days (API-enforced; floats forbid a DB
+// check constraint). Used as the per-(task, profile, employee) baseline RAF
+// at snapshot time:
+//   - first snapshot of a project: baseline = allocations of all eligible quotes
+//   - subsequent: baseline = N-1 snapshot RAF + allocations of newly validated quotes
+// firstUsedInSnapshotId locks the row once a snapshot has consumed it.
+model QuoteInitialAllocation {
+  id                    String    @id @default(cuid())
+  quoteLineId           String    @map("quote_line_id")
+  employeeId            String    @map("employee_id")
+  days                  Float
+  firstUsedInSnapshotId String?   @map("first_used_in_snapshot_id")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  quoteLine             QuoteLine @relation(fields: [quoteLineId], references: [id], onDelete: Cascade)
+  employee              Employee  @relation(fields: [employeeId], references: [id])
+  firstUsedInSnapshot   Snapshot? @relation(fields: [firstUsedInSnapshotId], references: [id])
+
+  @@unique([quoteLineId, employeeId])
+  @@index([quoteLineId])
+  @@index([firstUsedInSnapshotId])
+  @@map("quote_initial_allocations")
 }
 
 // ── Assignment / Planning / Timesheet ───────────────────────────────────────────
@@ -203,19 +231,19 @@ model QuoteLine {
 // (NULLS NOT DISTINCT) — provisioned via raw SQL post-migration if ever needed,
 // app-level guard for now.
 model AssignmentSlot {
-  id          String        @id @default(cuid())
-  projectId   String        @map("project_id")
-  taskId      String        @map("task_id")
-  profileId   String        @map("profile_id")
-  employeeId  String?       @map("employee_id")
-  project     Project       @relation(fields: [projectId], references: [id])
-  task        Task          @relation(fields: [taskId], references: [id])
-  profile     Profile       @relation(fields: [profileId], references: [id])
-  employee    Employee?     @relation(fields: [employeeId], references: [id])
+  id             String          @id @default(cuid())
+  projectId      String          @map("project_id")
+  taskId         String          @map("task_id")
+  profileId      String          @map("profile_id")
+  employeeId     String?         @map("employee_id")
+  project        Project         @relation(fields: [projectId], references: [id])
+  task           Task            @relation(fields: [taskId], references: [id])
+  profile        Profile         @relation(fields: [profileId], references: [id])
+  employee       Employee?       @relation(fields: [employeeId], references: [id])
   plannedDays    PlannedDay[]
   taskTimesheets TaskTimesheet[]
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
 
   @@unique([projectId, taskId, profileId, employeeId], name: "projectId_taskId_profileId_employeeId")
   @@index([projectId])
@@ -307,16 +335,16 @@ model TaskTimesheet {
 }
 
 model ProfileTaskPeriodStart {
-  id               String    @id @default(cuid())
-  taskId           String    @map("task_id")
-  profileId        String    @map("profile_id")
-  periodKey        String    @map("period_key")
-  remainingAtStart Float     @map("remaining_at_start")
-  soldAtStart      Float     @map("sold_at_start")
-  profile          Profile   @relation(fields: [profileId], references: [id])
-  task             Task      @relation(fields: [taskId], references: [id])
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
+  id               String   @id @default(cuid())
+  taskId           String   @map("task_id")
+  profileId        String   @map("profile_id")
+  periodKey        String   @map("period_key")
+  remainingAtStart Float    @map("remaining_at_start")
+  soldAtStart      Float    @map("sold_at_start")
+  profile          Profile  @relation(fields: [profileId], references: [id])
+  task             Task     @relation(fields: [taskId], references: [id])
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@map("profile_task_period_starts")
 }
@@ -326,30 +354,31 @@ model ProfileTaskPeriodStart {
 // A MonthFreeze row is the immutable record of a global month-freeze event.
 // Snapshots taken at the freeze are linked back via `Snapshot.monthFreezeId`.
 model MonthFreeze {
-  monthCode   String     @id // e.g., 2026M5
-  frozenAt    DateTime   @default(now()) @map("frozen_at")
-  frozenById  String     @map("frozen_by")
-  notes       String     @default("")
-  frozenBy    User       @relation(fields: [frozenById], references: [id])
-  snapshots   Snapshot[]
+  monthCode  String     @id // e.g., 2026M5
+  frozenAt   DateTime   @default(now()) @map("frozen_at")
+  frozenById String     @map("frozen_by")
+  notes      String     @default("")
+  frozenBy   User       @relation(fields: [frozenById], references: [id])
+  snapshots  Snapshot[]
 
   @@map("month_freezes")
 }
 
 model Snapshot {
-  id            String              @id @default(cuid())
-  projectId     String              @map("project_id")
-  monthCode     String              @map("month_code") // snapshots are monthly by definition
-  monthFreezeId String?             @map("month_freeze_id") // null only for ad-hoc admin snapshots
-  snapshotAt    DateTime            @default(now()) @map("snapshot_at")
-  closedById    String              @map("closed_by")
-  notes         String              @default("")
-  metrics       SnapshotMetrics?
-  scopeLines    SnapshotScopeLine[]
-  workRows      SnapshotWorkRow[]
-  closedBy      User                @relation("ClosedByUser", fields: [closedById], references: [id])
-  monthFreeze   MonthFreeze?        @relation(fields: [monthFreezeId], references: [monthCode])
-  project       Project             @relation(fields: [projectId], references: [id])
+  id                  String                   @id @default(cuid())
+  projectId           String                   @map("project_id")
+  monthCode           String                   @map("month_code") // snapshots are monthly by definition
+  monthFreezeId       String?                  @map("month_freeze_id") // null only for ad-hoc admin snapshots
+  snapshotAt          DateTime                 @default(now()) @map("snapshot_at")
+  closedById          String                   @map("closed_by")
+  notes               String                   @default("")
+  metrics             SnapshotMetrics?
+  scopeLines          SnapshotScopeLine[]
+  workRows            SnapshotWorkRow[]
+  consumedAllocations QuoteInitialAllocation[]
+  closedBy            User                     @relation("ClosedByUser", fields: [closedById], references: [id])
+  monthFreeze         MonthFreeze?             @relation(fields: [monthFreezeId], references: [monthCode])
+  project             Project                  @relation(fields: [projectId], references: [id])
 
   @@unique([projectId, monthCode], name: "projectId_monthCode")
   @@map("snapshots")
@@ -389,18 +418,18 @@ model SnapshotScopeLine {
 }
 
 model SnapshotWorkRow {
-  id           String                @id @default(cuid())
-  snapshotId   String                @map("snapshot_id")
-  periodKey    String                @map("period_key")
-  periodStatus SnapshotPeriodStatus  @map("period_status")
-  taskId       String                @map("task_id")
-  profileId    String                @map("profile_id")
-  employeeId   String?               @map("employee_id")
-  plannedDays  Float                 @map("planned_days")
-  actualDays   Float?                @map("actual_days")
-  profile      Profile               @relation(fields: [profileId], references: [id])
-  snapshot     Snapshot              @relation(fields: [snapshotId], references: [id])
-  task         Task                  @relation(fields: [taskId], references: [id])
+  id           String               @id @default(cuid())
+  snapshotId   String               @map("snapshot_id")
+  periodKey    String               @map("period_key")
+  periodStatus SnapshotPeriodStatus @map("period_status")
+  taskId       String               @map("task_id")
+  profileId    String               @map("profile_id")
+  employeeId   String?              @map("employee_id")
+  plannedDays  Float                @map("planned_days")
+  actualDays   Float?               @map("actual_days")
+  profile      Profile              @relation(fields: [profileId], references: [id])
+  snapshot     Snapshot             @relation(fields: [snapshotId], references: [id])
+  task         Task                 @relation(fields: [taskId], references: [id])
 
   @@map("snapshot_work_rows")
 }
@@ -420,16 +449,16 @@ model GlobalTimesheetWindow {
 // Generic audit trail: one row per CREATE/UPDATE/DELETE on any tracked entity.
 // Wiring (when to write rows) is app-level; the table only enforces shape.
 model AuditLog {
-  id        String       @id @default(cuid())
-  entity    String       @db.VarChar(100) // e.g., "Project", "Timesheet", "TaskTimesheet"
-  entityId  String       @map("entity_id")
-  action    AuditAction
-  actorId   String?      @map("actor_id")
-  actor     User?        @relation(fields: [actorId], references: [id])
-  at        DateTime     @default(now())
-  before    Json?        // snapshot of pre-change row (UPDATE/DELETE)
-  after     Json?        // snapshot of post-change row (CREATE/UPDATE)
-  metadata  Json?        // free-form context (request id, route, etc.)
+  id       String      @id @default(cuid())
+  entity   String      @db.VarChar(100) // e.g., "Project", "Timesheet", "TaskTimesheet"
+  entityId String      @map("entity_id")
+  action   AuditAction
+  actorId  String?     @map("actor_id")
+  actor    User?       @relation(fields: [actorId], references: [id])
+  at       DateTime    @default(now())
+  before   Json? // snapshot of pre-change row (UPDATE/DELETE)
+  after    Json? // snapshot of post-change row (CREATE/UPDATE)
+  metadata Json? // free-form context (request id, route, etc.)
 
   @@index([entity, entityId])
   @@index([actorId])

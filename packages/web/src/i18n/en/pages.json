@@ -120,6 +120,22 @@
       "noValidatedQuote": "no validated quote"
     }
   },
+  "quoteAllocation": {
+    "title": "Initial allocation",
+    "subtitle": "Split each line's sold days across employees. Σ per line must equal sold days. Used as the N-1 RAF baseline at the next snapshot.",
+    "errorLoading": "Failed to load allocation",
+    "quoted": "{{days}} d sold",
+    "selectEmployee": "Pick an employee",
+    "addEmployee": "Add employee",
+    "save": "Save",
+    "saving": "Saving…",
+    "locked": "Locked by snapshot {{snapshotId}}",
+    "lockedShort": "Locked",
+    "toasts": {
+      "saved": "Allocation saved",
+      "saveFailed": "Save failed"
+    }
+  },
   "quotes": {
     "title": "Quotes",
     "subtitle": "Project quotes and amendments",

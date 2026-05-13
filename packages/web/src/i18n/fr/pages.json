@@ -120,6 +120,22 @@
       "noValidatedQuote": "aucun devis validé"
     }
   },
+  "quoteAllocation": {
+    "title": "Répartition initiale",
+    "subtitle": "Répartir les jours vendus de chaque ligne entre les employés. Σ par ligne doit égaler les jours vendus. Sert de base au calcul du RAF N-1 lors du prochain snapshot.",
+    "errorLoading": "Impossible de charger la répartition",
+    "quoted": "{{days}} j vendus",
+    "selectEmployee": "Choisir un employé",
+    "addEmployee": "Ajouter un employé",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "locked": "Verrouillé par le snapshot {{snapshotId}}",
+    "lockedShort": "Verrouillé",
+    "toasts": {
+      "saved": "Répartition enregistrée",
+      "saveFailed": "Échec de l'enregistrement"
+    }
+  },
   "quotes": {
     "title": "Devis",
     "subtitle": "Devis et avenants du projet",

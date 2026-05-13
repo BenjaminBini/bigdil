@@ -1134,6 +1134,148 @@ projectsRouter.delete('/:id/quotes/:quoteId', async (c) => {
   return c.json({ ok: true })
 })
 
+// ── Quote initial allocations (répartition initiale) ───────────────────────
+// Per-employee day allocation of a VALIDATED quote's lines. Used as the
+// baseline RAF at snapshot time. Allocations are locked once a snapshot
+// has consumed them. Quote must be VALIDATED to accept allocations.
+
+// GET /api/projects/:id/quotes/:quoteId/allocations
+projectsRouter.get('/:id/quotes/:quoteId/allocations', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+
+  const quote = await prisma.quote.findFirst({
+    where: { id: quoteId, projectId },
+    include: {
+      lines: {
+        include: {
+          initialAllocations: true,
+        },
+      },
+    },
+  })
+  if (!quote) return c.json({ error: 'Quote not found' }, 404)
+
+  const lines = quote.lines.map((line) => {
+    const lockedBy = line.initialAllocations.find((a) => a.firstUsedInSnapshotId != null)?.firstUsedInSnapshotId ?? null
+    const allocatedDays = line.initialAllocations.reduce((s, a) => s + a.days, 0)
+    return {
+      lineId: line.id,
+      taskId: line.taskId,
+      profileId: line.profileId,
+      quotedDays: line.days,
+      allocatedDays,
+      balanced: Math.abs(allocatedDays - line.days) <= 0.01,
+      lockedBy,
+      allocations: line.initialAllocations.map((a) => ({
+        id: a.id,
+        employeeId: a.employeeId,
+        days: a.days,
+      })),
+    }
+  })
+
+  return c.json({ quoteId, status: quote.status, lines })
+})
+
+// PUT /api/projects/:id/quotes/:quoteId/lines/:lineId/allocations
+// Body: { allocations: [{ employeeId: string, days: number }] }
+// Replaces all allocations on the line. Rejects when:
+//   - quote is not VALIDATED
+//   - any existing allocation on the line is firstUsedInSnapshotId != null (locked)
+//   - any allocation has invalid employeeId or non-positive days
+//   - Σ allocations.days != line.days (tolerance 0.01)
+projectsRouter.put('/:id/quotes/:quoteId/lines/:lineId/allocations', async (c) => {
+  const projectId = c.req.param('id')
+  const quoteId = c.req.param('quoteId')
+  const lineId = c.req.param('lineId')
+
+  type AllocBody = { allocations?: Array<{ employeeId?: string; days?: number }> }
+  const body = await c.req.json<AllocBody>().catch(() => ({} as AllocBody))
+  const allocations = Array.isArray(body.allocations) ? body.allocations : null
+  if (!allocations) {
+    return c.json({ error: 'allocations array is required' }, 400)
+  }
+
+  const line = await prisma.quoteLine.findFirst({
+    where: { id: lineId, quoteId, quote: { projectId } },
+    include: {
+      quote: { select: { status: true } },
+      initialAllocations: { select: { id: true, firstUsedInSnapshotId: true } },
+    },
+  })
+  if (!line) return c.json({ error: 'Quote line not found' }, 404)
+  if (line.quote.status !== 'VALIDATED') {
+    return c.json({ error: 'Quote must be VALIDATED to edit allocations' }, 400)
+  }
+
+  const lockedBy = line.initialAllocations.find((a) => a.firstUsedInSnapshotId != null)
+  if (lockedBy) {
+    return c.json({ error: 'Allocations are locked: already consumed by a snapshot', snapshotId: lockedBy.firstUsedInSnapshotId }, 409)
+  }
+
+  // Validate input rows.
+  const cleanedById = new Map<string, number>()
+  for (const a of allocations) {
+    if (typeof a.employeeId !== 'string' || a.employeeId.length === 0) {
+      return c.json({ error: 'each allocation must have an employeeId (non-null)' }, 400)
+    }
+    if (typeof a.days !== 'number' || !Number.isFinite(a.days) || a.days <= 0) {
+      return c.json({ error: `allocation for ${a.employeeId} must have positive numeric days` }, 400)
+    }
+    cleanedById.set(a.employeeId, (cleanedById.get(a.employeeId) ?? 0) + a.days)
+  }
+  const totalDays = [...cleanedById.values()].reduce((s, d) => s + d, 0)
+  if (Math.abs(totalDays - line.days) > 0.01) {
+    return c.json(
+      { error: `Σ allocations (${totalDays.toFixed(2)}) must equal line.days (${line.days.toFixed(2)})` },
+      400,
+    )
+  }
+
+  // Verify all employee ids exist.
+  const employeeIds = [...cleanedById.keys()]
+  const existingEmps = await prisma.employee.findMany({
+    where: { id: { in: employeeIds } },
+    select: { id: true },
+  })
+  if (existingEmps.length !== employeeIds.length) {
+    const found = new Set(existingEmps.map((e) => e.id))
+    const missing = employeeIds.filter((id) => !found.has(id))
+    return c.json({ error: 'unknown employeeId(s)', missing }, 400)
+  }
+
+  // Replace all allocations atomically.
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.quoteInitialAllocation.deleteMany({ where: { quoteLineId: lineId } })
+    const rows = await Promise.all(
+      [...cleanedById.entries()].map(([employeeId, days]) =>
+        tx.quoteInitialAllocation.create({
+          data: { quoteLineId: lineId, employeeId, days },
+        }),
+      ),
+    )
+    return rows
+  })
+
+  await auditLog({
+    entity: 'QuoteInitialAllocation',
+    entityId: lineId,
+    action: 'UPDATE',
+    after: { lineId, allocations: updated.map((a) => ({ employeeId: a.employeeId, days: a.days })) },
+    metadata: { quoteId, projectId },
+  })
+
+  return c.json({
+    lineId,
+    allocations: updated.map((a) => ({
+      id: a.id,
+      employeeId: a.employeeId,
+      days: a.days,
+    })),
+  })
+})
+
 // GET /api/projects/:id/timesheets — one Timesheet bundle per (employee,
 // period) that touches this project. taskTimesheets are pre-filtered to the
 // project so PMs of project A don't see entries from project B inside the

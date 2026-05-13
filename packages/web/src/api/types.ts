@@ -119,6 +119,29 @@ export interface Quote {
   lines: QuoteLine[]
 }
 
+export interface QuoteInitialAllocationEntry {
+  id: string
+  employeeId: string
+  days: number
+}
+
+export interface QuoteAllocationLine {
+  lineId: string
+  taskId: string
+  profileId: string
+  quotedDays: number
+  allocatedDays: number
+  balanced: boolean
+  lockedBy: string | null
+  allocations: QuoteInitialAllocationEntry[]
+}
+
+export interface QuoteAllocationsResponse {
+  quoteId: string
+  status: QuoteStatus
+  lines: QuoteAllocationLine[]
+}
+
 export interface WorkTableCell {
   taskId: string
   profileId: string
