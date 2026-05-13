@@ -2,9 +2,10 @@ import { Fragment, useMemo, useState } from 'react'
 import { useParams } from 'react-router'
 import { ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { PageHeader } from '@/components/shared/page-header'
-import { PageContainer, LoadingState, ErrorState } from '@/components/shared/page-container'
-import { FullHeightColumn } from '@/components/shared/layouts'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { FlexBetween } from '@/components/shared/layouts'
+import { PageTitle } from '@/components/shared/page-title'
+import { MutedText } from '@/components/shared/muted-text'
 import { Card } from '@/components/ui/card'
 import {
   Table,
@@ -290,86 +291,88 @@ export default function ProjectTimesheetsPage() {
   const colSpan = 5
 
   return (
-    <FullHeightColumn>
-      <PageHeader
-        title={t('projectTimesheets.title')}
-        subtitle={t('projectTimesheets.subtitle', { project: project.name })}
-      />
+    <PageContainer>
+      <FlexBetween>
+        <div>
+          <PageTitle as="h2">{t('projectTimesheets.title')}</PageTitle>
+          <MutedText spacing="tight">
+            {t('projectTimesheets.subtitle', { project: project.name })}
+          </MutedText>
+        </div>
+      </FlexBetween>
 
-      <PageContainer>
-        <Card variant="flush">
-          <Table variant="compact">
-            <TableHeader>
-              <TableRow variant="header">
-                <HeadCell label="" width="32px" />
-                <HeadCell label={t('projectTimesheetsPage.table.period')} />
-                <HeadCell label={t('projectTimesheetsPage.table.status')} align="right" width="220px" />
-                <HeadCell label={t('projectTimesheetsPage.table.employees')} align="right" width="120px" />
-                <HeadCell label={t('projectTimesheetsPage.table.totalDays')} align="right" width="112px" />
+      <Card variant="flush" className="w-fit max-w-full">
+        <Table variant="compact" fit>
+          <TableHeader>
+            <TableRow variant="header">
+              <HeadCell label="" width="32px" />
+              <HeadCell label={t('projectTimesheetsPage.table.period')} />
+              <HeadCell label={t('projectTimesheetsPage.table.status')} align="right" width="220px" />
+              <HeadCell label={t('projectTimesheetsPage.table.employees')} align="right" width="120px" />
+              <HeadCell label={t('projectTimesheetsPage.table.totalDays')} align="right" width="112px" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {groups.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={colSpan} className="text-center text-sm text-muted-foreground py-6">
+                  {t('projectTimesheetsPage.table.empty')}
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {groups.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={colSpan} className="text-center text-sm text-muted-foreground py-6">
-                    {t('projectTimesheetsPage.table.empty')}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                groups.map((group) => {
-                  const isOpen = expanded.has(group.periodKey)
-                  return (
-                    <Fragment key={group.periodKey}>
-                      <TableRow
-                        className="cursor-pointer hover:bg-muted/40"
-                        onClick={() => toggle(group.periodKey)}
-                      >
-                        <TableCell className="w-8 pr-0">
-                          <ChevronRight
-                            size={14}
-                            className={cn(
-                              'transition-transform duration-200 ease-out',
-                              isOpen && 'rotate-90',
-                            )}
-                          />
-                        </TableCell>
-                        <TdPrimary>{formatPeriodSliceLabel(group.periodKey)}</TdPrimary>
-                        <TableCell className="text-right">
-                          <StatusCountBadges counts={group.statusCounts} />
-                        </TableCell>
-                        <TdDetail className="text-right tabular-nums">
-                          {group.employeeIds.size}
-                        </TdDetail>
-                        <TdNumeric>{formatDaysWithUnit(group.totalDays)}</TdNumeric>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell
-                          colSpan={colSpan}
+            ) : (
+              groups.map((group) => {
+                const isOpen = expanded.has(group.periodKey)
+                return (
+                  <Fragment key={group.periodKey}>
+                    <TableRow
+                      className="cursor-pointer hover:bg-muted/40"
+                      onClick={() => toggle(group.periodKey)}
+                    >
+                      <TableCell className="w-8 pr-0">
+                        <ChevronRight
+                          size={14}
                           className={cn(
-                            'border-l-2 bg-muted/10 !p-0',
-                            isOpen ? 'border-l-primary/60' : 'border-l-transparent',
+                            'transition-transform duration-200 ease-out',
+                            isOpen && 'rotate-90',
+                          )}
+                        />
+                      </TableCell>
+                      <TdPrimary>{formatPeriodSliceLabel(group.periodKey)}</TdPrimary>
+                      <TableCell className="text-right">
+                        <StatusCountBadges counts={group.statusCounts} />
+                      </TableCell>
+                      <TdDetail className="text-right tabular-nums">
+                        {group.employeeIds.size}
+                      </TdDetail>
+                      <TdNumeric>{formatDaysWithUnit(group.totalDays)}</TdNumeric>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell
+                        colSpan={colSpan}
+                        className={cn(
+                          'border-l-2 bg-muted/10 !p-0',
+                          isOpen ? 'border-l-primary/60' : 'border-l-transparent',
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            'grid transition-[grid-template-rows] duration-200 ease-out',
+                            isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
                           )}
                         >
-                          <div
-                            className={cn(
-                              'grid transition-[grid-template-rows] duration-200 ease-out',
-                              isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
-                            )}
-                          >
-                            <div className="overflow-hidden">
-                              <PeriodMatrix group={group} employeeNameById={employeeNameById} />
-                            </div>
+                          <div className="overflow-hidden">
+                            <PeriodMatrix group={group} employeeNameById={employeeNameById} />
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    </Fragment>
-                  )
-                })
-              )}
-            </TableBody>
-          </Table>
-        </Card>
-      </PageContainer>
-    </FullHeightColumn>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </Fragment>
+                )
+              })
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+    </PageContainer>
   )
 }

@@ -40,16 +40,20 @@ const tableVariants = cva("w-full caption-bottom text-sm", {
 function Table({
   className,
   variant,
+  fit,
   ...props
-}: React.ComponentProps<"table"> & VariantProps<typeof tableVariants>) {
+}: React.ComponentProps<"table"> & VariantProps<typeof tableVariants> & {
+  /** When true, table shrinks to fit its content instead of filling the container width */
+  fit?: boolean
+}) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className={cn('relative overflow-x-auto', fit ? 'w-fit max-w-full' : 'w-full')}
     >
       <table
         data-slot="table"
-        className={cn(tableVariants({ variant }), className)}
+        className={cn(tableVariants({ variant }), fit && '!w-auto', className)}
         {...props}
       />
     </div>

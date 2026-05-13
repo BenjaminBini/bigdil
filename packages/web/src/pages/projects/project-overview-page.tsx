@@ -3,8 +3,9 @@ import type { ReactNode } from 'react'
 import { useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useProject } from '@/api/hooks'
-import { LoadingState, ErrorState } from '@/components/shared/page-container'
-import { DetailGrid } from '@/components/shared/layouts'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { DetailGrid, FlexBetween } from '@/components/shared/layouts'
+import { PageTitle } from '@/components/shared/page-title'
 import { ProjectActivityTimeline } from './components/project-activity-timeline'
 import { ProjectDetailsCard } from './components/project-details-card'
 import { ProjectNextStepsCard } from './components/project-next-steps-card'
@@ -31,7 +32,13 @@ export default function ProjectOverviewPage() {
   const detailsCard = <ProjectDetailsCard project={data} onEdit={() => setShowEdit(true)} />
 
   return (
-    <>
+    <PageContainer>
+      <FlexBetween>
+        <div>
+          <PageTitle as="h2">{t('projectLayout.tabs.overview')}</PageTitle>
+        </div>
+      </FlexBetween>
+
       {data.periods.length > 0 ? (
         <DetailGrid>
           <SideColumn>
@@ -54,6 +61,6 @@ export default function ProjectOverviewPage() {
         open={showEdit}
         onClose={() => setShowEdit(false)}
       />
-    </>
+    </PageContainer>
   )
 }

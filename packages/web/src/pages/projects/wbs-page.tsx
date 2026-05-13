@@ -143,10 +143,10 @@ export default function WbsPage() {
   const isPhaseDialog = dialogMode?.type === 'add-phase' || dialogMode?.type === 'edit-phase'
 
   return (
-    <PageContainer size="md">
+    <PageContainer>
       <FlexBetween>
         <div>
-          <PageTitle>Work Breakdown Structure</PageTitle>
+          <PageTitle as="h2">Work Breakdown Structure</PageTitle>
           <MutedText spacing="tight">
             Manage the phases and tasks for this project
           </MutedText>

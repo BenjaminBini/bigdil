@@ -46,10 +46,10 @@ export default function QuotesPage() {
   const quotes = data.quotes
 
   return (
-    <PageContainer size="lg">
+    <PageContainer>
       <FlexBetween>
         <div>
-          <PageTitle>{t('quotes.title')}</PageTitle>
+          <PageTitle as="h2">{t('quotes.title')}</PageTitle>
           <MutedText spacing="tight">{t('quotes.subtitle')}</MutedText>
         </div>
         <Button onClick={() => setShowNewQuote(true)}>
@@ -58,8 +58,8 @@ export default function QuotesPage() {
         </Button>
       </FlexBetween>
 
-      <Card variant="flush">
-        <Table>
+      <Card variant="flush" className="w-fit max-w-full">
+        <Table fit>
           <TableHeader>
             <TableRow variant="header">
               <TableHead>{t('quotes.table.title')}</TableHead>

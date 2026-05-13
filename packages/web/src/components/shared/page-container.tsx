@@ -2,18 +2,18 @@ import type { ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const containerVariants = cva('space-y-6 p-6', {
+const containerVariants = cva('space-y-6 p-6 w-full', {
   variants: {
     size: {
-      sm: "max-w-full",
-      md: "max-w-full",
-      lg: "max-w-full",
-      xl: "max-w-full",
-      full: "",
+      sm: 'max-w-2xl',
+      md: 'max-w-4xl',
+      lg: 'max-w-5xl',
+      xl: 'max-w-6xl',
+      full: 'max-w-full',
     },
   },
   defaultVariants: {
-    size: "xl",
+    size: 'xl',
   },
 });
 

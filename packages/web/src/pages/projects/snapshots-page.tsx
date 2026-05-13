@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Camera, Eye } from 'lucide-react'
 import { useProject, useSnapshots, useCreateSnapshot } from '@/api/hooks'
-import { LoadingState, ErrorState } from '@/components/shared/page-container'
+import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
 import { FlexBetween } from '@/components/shared/layouts'
 import { VStack } from '@/components/shared/VStack'
 import { PageTitle, SectionTitle } from '@/components/shared/page-title'
@@ -108,8 +108,8 @@ function SnapshotsList({ snapshots, projectId }: SnapshotsListProps) {
   const dash = <NullCell />
 
   return (
-    <Card variant="flush">
-      <Table>
+    <Card variant="flush" className="w-fit max-w-full">
+      <Table fit>
         <TableHeader>
           <TableRow variant="header">
             <HeadCell label="Month" />
@@ -186,10 +186,10 @@ export default function SnapshotsPage() {
   }
 
   return (
-    <VStack gap="xl">
+    <PageContainer>
       <FlexBetween>
         <div>
-          <PageTitle>{t('snapshots.title')}</PageTitle>
+          <PageTitle as="h2">{t('snapshots.title')}</PageTitle>
           <MutedText spacing="tight">
             {t('snapshots.subtitle', { pending: pending.length, snapshots: snapshots.length })}
           </MutedText>
@@ -208,6 +208,6 @@ export default function SnapshotsPage() {
       </VStack>
 
       <SnapshotSummaryStrip snapshots={snapshots} />
-    </VStack>
+    </PageContainer>
   )
 }

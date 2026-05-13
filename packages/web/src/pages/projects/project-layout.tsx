@@ -2,7 +2,7 @@ import { Outlet, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useProject } from '@/api/hooks'
 import { formatCurrency } from '@/lib/format'
-import { LoadingState, ErrorState, PageContainer } from '@/components/shared/page-container'
+import { LoadingState, ErrorState } from '@/components/shared/page-container'
 import { DetailPageBackground } from '@/components/shared/detail-layout'
 import type { ProjectKpiCardProps } from './components/project-kpi-card'
 import { ProjectHeader } from './components/project-header'
@@ -63,9 +63,7 @@ export default function ProjectLayout() {
         closedAt={data.closedAt}
         isActive={data.isActive}
       />
-      <PageContainer>
-        <Outlet />
-      </PageContainer>
+      <Outlet />
     </DetailPageBackground>
   )
 }
