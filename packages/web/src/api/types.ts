@@ -326,6 +326,7 @@ export interface ProjectDetail extends Project {
 export interface PreviousSnapshotRaf {
   taskId: string
   profileId: string
+  employeeId: string | null
   days: number
 }
 

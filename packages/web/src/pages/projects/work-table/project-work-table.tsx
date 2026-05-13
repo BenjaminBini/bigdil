@@ -64,9 +64,21 @@ export function ProjectWorkTable({
   const consolidationPeriod = consolidationPeriods[consolidationPeriods.length - 1]
 
   const prevSnapshotRafMap = useMemo(() => {
+    // Profile-level RAF: sum over all employees (and the UNASSIGNED bucket)
+    // for a given (task, profile).
     const map = new Map<string, number>()
     for (const entry of previousSnapshotRaf) {
-      map.set(`${entry.taskId}::${entry.profileId}`, entry.days)
+      const key = `${entry.taskId}::${entry.profileId}`
+      map.set(key, (map.get(key) ?? 0) + entry.days)
+    }
+    return map
+  }, [previousSnapshotRaf])
+
+  const prevSnapshotRafByEmployee = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const entry of previousSnapshotRaf) {
+      const empKey = entry.employeeId ?? 'UNASSIGNED'
+      map.set(`${entry.taskId}::${entry.profileId}::${empKey}`, entry.days)
     }
     return map
   }, [previousSnapshotRaf])
@@ -77,9 +89,9 @@ export function ProjectWorkTable({
       allRows,
       periods,
       consolidationPeriods.map((p) => p.code),
-      { prevSnapshotRaf: prevSnapshotRafMap },
+      { prevSnapshotRaf: prevSnapshotRafMap, prevSnapshotRafByEmployee },
     )
-  }, [allRows, periods, frozenData, consolidationPeriods, prevSnapshotRafMap])
+  }, [allRows, periods, frozenData, consolidationPeriods, prevSnapshotRafMap, prevSnapshotRafByEmployee])
 
   const totalToPlan = useMemo(
     () =>

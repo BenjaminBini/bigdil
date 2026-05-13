@@ -98,6 +98,11 @@ export interface ComputeFrozenOptions {
    *  * sellRate instead of cells[activePeriodCode] * sellRate.
    *  Missing keys fall back to row.quotedDays (first-period semantics). */
   prevSnapshotRaf?: Map<string, number>
+  /** Map of `${taskId}::${profileId}::${employeeId ?? 'UNASSIGNED'}` → RAF
+   *  days from the previous snapshot (or initial allocation for the first
+   *  consolidation). When provided, employee Period Revenue uses the per-emp
+   *  RAF delta instead of summing cells in CONSOLIDATION weeks. */
+  prevSnapshotRafByEmployee?: Map<string, number>
 }
 
 export function computeFrozenData(
@@ -117,6 +122,8 @@ export function computeFrozenData(
     activePeriodCodes.reduce((s, code) => s + (cells[code] ?? 0), 0)
   const prevRafMap = options?.prevSnapshotRaf
   const useRafDeltaRevenue = prevRafMap !== undefined
+  const prevRafByEmployee = options?.prevSnapshotRafByEmployee
+  const useEmpRafDelta = prevRafByEmployee !== undefined
   const result = new Map<string, FrozenData>()
 
   for (const row of rows) {
@@ -125,7 +132,24 @@ export function computeFrozenData(
     const sellRate = row.forecastSellRate ?? 0
     const periodDays = sumCells(row.cells)
     const pcAmount = periodDays * costRate
-    const prAmount = periodDays * sellRate
+
+    // Per-employee RAF delta — same semantics as the profile branch but keyed
+    // by (task, profile, employee). With initial allocations in place every
+    // (task, profile, employee) tuple has a baseline; missing means the employee
+    // was assigned after the last snapshot AND no allocation covers them →
+    // baseline 0 → no delta to claim until a new validated quote/avenant adds them.
+    let prDaysProduced: number
+    if (useEmpRafDelta && row.taskId && row.profileId) {
+      const empKey = row.employeeId ?? 'UNASSIGNED'
+      const key = `${row.taskId}::${row.profileId}::${empKey}`
+      const prevRaf = prevRafByEmployee.get(key)
+      prDaysProduced = prevRaf !== undefined
+        ? Math.max(0, prevRaf - row.totalRemaining)
+        : 0
+    } else {
+      prDaysProduced = periodDays
+    }
+    const prAmount = prDaysProduced * sellRate
     const prMargin = prAmount - pcAmount
     result.set(row.id, {
       tcDaysSpent: row.totalActual,
@@ -140,7 +164,7 @@ export function computeFrozenData(
       pcDaysSpent: periodDays,
       pcDailyCost: costRate || null,
       pcAmount,
-      prDaysProduced: periodDays,
+      prDaysProduced,
       prAmount,
       prMargin,
       prMarginPct: prAmount !== 0 ? (prMargin / prAmount) * 100 : null,
