@@ -105,7 +105,7 @@ export function WorkCell({
 
   if (editing) {
     return (
-      <td className={cn(periodCellBorders, 'p-0 min-w-[56px] w-14', cellBg)}>
+      <td className={cn(periodCellBorders, 'p-0 min-w-[44px] w-11', cellBg)}>
         <CompactInput
           ref={inputRef}
           type="text"
@@ -115,13 +115,14 @@ export function WorkCell({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           autoFocus
+          className="text-center"
         />
       </td>
     )
   }
 
   const cellClasses = cn(
-    'min-w-[56px] w-14 px-1.5 py-1 text-right font-mono tabular-nums',
+    'min-w-[44px] w-11 px-1.5 py-1 text-center font-mono tabular-nums',
     periodCellBorders,
     cellBg,
     // Row-kind hierarchy — aggregates loud, employee row distinctly recessed.

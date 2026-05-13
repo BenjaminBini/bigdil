@@ -121,7 +121,7 @@ export function WorkGridHeader({ periods }: WorkGridHeaderProps) {
             <th
               key={period.periodKey}
               className={cn(
-                'min-w-[56px] w-14 whitespace-nowrap border-b border-r border-border/70 px-1 py-1 text-center',
+                'min-w-[44px] w-11 whitespace-nowrap border-b border-r border-border/70 px-1 py-1 text-center',
                 isFrozen && 'bg-muted text-muted-foreground',
                 isConsolidation &&
                   'bg-muted/60 font-medium text-muted-foreground',
