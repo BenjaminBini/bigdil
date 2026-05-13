@@ -211,10 +211,12 @@ export function buildGridRows(
     const isEmployeeLevel = employeeId !== undefined
     let quotedDays = 0
     let forecastSellRate: number | null = null
-    if (taskId && profileId && !isEmployeeLevel) {
+    if (taskId && profileId) {
       const ql = findValidatedQuoteLines(taskId, profileId, quotes)
-      quotedDays = ql.totalDays
       forecastSellRate = ql.sellRatePerDay
+      if (!isEmployeeLevel) {
+        quotedDays = ql.totalDays
+      }
     }
     const variance = !isEmployeeLevel ? total - quotedDays : 0
     // Days quoted but not yet allocated into period cells. Surfaces newly

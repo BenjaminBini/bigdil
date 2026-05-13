@@ -122,24 +122,28 @@ export function computeFrozenData(
   for (const row of rows) {
     if (row.kind !== 'employee') continue
     const costRate = row.forecastCostRate ?? 0
+    const sellRate = row.forecastSellRate ?? 0
     const periodDays = sumCells(row.cells)
+    const pcAmount = periodDays * costRate
+    const prAmount = periodDays * sellRate
+    const prMargin = prAmount - pcAmount
     result.set(row.id, {
       tcDaysSpent: row.totalActual,
       tcDaysRemaining: row.totalRemaining,
       tcTotalDays: row.total,
       tcAmount: row.total * costRate,
       trDaysSold: 0,
-      trDailyRate: null,
+      trDailyRate: sellRate || null,
       trAmount: 0,
       trMargin: 0,
       trMarginPct: null,
       pcDaysSpent: periodDays,
       pcDailyCost: costRate || null,
-      pcAmount: periodDays * costRate,
+      pcAmount,
       prDaysProduced: periodDays,
-      prAmount: 0,
-      prMargin: 0,
-      prMarginPct: null,
+      prAmount,
+      prMargin,
+      prMarginPct: prAmount !== 0 ? (prMargin / prAmount) * 100 : null,
     })
   }
 
@@ -259,13 +263,26 @@ export function getFrozenMarginPct(fd: FrozenData, key: string): number | null {
 }
 
 export function formatFrozenValue(value: number | null, format: FrozenColDef['format']): string {
-  if (value === null || value === 0) return '—'
+  if (value === null) return '—'
   switch (format) {
     case 'days':
-      return formatDays(value)
+      return value === 0 ? '0' : formatDays(value)
     case 'currency':
     case 'rate':
     case 'margin':
       return formatCurrency(value)
   }
+}
+
+/** Columns whose data lives at profile-level and is N/A on employee rows. */
+const EMPLOYEE_NA_COLS = new Set([
+  'tr_sold',
+  'tr_rate',
+  'tr_amount',
+  'tr_margin',
+])
+
+export function isFrozenColApplicable(rowKind: GridRow['kind'], colKey: string): boolean {
+  if (rowKind === 'employee') return !EMPLOYEE_NA_COLS.has(colKey)
+  return true
 }
