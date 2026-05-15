@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bigdil}
+      POSTGRES_USER: ${POSTGRES_USER:-bigdil}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bigdil}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bigdil
+
+  bigdil-api:
+    image: bigdil-api:${IMAGE_TAG:?IMAGE_TAG is required}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-bigdil}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-bigdil}
+      PORT: "3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bigdil
+      - edge
+
+  bigdil-web:
+    image: bigdil-web:${IMAGE_TAG:?IMAGE_TAG is required}
+    restart: unless-stopped
+    depends_on:
+      - bigdil-api
+    networks:
+      - edge
+
+networks:
+  bigdil:
+    driver: bridge
+  edge:
+    external: true
+
+volumes:
+  pgdata:

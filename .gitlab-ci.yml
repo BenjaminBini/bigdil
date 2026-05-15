@@ -9,6 +9,8 @@ default:
 stages:
   - check
   - build
+  - docker
+  - deploy
 
 typecheck:web:
   stage: check
@@ -57,3 +59,66 @@ build:api:
     paths:
       - node_modules/
       - packages/*/node_modules/
+
+.docker:
+  stage: docker
+  image: docker:27
+  services:
+    - docker:27-dind
+  before_script: []
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: "/certs"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+docker:api:
+  extends: .docker
+  script:
+    - docker build -f packages/api/Dockerfile -t bigdil-api:$CI_COMMIT_SHORT_SHA .
+    - docker save bigdil-api:$CI_COMMIT_SHORT_SHA | gzip > bigdil-api.tar.gz
+  artifacts:
+    paths:
+      - bigdil-api.tar.gz
+    expire_in: 1 week
+
+docker:web:
+  extends: .docker
+  script:
+    - docker build -f packages/web/Dockerfile -t bigdil-web:$CI_COMMIT_SHORT_SHA .
+    - docker save bigdil-web:$CI_COMMIT_SHORT_SHA | gzip > bigdil-web.tar.gz
+  artifacts:
+    paths:
+      - bigdil-web.tar.gz
+    expire_in: 1 week
+
+deploy:
+  stage: deploy
+  image: alpine:3.20
+  variables:
+    DEPLOY_PATH: /opt/infra/bigdil
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+  script:
+    - export IMAGE_TAG="$CI_COMMIT_SHORT_SHA"
+    - printf '%s\n' "$BIGDIL_ENV" > .env
+    - scp bigdil-api.tar.gz bigdil-web.tar.gz docker-compose.prod.yml .env "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+    - |
+      ssh "$DEPLOY_USER@$DEPLOY_HOST" "set -e; \
+        cd $DEPLOY_PATH && \
+        docker load -i bigdil-api.tar.gz && \
+        docker load -i bigdil-web.tar.gz && \
+        rm -f bigdil-api.tar.gz bigdil-web.tar.gz && \
+        IMAGE_TAG=$IMAGE_TAG docker compose -f docker-compose.prod.yml up -d && \
+        docker image prune -f"
+  needs:
+    - docker:api
+    - docker:web
+  environment:
+    name: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
