@@ -285,7 +285,9 @@ type RowKind = GridRow["kind"];
  * Keep entries minimal — omit rowKinds where no headline applies, and the
  * popover falls back to the legacy `title` field for those rows.
  */
-const COLUMN_HEADLINES: Partial<Record<string, Partial<Record<RowKind, string>>>> = {
+const COLUMN_HEADLINES: Partial<
+  Record<string, Partial<Record<RowKind, string>>>
+> = {
   tc_spent: {
     employee: "headline.spentByEmployee",
     profile: "headline.spentOn",
